@@ -17,6 +17,18 @@ export const DEFAULT_SLIDERS: SlidersState = {
   materialFeel: 10,
 };
 
+export const NEUTRAL_SLIDERS: SlidersState = {
+  temperature: 50,
+  muting: 0,
+  contrast: 50,
+  luminosity: 50,
+  futurism: 0,
+  neutrality: 0,
+  warmAccent: 0,
+  cinematicFog: 0,
+  materialFeel: 0,
+};
+
 // Apply variation sliders to an array of colors
 export function applySliders(colors: ColorData[], sliders: SlidersState): ColorData[] {
   return colors.map(color => {

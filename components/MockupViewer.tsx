@@ -338,14 +338,14 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
         <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
-        <text x="250" y="13" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="monospace" textAnchor="middle">5000 mm</text>
+        <text x="250" y="13" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">5000 mm</text>
 
         <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <line x1="14" y1="30" x2="22" y2="30" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
         <line x1="14" y1="290" x2="22" y2="290" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
-        <text x="12" y="165" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+        <text x="12" y="165" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
         
-        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION A-A / SCALE 1:50</text>
+        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A / SCALE 1:50</text>
       </svg>
     );
   };
@@ -397,12 +397,12 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
         <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
         <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
-        <text x="250" y="13" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">5000 mm</text>
+        <text x="250" y="13" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">5000 mm</text>
 
         <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
-        <text x="12" y="165" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+        <text x="12" y="165" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
         
-        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION A-A (NIGHT) / LIGHT VALUE TEST</text>
+        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A (NIGHT) / LIGHT VALUE TEST</text>
       </svg>
     );
   };
@@ -422,54 +422,54 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </defs>
         <rect width="500" height="320" fill="url(#moodboard-grid)" />
 
-        <text x="25" y="28" fill={textContrast} opacity="0.7" fontSize="9" fontWeight="700" fontFamily="monospace">CMF BOARD / SPATIAL MATERIAL SPECIFICATION</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.7" fontSize="9" fontWeight="700" fontFamily="'Space Mono', monospace">CMF BOARD / SPATIAL MATERIAL SPECIFICATION</text>
 
         {/* Plaster sample */}
         <g transform="translate(25, 45)">
           <rect x="0" y="0" width="135" height="235" fill={bg} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="125" height="150" fill={wall} rx="2" />
           <path d="M15 170 H120 M15 185 H120 M15 200 H120" stroke={textContrast} strokeOpacity="0.08" />
-          <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">PLASTER / TEXTURE</text>
-          <text x="15" y="231" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {wall.toUpperCase()}</text>
+          <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">PLASTER / TEXTURE</text>
+          <text x="15" y="231" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {wall.toUpperCase()}</text>
         </g>
 
         {/* Main Wall sample */}
         <g transform="translate(175, 45)">
           <rect x="0" y="0" width="140" height="110" fill={wall} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={floor} rx="2" />
-          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">SURFACE WALL</text>
-          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {floor.toUpperCase()}</text>
+          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SURFACE WALL</text>
+          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {floor.toUpperCase()}</text>
         </g>
 
         {/* Floor stone sample */}
         <g transform="translate(175, 170)">
           <rect x="0" y="0" width="140" height="110" fill={floor} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={details} rx="2" />
-          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">STONE / CONCRETE</text>
-          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {details.toUpperCase()}</text>
+          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">STONE / CONCRETE</text>
+          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {details.toUpperCase()}</text>
         </g>
 
         {/* Textile & Accent samples */}
         <g transform="translate(330, 45)">
           {/* Accent 1 */}
           <rect x="0" y="0" width="145" height="65" fill={accent1} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>ACCENT PRIMARY</text>
-          <text x="12" y="54" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accent1.toUpperCase()}</text>
+          <text x="12" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>ACCENT PRIMARY</text>
+          <text x="12" y="54" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accent1.toUpperCase()}</text>
 
           {/* Accent Teal */}
           <rect x="0" y="75" width="145" height="65" fill={accentTeal} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="120" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>ACCENT SIGNAL</text>
-          <text x="12" y="129" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accentTeal.toUpperCase()}</text>
+          <text x="12" y="120" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>ACCENT SIGNAL</text>
+          <text x="12" y="129" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accentTeal.toUpperCase()}</text>
 
           {/* Accent 2 */}
           <rect x="0" y="150" width="145" height="85" fill={accent2} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="215" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>SECONDARY ACCENT</text>
-          <text x="12" y="224" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accent2.toUpperCase()}</text>
+          <text x="12" y="215" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>SECONDARY ACCENT</text>
+          <text x="12" y="224" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accent2.toUpperCase()}</text>
         </g>
 
         {/* Technical notes */}
         <line x1="25" y1="295" x2="475" y2="295" stroke={textContrast} strokeOpacity="0.15" />
-        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">{"CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL"}</text>
+        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">{"CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL"}</text>
       </svg>
     );
   };
@@ -487,7 +487,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           </pattern>
         </defs>
         
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION & PROFILE: DESKTOP SPEAKER</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION & PROFILE: DESKTOP SPEAKER</text>
 
         {/* FRONT VIEW */}
         <g transform="translate(60, 50)">
@@ -503,7 +503,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <rect x="40" y="180" width="40" height="8" fill={floor} rx="2" />
           <circle cx="85" cy="184" r="2.5" fill={accentTeal} />
           
-          <text x="60" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">FRONT ELEVATION</text>
+          <text x="60" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">FRONT ELEVATION</text>
         </g>
 
         {/* SIDE PROFILE VIEW */}
@@ -520,24 +520,24 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <rect x="15" y="200" width="25" height="6" fill={shadow} rx="1" />
           <rect x="90" y="200" width="25" height="6" fill={shadow} rx="1" />
 
-          <text x="65" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">SIDE PROFILE</text>
+          <text x="65" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">SIDE PROFILE</text>
         </g>
 
         {/* TECHNICAL DIMENSION LINES */}
         <line x1="35" y1="50" x2="35" y2="250" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
         <line x1="31" y1="50" x2="39" y2="50" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <line x1="31" y1="250" x2="39" y2="250" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
-        <text x="27" y="155" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 27, 155)">200.0 mm</text>
+        <text x="27" y="155" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 27, 155)">200.0 mm</text>
 
         <line x1="60" y1="265" x2="180" y2="265" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
         <line x1="60" y1="261" x2="60" y2="269" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <line x1="180" y1="261" x2="180" y2="269" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
-        <text x="120" y="276" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle">120.0 mm</text>
+        <text x="120" y="276" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">120.0 mm</text>
 
         <line x1="60" y1="50" x2="420" y2="50" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         <line x1="60" y1="250" x2="420" y2="250" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">HOUSING [SRF]: {wall.toUpperCase()}{" // "}DIALS [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">HOUSING [SRF]: {wall.toUpperCase()}{" // "}DIALS [MUT]: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -549,7 +549,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">TUBE FRAME LOUNGE CHAIR / CAD SHEET</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">TUBE FRAME LOUNGE CHAIR / CAD SHEET</text>
 
         {/* FRONT VIEW */}
         <g transform="translate(60, 60)">
@@ -562,7 +562,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <line x1="30" y1="105" x2="30" y2="180" stroke={details} strokeWidth="3.5" />
           <line x1="90" y1="105" x2="90" y2="180" stroke={details} strokeWidth="3.5" />
 
-          <text x="60" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">ALZADO FRONTAL (FRONT)</text>
+          <text x="60" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">ALZADO FRONTAL (FRONT)</text>
         </g>
 
         {/* SIDE VIEW */}
@@ -574,7 +574,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <path d="M 15 105 L 15 90 Q 15 80 40 80 L 80 80 Q 95 80 95 105 L 95 180" fill="none" stroke={shadow} strokeWidth="3.5" strokeLinecap="round" />
           <line x1="10" y1="180" x2="105" y2="180" stroke={details} strokeWidth="3" />
 
-          <text x="55" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">ALZADO LATERAL (PROFILE)</text>
+          <text x="55" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">ALZADO LATERAL (PROFILE)</text>
         </g>
 
         {/* Alignment Lines */}
@@ -586,9 +586,9 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="35" y1="100" x2="35" y2="240" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
         <line x1="31" y1="100" x2="39" y2="100" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <line x1="31" y1="240" x2="39" y2="240" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
-        <text x="27" y="170" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 27, 170)">820.0 mm</text>
+        <text x="27" y="170" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 27, 170)">820.0 mm</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CUSHION [ACC1]: {accent1.toUpperCase()}{" // "}SHELL [ACC2]: {accent2.toUpperCase()}{" // "}TUBE [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">CUSHION [ACC1]: {accent1.toUpperCase()}{" // "}SHELL [ACC2]: {accent2.toUpperCase()}{" // "}TUBE [MUT]: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -600,7 +600,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">DIGITAL CALIPER / CMF METROLOGY INSTRUMENT</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">DIGITAL CALIPER / CMF METROLOGY INSTRUMENT</text>
 
         <g transform="translate(50, 110)">
           <rect x="0" y="30" width="370" height="26" fill={floor} rx="2" stroke={textContrast} strokeOpacity="0.2" />
@@ -614,8 +614,8 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
           <rect x="120" y="20" width="100" height="46" fill={shadow} rx="3" stroke={textContrast} strokeOpacity="0.1" />
           <rect x="130" y="26" width="60" height="24" fill={bg} rx="1" />
-          <text x="160" y="43" fill={textContrast} fontSize="12" fontFamily="monospace" fontWeight="700" textAnchor="middle">24.08</text>
-          <text x="185" y="34" fill={textContrast} fontSize="6" fontFamily="monospace">mm</text>
+          <text x="160" y="43" fill={textContrast} fontSize="12" fontFamily="'Space Mono', monospace" fontWeight="700" textAnchor="middle">24.08</text>
+          <text x="185" y="34" fill={textContrast} fontSize="6" fontFamily="'Space Mono', monospace">mm</text>
 
           <path d="M 120 20 L 120 -40 L 105 -40 L 115 20 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
           <path d="M 120 66 L 120 120 L 105 120 L 112 66 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
@@ -625,7 +625,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <circle cx="205" cy="54" r="4.5" fill={accent2} />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">BEAM [BDR]: {floor.toUpperCase()}{" // "}DISPLAY CASE [TXT]: {shadow.toUpperCase()}{" // "}MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">BEAM [BDR]: {floor.toUpperCase()}{" // "}DISPLAY CASE [TXT]: {shadow.toUpperCase()}{" // "}MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.1" />
       </svg>
     );
@@ -638,7 +638,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">ESPRESSO MACHINE ELEVATION / DOMESTIC APPLIANCE CMF</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ESPRESSO MACHINE ELEVATION / DOMESTIC APPLIANCE CMF</text>
 
         <g transform="translate(180, 45)">
           <rect x="0" y="20" width="130" height="200" fill={wall} rx="4" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1.5" />
@@ -666,12 +666,12 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </g>
 
         <line x1="130" y1="65" x2="180" y2="65" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
-        <text x="120" y="68" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="monospace" textAnchor="end">BOILER PRESSURE GAUGE</text>
+        <text x="120" y="68" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="end">BOILER PRESSURE GAUGE</text>
 
         <line x1="310" y1="140" x2="350" y2="140" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
-        <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="monospace" textAnchor="start">PORTAFILTER CMF ACCENT</text>
+        <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="start">PORTAFILTER CMF ACCENT</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CHASSIS [SRF]: {wall.toUpperCase()}{" // "}PORTAFILTER [TXT]: {shadow.toUpperCase()}{" // "}FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">CHASSIS [SRF]: {wall.toUpperCase()}{" // "}PORTAFILTER [TXT]: {shadow.toUpperCase()}{" // "}FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
       </svg>
     );
   };
@@ -693,8 +693,8 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         <rect x="15" y="15" width="470" height="290" fill="none" stroke={textContrast} strokeOpacity="0.15" strokeWidth="1" />
 
-        <text x="35" y="55" fill={textContrast} fontSize="28" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1.5">CRAN3O COLOR</text>
-        <text x="35" y="75" fill={accent1} fontSize="14" fontWeight="600" fontFamily="monospace" letterSpacing="4">OKLCH CHROMATIC SYSTEM</text>
+        <text x="35" y="55" fill={textContrast} fontSize="28" fontWeight="900" fontFamily="'Space Grotesk', -apple-system, sans-serif" letterSpacing="-1.5">CRAN3O COLOR</text>
+        <text x="35" y="75" fill={accent1} fontSize="14" fontWeight="600" fontFamily="'Space Mono', monospace" letterSpacing="4">OKLCH CHROMATIC SYSTEM</text>
 
         <g transform="translate(190, 40)">
           <path d="M 60 170 A 60 60 0 0 1 180 170 Z" fill={accent2} opacity="0.85" />
@@ -705,16 +705,16 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <line x1="120" y1="30" x2="120" y2="190" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
         </g>
 
-        <text x="35" y="220" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">EDITION SWISS GRAPHICS LAB</text>
-        <text x="35" y="232" fill={textContrast} opacity="0.6" fontSize="7.5" fontFamily="monospace">MAX CHROMA CAP: 0.10 OKLCH</text>
-        <text x="35" y="244" fill={accentTeal} fontSize="8" fontWeight="700" fontFamily="monospace">SYS.ACC_TL: {accentTeal.toUpperCase()}</text>
+        <text x="35" y="220" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">EDITION SWISS GRAPHICS LAB</text>
+        <text x="35" y="232" fill={textContrast} opacity="0.6" fontSize="7.5" fontFamily="'Space Mono', monospace">MAX CHROMA CAP: 0.10 OKLCH</text>
+        <text x="35" y="244" fill={accentTeal} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SYS.ACC_TL: {accentTeal.toUpperCase()}</text>
 
         <g transform="translate(360, 220)">
-          <text x="0" y="0" fill={textContrast} opacity="0.8" fontSize="8" fontWeight="700" fontFamily="monospace">COLORWEIGHT PROPORTIONS</text>
+          <text x="0" y="0" fill={textContrast} opacity="0.8" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">COLORWEIGHT PROPORTIONS</text>
           <rect x="0" y="8" width="100" height="6" fill={wall} />
           <rect x="0" y="8" width="60" height="6" fill={accent1} />
           <rect x="0" y="8" width="30" height="6" fill={accentTeal} />
-          <text x="0" y="24" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">TOTAL SYSTEM HARMONY VALUE: PASS</text>
+          <text x="0" y="24" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">TOTAL SYSTEM HARMONY VALUE: PASS</text>
         </g>
       </svg>
     );
@@ -739,7 +739,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <circle cx="48" cy="38" r="4.5" fill={accentTeal} />
         <circle cx="60" cy="38" r="4.5" fill={accent2} />
 
-        <text x="460" y="42" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="end">CRAN3O OS / LABORATORY DASHBOARD</text>
+        <text x="460" y="42" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="end">CRAN3O OS / LABORATORY DASHBOARD</text>
 
         {/* Navigation Sidebar */}
         <rect x="35" y="65" width="100" height="220" fill={widgetBg} rx="3" stroke={details} strokeOpacity="0.2" />
@@ -751,25 +751,25 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         {/* Widgets */}
         <rect x="150" y="65" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="165" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">CORE TEMPERATURE</text>
-        <text x="165" y="120" fill={textContrast} fontSize="24" fontWeight="800" fontFamily="monospace">38.4</text>
-        <text x="235" y="110" fill={textContrast} opacity="0.7" fontSize="10" fontFamily="monospace">°C</text>
+        <text x="165" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">CORE TEMPERATURE</text>
+        <text x="165" y="120" fill={textContrast} fontSize="24" fontWeight="800" fontFamily="'Space Mono', monospace">38.4</text>
+        <text x="235" y="110" fill={textContrast} opacity="0.7" fontSize="10" fontFamily="'Space Mono', monospace">°C</text>
         
         <rect x="165" y="135" width="120" height="8" fill={bg} rx="2" />
         <rect x="165" y="135" width="80" height="8" fill={accentTeal} rx="2" />
 
         {/* Chart Widget */}
         <rect x="315" y="65" width="150" height="220" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="330" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">HARMONY METRIC</text>
+        <text x="330" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">HARMONY METRIC</text>
         
         <path d="M 330 220 Q 355 130 380 180 T 430 110" fill="none" stroke={accent1} strokeWidth="3" strokeLinecap="round" />
         <path d="M 330 220 Q 355 130 380 180 T 430 110 L 430 230 L 330 230 Z" fill={accent1} opacity="0.08" />
         <circle cx="430" cy="110" r="4.5" fill={accentTeal} />
 
         <rect x="150" y="180" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="165" y="200" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">SYSTEM METRIC</text>
-        <text x="165" y="235" fill={textContrast} fontSize="18" fontWeight="800" fontFamily="monospace">OKLCH OK</text>
-        <text x="165" y="255" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">CONTRAST Lc: 78.5</text>
+        <text x="165" y="200" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SYSTEM METRIC</text>
+        <text x="165" y="235" fill={textContrast} fontSize="18" fontWeight="800" fontFamily="'Space Mono', monospace">OKLCH OK</text>
+        <text x="165" y="255" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">CONTRAST Lc: 78.5</text>
       </svg>
     );
   };
@@ -794,18 +794,18 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         
         <rect x="360" y="28" width="40" height="8" fill={shadow} opacity="0.4" rx="1" />
         <rect x="415" y="26" width="40" height="12" fill={accent1} rx="2" />
-        <text x="435" y="34" fill="#ffffff" fontSize="6.5" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>GET</text>
+        <text x="435" y="34" fill="#ffffff" fontSize="6.5" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>GET</text>
 
         <g transform="translate(35, 75)">
-          <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1">Quiet Systems.</text>
-          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1">Rams Aesthetic.</text>
-          <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="monospace">OKLCH CHROMA CONTROL ENGINE</text>
+          <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Grotesk', -apple-system, sans-serif" letterSpacing="-1">Quiet Systems.</text>
+          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Grotesk', -apple-system, sans-serif" letterSpacing="-1">Rams Aesthetic.</text>
+          <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="'Space Mono', monospace">OKLCH CHROMA CONTROL ENGINE</text>
           
           <rect x="0" y="115" width="85" height="26" fill={accent1} rx="3" />
-          <text x="42.5" y="131" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>START LAB</text>
+          <text x="42.5" y="131" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>START LAB</text>
 
           <rect x="100" y="115" width="85" height="26" fill="none" stroke={details} strokeWidth="1.5" rx="3" />
-          <text x="142.5" y="131" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle">EXPLORE</text>
+          <text x="142.5" y="131" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle">EXPLORE</text>
         </g>
 
         {/* 2D Geometric Composition */}
@@ -821,7 +821,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           
           <rect x="25" y="135" width="115" height="15" fill={accent1} rx="2" opacity="0.9" />
 
-          <text x="12" y="163" fill={textContrast} opacity="0.5" fontSize="6.5" fontFamily="monospace">FIG 01. ENGINE CORE</text>
+          <text x="12" y="163" fill={textContrast} opacity="0.5" fontSize="6.5" fontFamily="'Space Mono', monospace">FIG 01. ENGINE CORE</text>
         </g>
       </svg>
     );
@@ -842,19 +842,19 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </defs>
         <rect width="500" height="320" fill="url(#packaging-grid)" />
 
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">DIE-CUT PACKAGING SLEEVE / FLAT LAYOUT</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">DIE-CUT PACKAGING SLEEVE / FLAT LAYOUT</text>
 
         <g transform="translate(30, 45)">
           <rect x="20" y="20" width="90" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="65" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle">REAR COVER</text>
+          <text x="65" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle">REAR COVER</text>
 
           <rect x="110" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="125" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 125, 110)">SPINE A</text>
+          <text x="125" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 125, 110)">SPINE A</text>
 
           <rect x="140" y="20" width="90" height="180" fill={wall} stroke={textContrast} strokeOpacity="0.4" />
           
           <rect x="150" y="35" width="70" height="15" fill={accent1} rx="1" />
-          <text x="185" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>CRAN3O</text>
+          <text x="185" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>CRAN3O</text>
           
           <circle cx="185" cy="100" r="28" fill={accentTeal} opacity="0.8" />
           <circle cx="185" cy="100" r="16" fill={accent2} opacity="0.85" />
@@ -874,15 +874,15 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           </g>
 
           <rect x="230" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="245" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 245, 110)">SPINE B</text>
+          <text x="245" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 245, 110)">SPINE B</text>
 
           <polygon points="260,30 280,45 280,175 260,190" fill={details} opacity="0.25" stroke={textContrast} strokeOpacity="0.4" />
-          <text x="270" y="110" fill={textContrast} opacity="0.3" fontSize="6.5" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 270, 110)">GLUE FLAP</text>
+          <text x="270" y="110" fill={textContrast} opacity="0.3" fontSize="6.5" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 270, 110)">GLUE FLAP</text>
 
           <path d="M 20 20 L 260 20 M 20 200 L 260 200" stroke={accent1} strokeWidth="1.2" strokeOpacity="0.5" />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">{"SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE"}</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">{"SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE"}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.15" />
       </svg>
     );
@@ -897,9 +897,9 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
       <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#ffffff', borderRadius: '4px' }}>
         <rect width="500" height="500" fill="#ffffff" />
         <line x1="20" y1="45" x2="480" y2="45" stroke={textContrast} strokeWidth="1" opacity="0.15" />
-        <text x="20" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR STUDIO</text>
-        <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
-        <text x="20" y="38" fill={textContrast} opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">PALETTE: {paletteName.toUpperCase()}</text>
+        <text x="20" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR STUDIO</text>
+        <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
+        <text x="20" y="38" fill={textContrast} opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Space Grotesk', -apple-system, sans-serif">PALETTE: {paletteName.toUpperCase()}</text>
 
         {colors.map((color, i) => {
           const rowHeight = Math.floor(430 / colors.length);
@@ -928,18 +928,18 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Inter', -apple-system, sans-serif"
+                    fontFamily="'Space Grotesk', -apple-system, sans-serif"
                   >
                     {line}
                   </text>
                 ))}
 
-                <text x="340" y={y + rowHeight / 2 + 2 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize={hexSize} fontFamily="'Inter', -apple-system, sans-serif">
+                <text x="340" y={y + rowHeight / 2 + 2 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize={hexSize} fontFamily="'Space Grotesk', -apple-system, sans-serif">
                   {color.hex.toUpperCase()}
                 </text>
 
                 <rect x="340" y={badgeY} width="50" height={badgeHeight} rx="2" fill="none" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
-                <text x="365" y={badgeY + badgeHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="middle" letterSpacing="0.5">
+                <text x="365" y={badgeY + badgeHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="middle" letterSpacing="0.5">
                   {getRoleAbbreviation(color.role)}
                 </text>
 
@@ -965,16 +965,16 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Inter', -apple-system, sans-serif"
+                    fontFamily="'Space Grotesk', -apple-system, sans-serif"
                   >
                     {line}
                   </text>
                 ))}
-                <text x="340" y={y + rowHeight / 2 + 10 + (lines.length > 1 ? 5 : 0)} fill={textContrast} opacity="0.5" fontSize="8.5" fontFamily="'Inter', -apple-system, sans-serif">
+                <text x="340" y={y + rowHeight / 2 + 10 + (lines.length > 1 ? 5 : 0)} fill={textContrast} opacity="0.5" fontSize="8.5" fontFamily="'Space Grotesk', -apple-system, sans-serif">
                   {color.hex.toUpperCase()}
                 </text>
 
-                <text x="480" y={y + rowHeight / 2 + 4} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
+                <text x="480" y={y + rowHeight / 2 + 4} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="end">
                   {getRoleAbbreviation(color.role)}
                 </text>
 
@@ -1000,16 +1000,16 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Inter', -apple-system, sans-serif"
+                    fontFamily="'Space Grotesk', -apple-system, sans-serif"
                   >
                     {line}
                   </text>
                 ))}
-                <text x="340" y={y + rowHeight / 2 + 8 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Inter', -apple-system, sans-serif">
+                <text x="340" y={y + rowHeight / 2 + 8 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Grotesk', -apple-system, sans-serif">
                   {color.hex.toUpperCase()}
                 </text>
 
-                <text x="480" y={y + rowHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
+                <text x="480" y={y + rowHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="end">
                   {getRoleAbbreviation(color.role)}
                 </text>
 
@@ -1045,13 +1045,13 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                 <line x1={x} y1="0" x2={x} y2="500" stroke={textContrast} strokeWidth="1" opacity="0.1" />
               )}
               <g transform={`translate(${x + w/2}, 485) rotate(-90)`}>
-                <text x="0" y="-10" fill={textContrast} fontSize="9.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
+                <text x="0" y="-10" fill={textContrast} fontSize="9.5" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="start">
                   {color.displayName}
                 </text>
-                <text x="0" y="1.5" fill={textContrast} opacity="0.5" fontSize="8.5" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
+                <text x="0" y="1.5" fill={textContrast} opacity="0.5" fontSize="8.5" fontWeight="500" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="start">
                   {color.hex.toUpperCase()}
                 </text>
-                <text x="0" y="11" fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start" letterSpacing="0.5">
+                <text x="0" y="11" fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, sans-serif" textAnchor="start" letterSpacing="0.5">
                   {getRoleAbbreviation(color.role)}
                 </text>
               </g>

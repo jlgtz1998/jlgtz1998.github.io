@@ -10,7 +10,7 @@ import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
 import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch, oklchToHex } from '../lib/color-spaces';
-import { applySliders, DEFAULT_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
+import { applySliders, DEFAULT_SLIDERS, NEUTRAL_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
@@ -58,7 +58,7 @@ export default function Cran3oColorStudio() {
   const [colors, setColors] = useState<ColorData[]>([]);
   const [activeColorId, setActiveColorId] = useState<string | null>(null);
   const [activeHarmonyId, setActiveHarmonyId] = useState<string>('material');
-  const [sliders, setSliders] = useState<SlidersState>(DEFAULT_SLIDERS);
+  const [sliders, setSliders] = useState<SlidersState>(NEUTRAL_SLIDERS);
   const [identity, setIdentity] = useState<UserIdentity>(DEFAULT_IDENTITY);
   const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
   const [blindnessSim, setBlindnessSim] = useState<VisionMode>('normal');
@@ -224,6 +224,7 @@ export default function Cran3oColorStudio() {
       const prevColors = history[nextIndex];
       setColors(prevColors);
       setHistoryIndex(nextIndex);
+      setSliders(NEUTRAL_SLIDERS);
       if (activeColorId && !prevColors.some((c) => c.id === activeColorId)) {
         setActiveColorId(prevColors[Math.min(4, prevColors.length - 1)]?.id ?? null);
       }
@@ -236,6 +237,7 @@ export default function Cran3oColorStudio() {
       const nextColors = history[nextIndex];
       setColors(nextColors);
       setHistoryIndex(nextIndex);
+      setSliders(NEUTRAL_SLIDERS);
       if (activeColorId && !nextColors.some((c) => c.id === activeColorId)) {
         setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
       }
@@ -329,16 +331,19 @@ export default function Cran3oColorStudio() {
       nextColor.locked = false;
       return nextColor;
     });
+    setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
   };
 
   const handleRefinePalette = () => {
     const nextColors = colors.map((color) => (color.locked ? color : mutateColor(color, 'subtle')));
+    setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
   };
 
   const handleMutatePalette = () => {
     const nextColors = colors.map((color) => (color.locked ? color : mutateColor(color, mutationStrength)));
+    setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
   };
 
@@ -353,6 +358,7 @@ export default function Cran3oColorStudio() {
       nextColor.locked = color.locked;
       return nextColor;
     });
+    setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
   };
 
@@ -372,12 +378,14 @@ export default function Cran3oColorStudio() {
   const handleSliderChange = (key: keyof SlidersState, value: number) => {
     const nextSliders = { ...sliders, [key]: value };
     setSliders(nextSliders);
-    setColors(applySliders(colors, nextSliders));
+    const baseColors = history[historyIndex] || colors;
+    setColors(applySliders(baseColors, nextSliders));
   };
 
   const handlePresetSelect = (preset: Preset) => {
     const nextColors = createPaletteFromPreset(preset, paletteSize, mode, colors);
     setPaletteName(preset.name);
+    setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
   };
@@ -798,6 +806,18 @@ export default function Cran3oColorStudio() {
 
             {/* Right: Swatches Panel */}
             <section className="studio-panel calculator-face swatches-panel">
+              <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
+                <div>
+                  <h3 className="section-title">PALETTE SYSTEM MATRIX</h3>
+                  <p className="section-description">Manage and assign roles to your active oklch color tokens.</p>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "'Orbitron', sans-serif", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
+                    {paletteName.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
               <div className="panel-toolbar swatches-toolbar" style={{ position: 'relative' }}>
                 <div className="swatches-toolbar-primary">
                   {/* SYSTEM PRESETS */}
@@ -927,9 +947,7 @@ export default function Cran3oColorStudio() {
                     )}
                   </div>
 
-                  <div>
-                    <h3 className="section-title palette-title" style={{ marginLeft: '4px' }}>{paletteName.toUpperCase()}</h3>
-                  </div>
+
                 </div>
                 <label className="palette-size-control" title="Palette size">
                   <span>SIZE</span>
@@ -1046,6 +1064,23 @@ export default function Cran3oColorStudio() {
                           >
                             <MaterialIcon name={copiedColorId === color.id ? 'check' : 'content_copy'} size={12} />
                           </button>
+                        </div>
+                        <div className="swatch-oklch-info" style={{ 
+                          display: 'flex', 
+                          gap: '6px', 
+                          fontSize: '0.58rem', 
+                          opacity: 0.7, 
+                          fontFamily: 'var(--font-mono)', 
+                          background: 'var(--bg-input)', 
+                          padding: '3px 6px', 
+                          borderRadius: '2px', 
+                          justifyContent: 'space-between',
+                          marginTop: '4px',
+                          marginBottom: '4px'
+                        }}>
+                          <span>L:{(color.oklch.l).toFixed(2)}</span>
+                          <span>C:{(color.oklch.c).toFixed(2)}</span>
+                          <span>H:{Math.round(color.oklch.h)}°</span>
                         </div>
                         <select 
                           className="role-select" 

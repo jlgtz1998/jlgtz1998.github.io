@@ -260,14 +260,14 @@ export default function ColorWheel({
   // CAD-style number inputs
   const NumberControl = ({ label, value, min, max, step, onChange }: any) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-      <span style={{ fontSize: '9px', opacity: 0.5, fontFamily: 'monospace' }}>{label}</span>
+      <span style={{ fontSize: '9px', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
         <button onClick={() => onChange(clamp(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>-</button>
         <input 
           type="number" 
           value={Number(value).toFixed(step < 1 ? 2 : 0)} 
           onChange={(e) => onChange(clamp(parseFloat(e.target.value) || 0, min, max))}
-          style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontFamily: 'monospace', fontSize: '12px' }}
+          style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
         />
         <button onClick={() => onChange(clamp(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>+</button>
       </div>
