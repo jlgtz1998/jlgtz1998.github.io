@@ -30,9 +30,24 @@ interface NumberControlProps {
 }
 
 function NumberControl({ label, value, min, max, step, onChange }: NumberControlProps) {
+  const getTooltip = (lbl: string) => {
+    if (lbl.includes('LIGHTNESS')) {
+      return 'Reflectancia de Luz (LRV): 0.00 (Negro) a 1.00 (Blanco yeso). Determina la luminosidad del material.';
+    }
+    if (lbl.includes('CHROMA')) {
+      return 'Pureza Mineral (Saturación): 0.00 (Hormigón neutro) a 0.40 (Sintético puro). Travertino y maderas suelen estar en 0.04-0.08.';
+    }
+    if (lbl.includes('HUE')) {
+      return 'Matiz / Temperatura (°): Ángulo de color en 360°. Cobre/Arcilla ~35°, Arena ~75°, Musgo ~135°, Pizarra ~220°.';
+    }
+    return undefined;
+  };
+
+  const tooltip = getTooltip(label);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>{label}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }} title={tooltip}>
+      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em', cursor: tooltip ? 'help' : 'default' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border-medium)', borderRadius: '3px' }}>
         <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7 }}>-</button>
         <input 

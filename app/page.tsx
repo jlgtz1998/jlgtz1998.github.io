@@ -82,6 +82,7 @@ export default function Cran3oColorStudio() {
   const [pickerShape, setPickerShape] = useState<'plane_lc' | 'plane_hc'>('plane_lc');
   const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -1267,24 +1268,24 @@ export default function Cran3oColorStudio() {
                 </div>
                 <div className="sliders-grid">
                   {[
-                    ['temperature', 'TEMPERATURE', sliders.temperature > 50 ? `WARM ${sliders.temperature}` : sliders.temperature < 50 ? `COOL ${sliders.temperature}` : 'NEUTRAL'],
-                    ['muting', 'MUTING', `${sliders.muting}%`],
-                    ['contrast', 'CONTRAST', `${sliders.contrast}%`],
-                    ['luminosity', 'LUMINOSITY', `${sliders.luminosity}%`],
-                    ['cinematicFog', 'CINEMATIC FOG', `${sliders.cinematicFog}%`],
-                    ['materialFeel', 'MATERIAL FEEL', `${sliders.materialFeel}%`],
-                    ['warmAccent', 'WARM ACCENT', `${sliders.warmAccent}%`],
-                    ['futurism', 'VISIBLE FUTURISM', `${sliders.futurism}%`],
-                  ].map(([key, label, value]) => (
-                    <div key={key} className="blender-slider-wrapper">
+                    ['temperature', 'TEMPERATURE', sliders.temperature > 50 ? `WARM ${sliders.temperature}` : sliders.temperature < 50 ? `COOL ${sliders.temperature}` : 'NEUTRAL', 'Ajusta hacia tonos fríos (pizarra/zinc) o cálidos (terracota/madera).'],
+                    ['muting', 'MUTING', `${sliders.muting}%`, 'Muteado: Reduce la pureza cromática hacia tonos yeso/hormigón neutros y minerales.'],
+                    ['contrast', 'CONTRAST', `${sliders.contrast}%`, 'Contraste: Incrementa la diferencia de luz (LRV) entre paredes, suelos y carpintería.'],
+                    ['luminosity', 'LUMINOSITY', `${sliders.luminosity}%`, 'Luminosidad: Sube o baja la reflectancia general de la paleta (sol de mediodía vs crepúsculo).'],
+                    ['cinematicFog', 'CINEMATIC FOG', `${sliders.cinematicFog}%`, 'Niebla Cinemática: Aplica un velo mate y atmosférico (efecto arenado o difuso).'],
+                    ['materialFeel', 'MATERIAL FEEL', `${sliders.materialFeel}%`, 'Sensación de Material: Ajusta los valores para simular texturas orgánicas rugosas y mate.'],
+                    ['warmAccent', 'WARM ACCENT', `${sliders.warmAccent}%`, 'Acento Cálido: Resalta detalles metálicos o maderas (como cobre, bronce o roble).'],
+                    ['futurism', 'VISIBLE FUTURISM', `${sliders.futurism}%`, 'Futurismo Visible: Desvía matices hacia tonos sofisticados y silenciosos de la arquitectura premium.'],
+                  ].map(([key, label, value, tooltip]) => (
+                    <div key={key} className="blender-slider-wrapper" title={tooltip} style={{ cursor: 'help' }}>
                       <input 
                         type="range" 
                         min="0" 
                         max="100" 
                         value={sliders[key as keyof SlidersState]} 
                         onChange={(event) => handleSliderChange(key as keyof SlidersState, Number(event.target.value))} 
-                        onMouseUp={() => pushHistory(colors)}
-                        onTouchEnd={() => pushHistory(colors)}
+                         onMouseUp={() => pushHistory(colors)}
+                         onTouchEnd={() => pushHistory(colors)}
                         className="blender-slider"
                         style={{ '--value-percent': `${sliders[key as keyof SlidersState]}%` } as React.CSSProperties}
                       />
@@ -1343,6 +1344,90 @@ export default function Cran3oColorStudio() {
                   onIdentityChange={handleIdentitySliderChange} 
                   onInteractionEnd={handleIdentityInteractionEnd} 
                 />
+              </div>
+            )}
+          </section>
+
+          {/* Row 7: Collapsible Architectural Blueprint Guide */}
+          <section className="studio-panel calculator-face">
+            <button 
+              className="identity-collapsible-trigger" 
+              onClick={() => setHelpOpen(!helpOpen)}
+              style={{
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                background: 'transparent',
+                border: 0,
+                width: '100%',
+                cursor: 'pointer',
+                textAlign: 'left',
+                paddingBottom: helpOpen ? '14px' : '4px',
+                borderBottom: helpOpen ? '1px solid var(--border-light)' : 'none',
+                marginBottom: helpOpen ? '16px' : '0px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div>
+                <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
+                    <MaterialIcon name="menu_book" size={14} />
+                  </span>
+                  ARCHITECTURAL CMF GUIDE
+                </h3>
+                <p className="section-description" style={{ margin: '4px 0 0' }}>
+                  Learn how OKLCH parameters translate to physical materials (travertine, slate, concrete, plaster).
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                <span style={{ transform: helpOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                  <MaterialIcon name="keyboard_arrow_right" size={18} />
+                </span>
+              </div>
+            </button>
+            {helpOpen && (
+              <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
+                  <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
+                  <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <li>
+                      <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.95: Plaster / Chalk</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.55: Concrete / Stone</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.20: Steel / Graphite</span>
+                      </div>
+                    </li>
+                    <li>
+                      <strong>Chroma (C) / Purity:</strong> Determines color cleanliness. Low chroma ensures spatial serenity.
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.00-0.03: Concrete, Slate, Nickel</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.04-0.08: Travertine, Oak, Limestone</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C &gt; 0.10: Synthetic Accents</span>
+                      </div>
+                    </li>
+                    <li>
+                      <strong>Hue (H) / Temperature:</strong> Angle of tint (0° - 360°).
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~35°: Terracotta / Clay</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~75°: Warm Travertine / Oak</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~135°: Lichen / Moss Green</span>
+                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~220°: Slate Blue / Zinc Grey</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>PRACTICAL WORKFLOW TIPS</h4>
+                  <p style={{ margin: 0, lineHeight: 1.4 }}>
+                    1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
+                    <br />
+                    2. <strong>Structure vs Details:</strong> Use low chroma (C &lt; 0.05) for ceilings, floors, and main walls. Keep accents (C ~ 0.08) reserved for secondary highlights or furniture elements.
+                    <br />
+                    3. <strong>Locking Colors:</strong> Click the lock icon on a color card to keep it fixed while generating harmony relationships.
+                  </p>
+                </div>
               </div>
             )}
           </section>

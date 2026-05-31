@@ -8,6 +8,16 @@
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Space Mono', monospace;
 
+  /* Typographic Scale */
+  --font-size-xxs: 0.58rem;
+  --font-size-xs: 0.65rem;
+  --font-size-sm: 0.72rem;
+  --font-size-base: 0.78rem;
+  --font-size-md: 0.85rem;
+  --font-size-lg: 1.00rem;
+  --font-size-xl: 1.20rem;
+  --font-size-xxl: 1.50rem;
+
   /* Transitions */
   --transition-slow: all 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
   --transition-fast: all 0.12s ease-out;
@@ -61,45 +71,31 @@
   padding: 0;
 }
 
-html, body {
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-color: var(--bg-app);
+body {
+  background: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 19px;
-  line-height: 1.45;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-button, input, select, textarea {
+input, button, select, textarea {
   font-family: inherit;
   font-size: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
 }
 
 /* ==========================================================================
-   LAYOUT STRUCTURE
+   HEADER & LAYOUT SHELL
    ========================================================================== */
 .studio-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 26px;
-  width: 100%;
-  max-width: min(2240px, calc(100vw - 28px));
+  max-width: 1380px;
   margin: 0 auto;
-  padding: 34px 14px;
+  padding: 16px 24px;
 }
 
 .studio-header {
-  align-items: center;
-  border-bottom: 1px solid var(--border-medium);
   display: flex;
   justify-content: space-between;
   padding: 6px 0 20px;
@@ -114,7 +110,7 @@ button {
 
 .brand-mark, .logo-sub, .section-title {
   color: var(--text-muted);
-  font-size: 0.65rem; /* Smaller text size */
+  font-size: var(--font-size-sm);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -127,7 +123,7 @@ button {
 .logo-main {
   color: var(--text-primary);
   font-family: 'Orbitron', sans-serif;
-  font-size: 1.18rem;
+  font-size: var(--font-size-xxl);
   font-weight: 700;
   letter-spacing: 0.5px;
   margin: 0;
@@ -135,7 +131,7 @@ button {
 }
 
 .logo-sub {
-  font-size: 0.68rem;
+  font-size: var(--font-size-sm);
   letter-spacing: 0.05em;
   font-weight: 400;
   color: var(--text-muted);
@@ -154,7 +150,7 @@ button {
   border: 0;
   border-right: 1px solid var(--border-light);
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   padding: 8px 14px;
   transition: var(--transition-fast);
@@ -176,7 +172,7 @@ button {
 .studio-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(500px, 620px);
-  gap: 34px;
+  gap: 20px;
   align-items: start;
 }
 
@@ -193,7 +189,7 @@ button {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -210,7 +206,7 @@ button {
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
   border-radius: 4px;
-  padding: 22px;
+  padding: 16px;
   box-shadow: var(--shadow-object);
   display: flex;
   flex-direction: column;
@@ -222,7 +218,7 @@ button {
 .section-description {
   font-family: var(--font-sans);
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: var(--font-size-base);
   line-height: 1.4;
 }
 
@@ -254,7 +250,7 @@ button {
 }
 
 .preset-group-header {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.08em;
@@ -286,7 +282,7 @@ button {
 
 .preset-button span {
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: var(--font-size-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -364,8 +360,8 @@ button {
    ========================================================================== */
 .swatches-grid {
   display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 }
 
 .swatch-card {
@@ -374,7 +370,7 @@ button {
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  height: 335px;
+  height: 270px;
   overflow: hidden;
   position: relative;
   transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
@@ -482,8 +478,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 12px 14px;
-  min-height: 118px;
+  padding: 10px 12px;
+  min-height: 104px;
 }
 
 .swatch-reorder-row {
@@ -529,7 +525,7 @@ button {
   border: 0;
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--font-size-md);
   line-height: 1.2;
   min-height: 1.2em;
   outline: none;
@@ -551,7 +547,7 @@ button {
   border-radius: 2px;
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   letter-spacing: 0.02em;
   min-width: 0;
@@ -584,7 +580,7 @@ button {
   border: none;
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 0.58rem;
+  font-size: var(--font-size-xxs);
   font-weight: 500;
   min-height: 18px;
   padding: 1px 12px 1px 0px;
@@ -1747,7 +1743,7 @@ input[type='range'].blender-slider::-moz-range-track {
 
 /* Swatch add card */
 .swatch-add-card {
-  height: 310px;
+  height: 270px;
   background: transparent;
   border: 1.5px dashed var(--border-medium);
   border-radius: 4px;
@@ -1769,7 +1765,7 @@ input[type='range'].blender-slider::-moz-range-track {
 
 .swatch-add-card span {
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   letter-spacing: normal;
   text-transform: none;
