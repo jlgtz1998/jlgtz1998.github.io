@@ -205,7 +205,7 @@ export function generateFromIdentity(identity: UserIdentity, count: number = 8):
   }
   
   // 2. Generate Lightness steps deterministically based on Contrast
-  let stepsL: number[] = [];
+  const stepsL: number[] = [];
   const cFactor = contrast / 100;
   
   for (let i = 0; i < count; i++) {
@@ -230,7 +230,7 @@ export function generateFromIdentity(identity: UserIdentity, count: number = 8):
     // Muted (0): 0.005
     // Saturated (100): 0.13
     const satFactor = saturation / 100;
-    let baseChroma = 0.005 + satFactor * 0.125;
+    const baseChroma = 0.005 + satFactor * 0.125;
     
     // Extreme values (ends of the palette: light background and dark text) should have lower chroma
     const isExtreme = i === 0 || i === count - 1;
@@ -272,7 +272,7 @@ export function generateFromIdentity(identity: UserIdentity, count: number = 8):
     else if (i === 4) color.role = 'accent';
     else color.role = 'border';
     
-    color.id = `ident-${i}-${Date.now()}`;
+    color.id = `ident-${i}`;
     color.locked = false;
     
     result.push(color);

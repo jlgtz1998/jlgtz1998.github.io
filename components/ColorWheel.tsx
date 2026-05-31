@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { rgb as culoriRgb } from 'culori';
 import { ColorData, OklchColor } from '../types';
-import { oklchToHex } from '../lib/color-spaces';
 
 interface ColorWheelProps {
   activeColor: ColorData | null;
@@ -18,6 +17,35 @@ interface ColorWheelProps {
 }
 
 const MAX_CHROMA = 0.4;
+
+const clampNumber = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+interface NumberControlProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+}
+
+function NumberControl({ label, value, min, max, step, onChange }: NumberControlProps) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+      <span style={{ fontSize: '9px', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
+        <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>-</button>
+        <input 
+          type="number" 
+          value={Number(value).toFixed(step < 1 ? 2 : 0)} 
+          onChange={(e) => onChange(clampNumber(parseFloat(e.target.value) || 0, min, max))}
+          style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+        />
+        <button onClick={() => onChange(clampNumber(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>+</button>
+      </div>
+    </div>
+  );
+}
 
 export default function ColorWheel({
   activeColor,
@@ -185,15 +213,15 @@ export default function ColorWheel({
     const py = clientY - rect.top;
 
     if (pickerShape === 'plane_lc') {
-      const c = clamp(px / size, 0, 1) * MAX_CHROMA;
-      const l = clamp(1 - (py / size), 0, 1);
+      const c = clampNumber(px / size, 0, 1) * MAX_CHROMA;
+      const l = clampNumber(1 - (py / size), 0, 1);
       onColorChange({ l, c, h: currentH });
     } 
     else {
       const x = px - radius;
       const y = py - radius;
       const r_dist = Math.sqrt(x * x + y * y);
-      const c = clamp(r_dist / radius, 0, 1) * MAX_CHROMA;
+      const c = clampNumber(r_dist / radius, 0, 1) * MAX_CHROMA;
       
       let h = Math.atan2(y, x) * (180 / Math.PI);
       if (h < 0) h += 360;
@@ -254,25 +282,6 @@ export default function ColorWheel({
       window.removeEventListener('touchend', handleGlobalEnd);
     };
   }, [isDragging, onInteractionEnd]);
-
-  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
-
-  // CAD-style number inputs
-  const NumberControl = ({ label, value, min, max, step, onChange }: any) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-      <span style={{ fontSize: '9px', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
-        <button onClick={() => onChange(clamp(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>-</button>
-        <input 
-          type="number" 
-          value={Number(value).toFixed(step < 1 ? 2 : 0)} 
-          onChange={(e) => onChange(clamp(parseFloat(e.target.value) || 0, min, max))}
-          style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
-        />
-        <button onClick={() => onChange(clamp(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>+</button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="color-wheel-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: size }}>
