@@ -1838,3 +1838,11 @@ html, body {
 .settings-menu {
   border-radius: 3px !important;
 }
+
+/* Global button disabled styling */
+button:disabled,
+.calculator-action:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}

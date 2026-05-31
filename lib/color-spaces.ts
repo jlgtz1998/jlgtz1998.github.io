@@ -213,3 +213,19 @@ export function hsvToRgb(hsv: HsvColor): RgbColor {
     b: Math.round(b * 255),
   };
 }
+
+export function isColorInGamut(oklch: OklchColor): boolean {
+  const parsed = culoriRgb({
+    mode: 'oklch',
+    l: oklch.l,
+    c: oklch.c,
+    h: oklch.h,
+  });
+  if (!parsed) return false;
+  const tolerance = 0.001;
+  return (
+    parsed.r >= -tolerance && parsed.r <= 1 + tolerance &&
+    parsed.g >= -tolerance && parsed.g <= 1 + tolerance &&
+    parsed.b >= -tolerance && parsed.b <= 1 + tolerance
+  );
+}

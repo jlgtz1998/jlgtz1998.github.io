@@ -30,9 +30,10 @@ export const NEUTRAL_SLIDERS: SlidersState = {
 };
 
 // Apply variation sliders to an array of colors
-export function applySliders(colors: ColorData[], sliders: SlidersState): ColorData[] {
+export function applySliders(colors: ColorData[], sliders: SlidersState, targetColorId?: string | null): ColorData[] {
   return colors.map(color => {
     if (color.locked) return color;
+    if (targetColorId && color.id !== targetColorId) return color;
 
     let { l, c, h } = color.oklch;
 

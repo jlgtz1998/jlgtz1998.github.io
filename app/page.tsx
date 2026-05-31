@@ -9,12 +9,12 @@ import { CUSTOM_PRESETS_DEFAULTS } from '../data/custom-presets-defaults';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
-import { createColorFromHex, createColorFromOklch, hexToOklch, oklchToHex } from '../lib/color-spaces';
+import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch, oklchToHex, isColorInGamut } from '../lib/color-spaces';
 import { applySliders, NEUTRAL_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
-import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, MIN_PALETTE_SIZE, moveColor, normalizePaletteSize } from '../lib/palette';
+import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, MIN_PALETTE_SIZE, moveColor, normalizePaletteSize, roleForIndex } from '../lib/palette';
 import ColorWheel from '../components/ColorWheel';
 import IdentityPanel from '../components/IdentityPanel';
 import MaterialIcon from '../components/MaterialIcon';
@@ -80,6 +80,8 @@ export default function Cran3oColorStudio() {
   const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
   const [slidersOpen, setSlidersOpen] = useState(false);
   const [pickerShape, setPickerShape] = useState<'plane_lc' | 'plane_hc'>('plane_lc');
+  const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
+  const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -284,10 +286,43 @@ export default function Cran3oColorStudio() {
   };
 
   const handlePaletteSizeChange = (nextSize: number) => {
-    const resized = normalizePaletteSize(colors, nextSize, mode);
-    setPaletteSize(resized.length);
-    setColorsKeepingActive(resized);
-    pushHistory(resized);
+    const clampedNext = Math.max(MIN_PALETTE_SIZE, Math.min(MAX_PALETTE_SIZE, nextSize));
+    let nextColors = [...colors];
+    
+    if (clampedNext < colors.length) {
+      // Downsizing: backup colors to memory bank
+      const discarded = colors.slice(clampedNext);
+      setColorMemoryBank(prev => ({
+        ...prev,
+        ...Object.fromEntries(discarded.map((c, i) => [clampedNext + i, c]))
+      }));
+      nextColors = colors.slice(0, clampedNext);
+    } else if (clampedNext > colors.length) {
+      // Upsizing: restore from memory bank or generate
+      while (nextColors.length < clampedNext) {
+        const idx = nextColors.length;
+        if (colorMemoryBank[idx]) {
+          nextColors.push(colorMemoryBank[idx]);
+        } else {
+          // Fallback to generation
+          const source = nextColors[nextColors.length - 1];
+          const generated = source
+            ? mutateColor(source, nextColors.length % 2 === 0 ? 'balanced' : 'subtle')
+            : createColorFromHex('#d6cec1', 'Bone Dust');
+          
+          nextColors.push({
+            ...generated,
+            id: `color-${Date.now()}-${idx}`,
+            locked: false,
+            role: roleForIndex(mode, idx),
+          });
+        }
+      }
+    }
+    
+    setPaletteSize(clampedNext);
+    setColorsKeepingActive(nextColors);
+    pushHistory(nextColors);
   };
 
   const handleDeleteColor = (id: string) => {
@@ -399,7 +434,8 @@ export default function Cran3oColorStudio() {
     const nextSliders = { ...sliders, [key]: value };
     setSliders(nextSliders);
     const baseColors = history[historyIndex] || colors;
-    setColors(applySliders(baseColors, nextSliders));
+    const targetId = slidersTarget === 'selected' ? activeColorId : null;
+    setColors(applySliders(baseColors, nextSliders, targetId));
   };
 
   const handlePresetSelect = (preset: Preset) => {
@@ -1075,6 +1111,26 @@ export default function Cran3oColorStudio() {
                               }
                             }}
                           />
+                          {!isColorInGamut(color.oklch) && (
+                            <span 
+                              style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '2px', 
+                                color: 'var(--button-amber)', 
+                                fontSize: '0.58rem', 
+                                fontWeight: 700, 
+                                marginRight: '2px',
+                                fontFamily: 'var(--font-mono)' 
+                              }}
+                              title="Out of sRGB Gamut (Color will be clamped by browsers)"
+                            >
+                              <span style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--button-amber)' }}>
+                                <MaterialIcon name="warning" size={10} />
+                              </span>
+                              <span>OUT</span>
+                            </span>
+                          )}
                           <button
                             className="swatch-copy-btn"
                             onClick={(event) => {
@@ -1187,14 +1243,26 @@ export default function Cran3oColorStudio() {
 
             {slidersOpen && (
               <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
-                  <div className="button-strip">
-                    {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
-                      <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)}>
-                        {strength.toUpperCase()}
-                      </button>
-                    ))}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
+                    <div className="button-strip">
+                      {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
+                        <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer' }}>
+                          {strength.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="control-label-mini" style={{ margin: 0 }}>MUTATION TARGET</span>
+                    <div className="button-strip">
+                      {(['all', 'selected'] as const).map((tgt) => (
+                        <button key={tgt} className={slidersTarget === tgt ? 'active' : ''} onClick={() => setSlidersTarget(tgt)} style={{ cursor: 'pointer' }}>
+                          {tgt === 'all' ? 'ALL COLORS' : 'ACTIVE COLOR'}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="sliders-grid">
