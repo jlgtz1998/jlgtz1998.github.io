@@ -65,6 +65,24 @@ function getDefaultSubtype(mode: DesignMode): string {
   return 'poster';
 }
 
+function getRoleAbbreviation(role: string): string {
+  switch (role.toLowerCase()) {
+    case 'primary': return 'PRM';
+    case 'secondary': return 'SEC';
+    case 'accent': return 'ACC';
+    case 'surface': return 'SRF';
+    case 'background': return 'BG';
+    case 'text': return 'TXT';
+    case 'muted': return 'MUT';
+    case 'border': return 'BDR';
+    case 'success': return 'OK';
+    case 'warning': return 'WRN';
+    case 'error': return 'ERR';
+    case 'none': return 'NON';
+    default: return role.substring(0, 3).toUpperCase();
+  }
+}
+
 function resolveColorRoles(colors: ColorData[]): ResolvedRoleColors {
   const defaultColors = {
     bg: makeDefaultColor('#FAF8F5', 'Default Base', 'background'),
@@ -222,6 +240,36 @@ function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors): Assessme
   ];
 }
 
+function getContrastColor(surfaceHex: string, resolved: ResolvedRoleColors): string {
+  try {
+    const surfaceColor = createColorFromHex(surfaceHex, 'temp');
+    const surfaceL = surfaceColor.oklch.l;
+    let bestColor = resolved.shadow;
+    let maxDelta = 0;
+    const candidates = [
+      resolved.bg,
+      resolved.wall,
+      resolved.floor,
+      resolved.details,
+      resolved.shadow,
+      resolved.accent1,
+      resolved.accent2,
+      resolved.accentTeal
+    ];
+    for (const c of candidates) {
+      if (!c) continue;
+      const delta = Math.abs(c.oklch.l - surfaceL);
+      if (delta > maxDelta) {
+        maxDelta = delta;
+        bestColor = c;
+      }
+    }
+    return bestColor.hex;
+  } catch (e) {
+    return resolved.shadow.hex;
+  }
+}
+
 export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
 
@@ -243,709 +291,773 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const accentTeal = resolved.accentTeal.hex;
 
   // -------------------------------------------------------------
-  // Mode: ARCHITECTURE - Day View (Interior room)
+  // Mode: ARCHITECTURE - Day View (Interior wall elevation 2D)
   // -------------------------------------------------------------
-  const renderArchDay = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-      <defs>
-        <linearGradient id="arch-day-main-wall" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={wall} stopOpacity="0.98" />
-          <stop offset="100%" stopColor={bg} stopOpacity="0.9" />
-        </linearGradient>
-        <linearGradient id="arch-day-floor" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={floor} />
-          <stop offset="100%" stopColor={details} stopOpacity="0.82" />
-        </linearGradient>
-        <linearGradient id="arch-day-side-wall" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={wall} stopOpacity="0.72" />
-          <stop offset="100%" stopColor={shadow} stopOpacity="0.16" />
-        </linearGradient>
-        <linearGradient id="arch-day-ceiling" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={bg} stopOpacity="0.94" />
-          <stop offset="100%" stopColor={wall} stopOpacity="0.32" />
-        </linearGradient>
-        <linearGradient id="arch-day-light" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.76" />
-          <stop offset="55%" stopColor="#ffffff" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-        <radialGradient id="arch-day-window-glow" cx="24%" cy="22%" r="64%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-        <filter id="arch-day-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="13" stdDeviation="10" floodColor="#000" floodOpacity="0.18" />
-        </filter>
-      </defs>
+  const renderArchDay = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    const wallContrast = getContrastColor(wall, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        {/* Wall Surface */}
+        <rect x="30" y="30" width="440" height="260" fill={wall} rx="2" />
+        
+        {/* Panel grid lines */}
+        <line x1="170" y1="30" x2="170" y2="290" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
+        <line x1="310" y1="30" x2="310" y2="290" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
+        <line x1="30" y1="160" x2="310" y2="160" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
+        
+        {/* Baseboard */}
+        <rect x="30" y="280" width="440" height="10" fill={floor} />
+        <line x1="30" y1="280" x2="470" y2="280" stroke={wallContrast} strokeOpacity="0.2" />
 
-      <rect width="500" height="320" fill={bg} />
-      <rect width="500" height="320" fill="url(#arch-day-window-glow)" />
-      <polygon points="42,36 344,36 344,220 42,220" fill="url(#arch-day-main-wall)" />
-      <polygon points="344,36 466,60 466,222 344,220" fill="url(#arch-day-side-wall)" />
-      <polygon points="42,36 344,36 466,60 156,60" fill="url(#arch-day-ceiling)" />
-      <polygon points="42,220 466,222 500,320 0,320" fill="url(#arch-day-floor)" />
+        {/* Minimalist Door Elevation */}
+        <rect x="350" y="80" width="90" height="200" fill={floor} stroke={wallContrast} strokeOpacity="0.3" />
+        <circle cx="362" cy="180" r="3.5" fill={accent1} />
 
-      <line x1="344" y1="36" x2="344" y2="220" stroke={shadow} strokeOpacity="0.16" />
-      <line x1="42" y1="220" x2="466" y2="222" stroke={shadow} strokeOpacity="0.2" />
+        {/* Wall Shelf */}
+        <rect x="70" y="140" width="160" height="8" fill={details} rx="1" />
+        {/* Books */}
+        <rect x="90" y="105" width="12" height="35" fill={accent1} />
+        <rect x="104" y="100" width="14" height="40" fill={accentTeal} />
+        <rect x="120" y="112" width="10" height="28" fill={accent2} />
+        <rect x="132" y="115" width="15" height="25" fill={floor} transform="rotate(15, 132, 140)" />
 
-      <rect x="72" y="58" width="78" height="132" fill="#ffffff" opacity="0.68" />
-      <rect x="86" y="72" width="50" height="104" fill={bg} opacity="0.86" />
-      <line x1="111" y1="58" x2="111" y2="190" stroke={shadow} strokeOpacity="0.12" />
-      <line x1="72" y1="124" x2="150" y2="124" stroke={shadow} strokeOpacity="0.1" />
-      <polygon points="150,176 362,224 256,318 26,252" fill="url(#arch-day-light)" />
+        {/* Geometric Vase */}
+        <polygon points="185,140 195,140 198,115 182,115" fill={shadow} />
+        <path d="M 190 115 C 190 95, 175 90, 172 80 C 178 92, 190 100, 190 115" fill="none" stroke={accentTeal} strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 190 115 C 195 95, 208 90, 212 80 C 205 92, 192 100, 190 115" fill="none" stroke={accent1} strokeWidth="2" strokeLinecap="round" />
 
-      <rect x="42" y="217" width="424" height="8" fill={shadow} opacity="0.14" />
-      <rect x="42" y="217" width="424" height="3" fill={bg} opacity="0.44" />
-      <g filter="url(#arch-day-shadow)">
-        <rect x="184" y="184" width="166" height="42" fill={details} rx="4" />
-        <rect x="198" y="226" width="8" height="34" fill={shadow} opacity="0.5" />
-        <rect x="328" y="226" width="8" height="34" fill={shadow} opacity="0.5" />
-        <rect x="202" y="194" width="38" height="10" fill={bg} opacity="0.28" />
-      </g>
+        {/* Hanging Ceiling Lamp */}
+        <line x1="240" y1="30" x2="240" y2="70" stroke={shadow} strokeWidth="1.5" />
+        <path d="M 220 70 L 260 70 L 270 90 L 210 90 Z" fill={details} />
+        <polygon points="240,90 130,280 350,280" fill={accent1} opacity="0.12" />
 
-      <g filter="url(#arch-day-shadow)">
-        <rect x="204" y="72" width="88" height="102" fill={shadow} opacity="0.78" rx="2" />
-        <rect x="211" y="79" width="74" height="88" fill={bg} />
-        <rect x="222" y="92" width="52" height="48" fill={accentTeal} opacity="0.7" />
-        <circle cx="248" cy="116" r="14" fill={accent1} opacity="0.84" />
-      </g>
+        {/* Technical Dimension Lines (Cotas) */}
+        <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <text x="250" y="13" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="monospace" textAnchor="middle">5000 mm</text>
 
-      <g>
-        <path d="M392 92 C408 124 404 162 382 192" fill="none" stroke={accent2} strokeWidth="8" strokeLinecap="round" opacity="0.76" />
-        <circle cx="392" cy="92" r="5" fill={accent2} opacity="0.92" />
-        <ellipse cx="382" cy="204" rx="34" ry="8" fill={shadow} opacity="0.16" />
-      </g>
-      <path d="M82 250 C104 226 144 226 166 248 C182 264 180 288 166 302 L64 302 C50 282 60 262 82 250Z" fill={accent1} opacity="0.84" />
-      <path d="M66 302 H168" stroke={shadow} strokeOpacity="0.2" />
-
-      <text x="38" y="304" fill={shadow} opacity="0.42" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">INTERIOR / DAYLIGHT SURFACE TEST</text>
-    </svg>
-  );
+        <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="14" y1="30" x2="22" y2="30" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <line x1="14" y1="290" x2="22" y2="290" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <text x="12" y="165" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+        
+        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION A-A / SCALE 1:50</text>
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
-  // Mode: ARCHITECTURE - Night View (Interior room)
+  // Mode: ARCHITECTURE - Night View (Interior wall elevation 2D)
   // -------------------------------------------------------------
-  const renderArchNight = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#0e1011', borderRadius: '4px' }}>
-      <defs>
-        <radialGradient id="lamp-glow" cx="58%" cy="42%" r="58%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="22%" stopColor={accent1} stopOpacity="0.86" />
-          <stop offset="70%" stopColor={accentTeal} stopOpacity="0.24" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="wall-night-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={wall} stopOpacity="0.36" />
-          <stop offset="100%" stopColor="#08090a" stopOpacity="0.96" />
-        </linearGradient>
-        <filter id="soft-shadow-night" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000" floodOpacity="0.6" />
-        </filter>
-      </defs>
+  const renderArchNight = () => {
+    const textContrast = '#ffffff';
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#090a0f', borderRadius: '4px' }}>
+        <defs>
+          <radialGradient id="night-lamp-glow" cx="50%" cy="30%" r="70%">
+            <stop offset="0%" stopColor={accent1} stopOpacity="1" />
+            <stop offset="25%" stopColor={accentTeal} stopOpacity="0.4" />
+            <stop offset="60%" stopColor="#090a0f" stopOpacity="0" />
+          </radialGradient>
+        </defs>
 
-      <rect width="500" height="320" fill="#0b0d0e" />
-      <polygon points="42,36 344,36 344,220 42,220" fill="url(#wall-night-grad)" />
-      <polygon points="344,36 466,60 466,222 344,220" fill={shadow} opacity="0.34" />
-      <polygon points="42,36 344,36 466,60 156,60" fill={bg} opacity="0.08" />
-      <polygon points="42,220 466,222 500,320 0,320" fill={floor} opacity="0.16" />
-      <rect x="72" y="58" width="78" height="132" fill="#020303" opacity="0.86" />
-      <rect x="42" y="217" width="424" height="8" fill="#000" opacity="0.48" />
+        {/* Ambient Dark Wall */}
+        <rect x="30" y="30" width="440" height="260" fill={shadow} rx="2" opacity="0.75" />
+        
+        {/* Glow behind lamp */}
+        <circle cx="240" cy="90" r="140" fill="url(#night-lamp-glow)" opacity="0.65" />
 
-      <line x1="306" y1="36" x2="306" y2="104" stroke="#000" strokeWidth="2" opacity="0.7" />
-      <path d="M282 104 L330 104 L316 126 L296 126 Z" fill={details} />
-      <circle cx="306" cy="130" r="11" fill="#fff" />
-      <circle cx="306" cy="130" r="92" fill="url(#lamp-glow)" opacity="0.62" />
-      <polygon points="306,132 158,308 452,308" fill={accent1} opacity="0.1" />
+        {/* Illuminated Wall Panel */}
+        <rect x="170" y="90" width="140" height="190" fill={wall} opacity="0.25" />
+        
+        {/* Baseboard */}
+        <rect x="30" y="280" width="440" height="10" fill="#030405" />
+        <rect x="200" y="280" width="80" height="10" fill={floor} opacity="0.4" />
+        <line x1="30" y1="280" x2="470" y2="280" stroke="#ffffff" strokeOpacity="0.1" />
 
-      <g filter="url(#soft-shadow-night)">
-        <rect x="184" y="184" width="166" height="42" fill={details} rx="4" opacity="0.46" />
-        <rect x="198" y="226" width="8" height="34" fill="#000" opacity="0.52" />
-        <rect x="328" y="226" width="8" height="34" fill="#000" opacity="0.52" />
-      </g>
-      <rect x="204" y="72" width="88" height="102" fill="#000" opacity="0.52" rx="2" />
-      <rect x="211" y="79" width="74" height="88" fill={shadow} opacity="0.44" />
-      <rect x="222" y="92" width="52" height="48" fill={accentTeal} opacity="0.32" />
-      <path d="M392 92 C408 124 404 162 382 192" fill="none" stroke={accent2} strokeWidth="8" strokeLinecap="round" opacity="0.34" />
-      <path d="M82 250 C104 226 144 226 166 248 C182 264 180 288 166 302 L64 302 C50 282 60 262 82 250Z" fill={accent1} opacity="0.28" />
+        {/* Minimalist Door in Dark */}
+        <rect x="350" y="80" width="90" height="200" fill="#050607" stroke="#ffffff" strokeOpacity="0.1" />
+        <circle cx="362" cy="180" r="3.5" fill={accentTeal} opacity="0.6" />
 
-      <text x="38" y="304" fill="#fff" opacity="0.28" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">INTERIOR / NIGHTLIGHT CONTRAST TEST</text>
-    </svg>
-  );
+        {/* Shelf in shadow */}
+        <rect x="70" y="140" width="160" height="8" fill="#121418" rx="1" />
+        <rect x="90" y="105" width="12" height="35" fill={accent1} opacity="0.5" />
+        <rect x="104" y="100" width="14" height="40" fill={accentTeal} opacity="0.5" />
+
+        {/* Hanging Ceiling Lamp */}
+        <line x1="240" y1="30" x2="240" y2="70" stroke="#ffffff" strokeWidth="1.5" opacity="0.4" />
+        <path d="M 220 70 L 260 70 L 270 90 L 210 90 Z" fill={details} opacity="0.8" />
+        <circle cx="240" cy="90" r="8" fill="#ffffff" />
+
+        {/* Technical Dimension Lines (Cotas) */}
+        <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <text x="250" y="13" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">5000 mm</text>
+
+        <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="12" y="165" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+        
+        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION A-A (NIGHT) / LIGHT VALUE TEST</text>
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
   // Mode: ARCHITECTURE - Moodboard / CMF Board
   // -------------------------------------------------------------
-  const renderArchMoodboard = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#131517', borderRadius: '4px' }}>
-      <rect width="500" height="320" fill="#111314" />
-      
-      <rect x="28" y="42" width="126" height="232" fill={bg} rx="3" />
-      <path d="M44 74 H138 M44 102 H138 M44 130 H138 M44 158 H138 M44 186 H138" stroke={wall} strokeOpacity="0.32" />
-      <text x="42" y="255" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">PLASTER / CEILING</text>
+  const renderArchMoodboard = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <defs>
+          <pattern id="moodboard-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" fill="none" />
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.04" />
+          </pattern>
+        </defs>
+        <rect width="500" height="320" fill="url(#moodboard-grid)" />
 
-      <rect x="176" y="42" width="132" height="110" fill={wall} rx="3" />
-      <path d="M190 58 H294 M190 86 H294 M190 114 H294" stroke={bg} strokeOpacity="0.24" />
-      <text x="190" y="137" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">MAIN WALL</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.7" fontSize="9" fontWeight="700" fontFamily="monospace">CMF BOARD / SPATIAL MATERIAL SPECIFICATION</text>
 
-      <rect x="176" y="170" width="132" height="104" fill={floor} rx="3" />
-      <path d="M176 194 H308 M176 220 H308 M176 246 H308" stroke={shadow} strokeOpacity="0.14" />
-      <text x="190" y="258" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">STONE / FLOOR</text>
+        {/* Plaster sample */}
+        <g transform="translate(25, 45)">
+          <rect x="0" y="0" width="135" height="235" fill={bg} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <rect x="5" y="5" width="125" height="150" fill={wall} rx="2" />
+          <path d="M15 170 H120 M15 185 H120 M15 200 H120" stroke={textContrast} strokeOpacity="0.08" />
+          <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">PLASTER / TEXTURE</text>
+          <text x="15" y="231" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {wall.toUpperCase()}</text>
+        </g>
 
-      <rect x="330" y="42" width="140" height="68" fill={details} rx="3" />
-      <path d="M342 58 H456 M342 74 H456 M342 90 H456" stroke={shadow} strokeOpacity="0.14" />
-      <text x="342" y="96" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">TEXTILE / LARGE</text>
-      <rect x="330" y="130" width="140" height="62" fill={accent1} rx="3" />
-      <text x="342" y="177" fill="#fff" fontSize="9" fontWeight="700" fontFamily="monospace">CONTROLLED ACCENT</text>
-      <rect x="330" y="212" width="58" height="58" fill={accentTeal} rx="29" />
-      <rect x="408" y="212" width="62" height="58" fill={accent2} rx="4" />
+        {/* Main Wall sample */}
+        <g transform="translate(175, 45)">
+          <rect x="0" y="0" width="140" height="110" fill={wall} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <rect x="5" y="5" width="130" height="70" fill={floor} rx="2" />
+          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">SURFACE WALL</text>
+          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {floor.toUpperCase()}</text>
+        </g>
 
-      <text x="28" y="298" fill="#fff" opacity="0.34" fontSize="8" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">ARCHITECTURAL MATERIAL BOARD / PLASTER · STONE · TEXTILE · ACCENT</text>
-    </svg>
-  );
+        {/* Floor stone sample */}
+        <g transform="translate(175, 170)">
+          <rect x="0" y="0" width="140" height="110" fill={floor} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <rect x="5" y="5" width="130" height="70" fill={details} rx="2" />
+          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">STONE / CONCRETE</text>
+          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">VAL: {details.toUpperCase()}</text>
+        </g>
 
-  // -------------------------------------------------------------
-  // Mode: INDUSTRIAL - Abstract Speaker / Cylinder & Box
-  // -------------------------------------------------------------
-  const renderIndSpeaker = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#e5e5e0', borderRadius: '4px' }}>
-      <defs>
-        <radialGradient id="woofer-grad" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor={details} />
-          <stop offset="70%" stopColor={shadow} />
-          <stop offset="100%" stopColor="#000" />
-        </radialGradient>
-        <linearGradient id="cylinder-grad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={bg} />
-          <stop offset="40%" stopColor={wall} />
-          <stop offset="100%" stopColor={floor} />
-        </linearGradient>
-      </defs>
+        {/* Textile & Accent samples */}
+        <g transform="translate(330, 45)">
+          {/* Accent 1 */}
+          <rect x="0" y="0" width="145" height="65" fill={accent1} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <text x="12" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>ACCENT PRIMARY</text>
+          <text x="12" y="54" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accent1.toUpperCase()}</text>
 
-      <rect width="500" height="320" fill="#e5e5e0" />
+          {/* Accent Teal */}
+          <rect x="0" y="75" width="145" height="65" fill={accentTeal} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <text x="12" y="120" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>ACCENT SIGNAL</text>
+          <text x="12" y="129" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accentTeal.toUpperCase()}</text>
 
-      {/* Stand plane */}
-      <polygon points="40,240 460,240 420,290 80,290" fill={floor} opacity="0.5" />
+          {/* Accent 2 */}
+          <rect x="0" y="150" width="145" height="85" fill={accent2} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <text x="12" y="215" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>SECONDARY ACCENT</text>
+          <text x="12" y="224" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="monospace" style={{ mixBlendMode: 'difference' }}>{accent2.toUpperCase()}</text>
+        </g>
 
-      {/* Speaker Enclosure (Main Box) */}
-      <g filter="url(#soft-shadow-day)">
-        <rect x="180" y="50" width="140" height="190" fill="url(#cylinder-grad)" rx="6" />
-      </g>
-
-      {/* Grille Section */}
-      <rect x="192" y="62" width="116" height="100" fill={shadow} opacity="0.15" rx="3" />
-      <circle cx="210" cy="80" r="1.5" fill={shadow} />
-      <circle cx="230" cy="80" r="1.5" fill={shadow} />
-      <circle cx="250" cy="80" r="1.5" fill={shadow} />
-      <circle cx="270" cy="80" r="1.5" fill={shadow} />
-      <circle cx="290" cy="80" r="1.5" fill={shadow} />
-      
-      <circle cx="210" cy="100" r="1.5" fill={shadow} />
-      <circle cx="230" cy="100" r="1.5" fill={shadow} />
-      <circle cx="250" cy="100" r="1.5" fill={shadow} />
-      <circle cx="270" cy="100" r="1.5" fill={shadow} />
-      <circle cx="290" cy="100" r="1.5" fill={shadow} />
-
-      <circle cx="210" cy="120" r="1.5" fill={shadow} />
-      <circle cx="230" cy="120" r="1.5" fill={shadow} />
-      <circle cx="250" cy="120" r="1.5" fill={shadow} />
-      <circle cx="270" cy="120" r="1.5" fill={shadow} />
-      <circle cx="290" cy="120" r="1.5" fill={shadow} />
-
-      {/* Woofer (Abstract Sphere Cutout) */}
-      <circle cx="250" cy="112" r="28" fill="url(#woofer-grad)" />
-      <circle cx="250" cy="112" r="8" fill={accent1} />
-
-      {/* Dial Panel (Inset Box) */}
-      <rect x="192" y="172" width="116" height="54" fill={bg} rx="3" />
-
-      {/* Dial Knob (Small Cylinder) */}
-      <circle cx="225" cy="200" r="14" fill={accent1} />
-      <circle cx="225" cy="200" r="4" fill="#fff" />
-
-      {/* Light Indicators */}
-      <circle cx="272" cy="200" r="4" fill={accentTeal} />
-      <circle cx="286" cy="200" r="4" fill={accent2} />
-
-      <text x="30" y="302" fill={shadow} opacity="0.4" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">RAMS FUNCTIONAL AUDIO COMPONENT</text>
-    </svg>
-  );
+        {/* Technical notes */}
+        <line x1="25" y1="295" x2="475" y2="295" stroke={textContrast} strokeOpacity="0.15" />
+        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL</text>
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
-  // Mode: INDUSTRIAL - Abstract Chair Study
+  // Mode: INDUSTRIAL - Abstract Speaker / Elevation & Profile 2D
   // -------------------------------------------------------------
-  const renderIndChair = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#e5e5e0', borderRadius: '4px' }}>
-      <rect width="500" height="320" fill="#e5e5e0" />
-
-      {/* Stand shadow */}
-      <ellipse cx="250" cy="250" rx="70" ry="12" fill={shadow} opacity="0.25" />
-
-      {/* Wire Frame Structure (Lines) */}
-      <line x1="210" y1="130" x2="210" y2="250" stroke={details} strokeWidth="4" strokeLinecap="round" />
-      <line x1="290" y1="130" x2="290" y2="250" stroke={details} strokeWidth="4" strokeLinecap="round" />
-      <line x1="210" y1="180" x2="290" y2="180" stroke={shadow} strokeWidth="3" />
-      <line x1="225" y1="130" x2="240" y2="248" stroke={shadow} strokeWidth="3" />
-      <line x1="275" y1="130" x2="260" y2="248" stroke={shadow} strokeWidth="3" />
-
-      {/* Seat Shell (Abstract Plane) */}
-      <path d="M 190 90 Q 190 145 220 145 L 280 145 Q 310 145 310 90 Z" fill={bg} stroke={floor} strokeWidth="1" />
-
-      {/* Cushion Pad (Accent 1) */}
-      <path d="M 205 100 Q 205 135 230 135 L 270 135 Q 295 135 295 100 Z" fill={accent1} />
-
-      {/* Backrest Plate (Accent 2) */}
-      <path d="M 190 90 L 185 30 Q 185 15 205 15 L 295 15 Q 315 15 315 30 L 310 90 Z" fill={bg} stroke={floor} strokeWidth="1" />
-      <rect x="205" y="25" width="90" height="50" fill={accent2} rx="4" />
-
-      <text x="30" y="302" fill={shadow} opacity="0.4" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">SCULPTURAL FURNITURE LAYOUT CMF</text>
-    </svg>
-  );
-
-  // -------------------------------------------------------------
-  // Mode: INDUSTRIAL - Caliper Precision Tool
-  // -------------------------------------------------------------
-  const renderIndTool = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#e5e5e0', borderRadius: '4px' }}>
-      <rect width="500" height="320" fill="#e5e5e0" />
-
-      <g transform="translate(80, 110)">
-        {/* Steel Ruler shaft */}
-        <rect x="0" y="30" width="340" height="24" fill={floor} rx="2" />
-        <path d="M 40 30 L 40 40 M 50 30 L 50 36 M 60 30 L 60 40 M 70 30 L 70 36 M 80 30 L 80 40 M 90 30 L 90 36 M 100 30 L 100 40 M 110 30 L 110 36 M 120 30 L 120 40 M 130 30 L 130 36 M 140 30 L 140 40 M 150 30 L 150 36" stroke={shadow} strokeWidth="1" />
-
-        {/* Left Fixed Clamp Jaw */}
-        <path d="M 0 30 L 0 -35 L 18 -35 L 18 10 L 26 30 Z" fill={bg} />
+  const renderIndSpeaker = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <defs>
+          <pattern id="speaker-dots" width="8" height="8" patternUnits="userSpaceOnUse">
+            <circle cx="4" cy="4" r="1.2" fill={shadow} opacity="0.6" />
+          </pattern>
+        </defs>
         
-        {/* Slider Box */}
-        <rect x="130" y="22" width="70" height="40" fill={accentTeal} rx="2" />
-        <circle cx="165" cy="12" r="8" fill={accent1} />
-        <circle cx="165" cy="12" r="3" fill="#fff" />
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">ELEVATION & PROFILE: DESKTOP SPEAKER</text>
+
+        {/* FRONT VIEW */}
+        <g transform="translate(60, 50)">
+          <rect x="0" y="0" width="120" height="200" fill={wall} rx="4" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1.5" />
+          
+          <circle cx="60" cy="50" r="22" fill={floor} stroke={textContrast} strokeOpacity="0.2" />
+          <circle cx="60" cy="50" r="10" fill={accent2} />
+
+          <circle cx="60" cy="125" r="35" fill={shadow} />
+          <circle cx="60" cy="125" r="28" fill="url(#speaker-dots)" />
+          <circle cx="60" cy="125" r="12" fill={accent1} />
+
+          <rect x="40" y="180" width="40" height="8" fill={floor} rx="2" />
+          <circle cx="85" cy="184" r="2.5" fill={accentTeal} />
+          
+          <text x="60" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">FRONT ELEVATION</text>
+        </g>
+
+        {/* SIDE PROFILE VIEW */}
+        <g transform="translate(260, 50)">
+          <rect x="0" y="0" width="130" height="200" fill={wall} rx="2" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1.5" />
+          
+          <rect x="0" y="0" width="8" height="200" fill={floor} />
+          <line x1="8" y1="0" x2="8" y2="200" stroke={textContrast} strokeOpacity="0.2" />
+
+          <rect x="120" y="60" width="10" height="80" fill={details} />
+          <circle cx="125" cy="80" r="3.5" fill={accent1} />
+          <circle cx="125" cy="100" r="3.5" fill={accentTeal} />
+
+          <rect x="15" y="200" width="25" height="6" fill={shadow} rx="1" />
+          <rect x="90" y="200" width="25" height="6" fill={shadow} rx="1" />
+
+          <text x="65" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">SIDE PROFILE</text>
+        </g>
+
+        {/* TECHNICAL DIMENSION LINES */}
+        <line x1="35" y1="50" x2="35" y2="250" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <line x1="31" y1="50" x2="39" y2="50" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="31" y1="250" x2="39" y2="250" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <text x="27" y="155" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 27, 155)">200.0 mm</text>
+
+        <line x1="60" y1="265" x2="180" y2="265" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <line x1="60" y1="261" x2="60" y2="269" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="180" y1="261" x2="180" y2="269" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <text x="120" y="276" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle">120.0 mm</text>
+
+        <line x1="60" y1="50" x2="420" y2="50" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
+        <line x1="60" y1="250" x2="420" y2="250" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         
-        {/* Slider Upper Jaw */}
-        <path d="M 130 22 L 130 -35 L 148 -35 L 148 22 Z" fill={bg} />
-
-        {/* Digital Display Box */}
-        <rect x="210" y="22" width="100" height="40" fill={shadow} rx="3" />
-        <text x="260" y="47" fill={bg} fontSize="14" fontFamily="monospace" fontWeight="700" textAnchor="middle">24.08 mm</text>
-
-        {/* Small Brand tag */}
-        <rect x="6" y="-28" width="6" height="16" fill={accent1} />
-      </g>
-
-      <text x="30" y="302" fill={shadow} opacity="0.4" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">PRECISION INSTRUMENT SYD retRO</text>
-    </svg>
-  );
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">HOUSING [SRF]: {wall.toUpperCase()} // DIALS [MUT]: {details.toUpperCase()}</text>
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
-  // Mode: INDUSTRIAL - Coffee Brewer
+  // Mode: INDUSTRIAL - Abstract Chair Study (CAD 2D Elevations)
   // -------------------------------------------------------------
-  const renderIndAppliance = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#e5e5e0', borderRadius: '4px' }}>
-      <rect width="500" height="320" fill="#e5e5e0" />
+  const renderIndChair = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">TUBE FRAME LOUNGE CHAIR / CAD SHEET</text>
 
-      <g transform="translate(180, 50)">
-        {/* Base Platform */}
-        <rect x="-10" y="190" width="160" height="15" fill={shadow} opacity="0.15" rx="4" />
-        <rect x="5" y="185" width="130" height="10" fill={floor} rx="2" />
+        {/* FRONT VIEW */}
+        <g transform="translate(60, 60)">
+          <path d="M 20 180 L 20 80 L 100 80 L 100 180" fill="none" stroke={details} strokeWidth="4" strokeLinecap="round" />
+          <path d="M 15 180 L 105 180" fill="none" stroke={shadow} strokeWidth="3" />
+          
+          <rect x="25" y="40" width="70" height="50" fill={accent2} rx="4" stroke={textContrast} strokeOpacity="0.2" />
+          <rect x="22" y="90" width="76" height="15" fill={accent1} rx="3" stroke={textContrast} strokeOpacity="0.2" />
+          
+          <line x1="30" y1="105" x2="30" y2="180" stroke={details} strokeWidth="3.5" />
+          <line x1="90" y1="105" x2="90" y2="180" stroke={details} strokeWidth="3.5" />
 
-        {/* Coffee Maker Enclosure */}
-        <path d="M 10 30 L 110 30 L 110 185 L 10 185 Z" fill={bg} rx="6" />
+          <text x="60" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">ALZADO FRONTAL (FRONT)</text>
+        </g>
 
-        {/* Inside Cutout */}
-        <rect x="35" y="65" width="95" height="100" fill={shadow} />
+        {/* SIDE VIEW */}
+        <g transform="translate(260, 60)">
+          <path d="M 20 180 L 30 80 Q 30 40 40 40 L 50 40 Q 60 40 60 80 L 70 180" fill="none" stroke={details} strokeWidth="4" strokeLinecap="round" />
+          <rect x="23" y="45" width="12" height="55" fill={accent2} rx="2" transform="rotate(8, 23, 45)" stroke={textContrast} strokeOpacity="0.2" />
+          <rect x="25" y="92" width="75" height="12" fill={accent1} rx="2" transform="rotate(-5, 25, 92)" stroke={textContrast} strokeOpacity="0.2" />
 
-        {/* Glass Pot */}
-        <rect x="42" y="70" width="70" height="90" fill="#fff" fillOpacity="0.12" rx="4" />
-        <rect x="42" y="115" width="70" height="45" fill={accent2} opacity="0.6" rx="2" />
-        <rect x="108" y="85" width="12" height="60" fill={shadow} rx="2" />
+          <path d="M 15 105 L 15 90 Q 15 80 40 80 L 80 80 Q 95 80 95 105 L 95 180" fill="none" stroke={shadow} strokeWidth="3.5" strokeLinecap="round" />
+          <line x1="10" y1="180" x2="105" y2="180" stroke={details} strokeWidth="3" />
 
-        {/* Water Meter Column */}
-        <rect x="18" y="45" width="8" height="110" fill={accentTeal} rx="1" />
-        <circle cx="22" cy="115" r="3" fill="#fff" />
+          <text x="55" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace" textAnchor="middle">ALZADO LATERAL (PROFILE)</text>
+        </g>
 
-        {/* Red Heating Light Switch */}
-        <circle cx="70" cy="175" r="7" fill={accent1} />
-        <line x1="70" y1="171" x2="70" y2="179" stroke="#fff" strokeWidth="1.5" />
-      </g>
+        {/* Alignment Lines */}
+        <line x1="60" y1="100" x2="360" y2="100" stroke={textContrast} strokeOpacity="0.08" strokeDasharray="2,3" />
+        <line x1="60" y1="140" x2="360" y2="140" stroke={textContrast} strokeOpacity="0.08" strokeDasharray="2,3" />
+        <line x1="60" y1="240" x2="360" y2="240" stroke={textContrast} strokeOpacity="0.08" strokeDasharray="2,3" />
 
-      <text x="30" y="302" fill={shadow} opacity="0.4" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">DOMESTIC APPLIANCE RETRO SPEC</text>
-    </svg>
-  );
+        {/* Height dimension */}
+        <line x1="35" y1="100" x2="35" y2="240" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <line x1="31" y1="100" x2="39" y2="100" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="31" y1="240" x2="39" y2="240" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <text x="27" y="170" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 27, 170)">820.0 mm</text>
 
-  // -------------------------------------------------------------
-  // Mode: GRAPHIC - Editorial Poster (Minimal Layout)
-  // -------------------------------------------------------------
-  const renderGraphPoster = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#1c1c1f', borderRadius: '4px' }}>
-      <rect width="500" height="320" fill="#151517" />
-
-      {/* Poster Board */}
-      <rect x="140" y="15" width="220" height="290" fill={bg} rx="2" />
-
-      {/* Grid lines and layout */}
-      <text x="160" y="52" fill={shadow} fontSize="18" fontWeight="800" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="-1">OBJECT SPEC</text>
-      <text x="160" y="70" fill={accent1} fontSize="18" fontWeight="300" letterSpacing="3">QUIET SPACE</text>
-      
-      <line x1="160" y1="80" x2="340" y2="80" stroke={shadow} strokeWidth="1.5" />
-
-      {/* Central Abstract Geometry */}
-      <circle cx="250" cy="155" r="45" fill={accent2} />
-      <path d="M 205 155 Q 250 100 295 155 Z" fill={accentTeal} />
-      <polygon points="215,185 285,185 250,145" fill={accent1} opacity="0.9" />
-
-      {/* Info column */}
-      <rect x="160" y="220" width="50" height="12" fill={shadow} />
-      <rect x="220" y="220" width="50" height="12" fill={floor} />
-      <rect x="280" y="220" width="60" height="12" fill={accentTeal} />
-
-      <text x="160" y="258" fill={shadow} fontSize="7" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">EDITION SWISS GRAPHICS 01</text>
-      <text x="160" y="270" fill={details} fontSize="6" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif">CMF ANALYSIS & COLOR ENGINE SYSTEM</text>
-      <text x="160" y="282" fill={accent1} fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif">HEX {accent1.toUpperCase()}</text>
-    </svg>
-  );
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CUSHION [ACC1]: {accent1.toUpperCase()} // SHELL [ACC2]: {accent2.toUpperCase()} // TUBE [MUT]: {details.toUpperCase()}</text>
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
-  // Mode: GRAPHIC - UI Dashboard Card
+  // Mode: INDUSTRIAL - Caliper Precision Tool (2D Blueprint)
   // -------------------------------------------------------------
-  const renderGraphDashboard = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: shadow, borderRadius: '4px' }}>
-      {/* UI Window */}
-      <rect x="50" y="25" width="400" height="270" fill={bg} rx="6" />
+  const renderIndTool = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">DIGITAL CALIPER / CMF METROLOGY INSTRUMENT</text>
 
-      {/* Window bar */}
-      <rect x="50" y="25" width="400" height="40" fill={floor} rx="6" />
-      <circle cx="75" cy="45" r="5" fill={accent1} />
-      <circle cx="90" cy="45" r="5" fill={accent2} />
-      <circle cx="105" cy="45" r="5" fill={accentTeal} />
-      <text x="430" y="49" fill={shadow} fontSize="9" fontWeight="700" textAnchor="end" fontFamily="monospace">LIVE METRICS</text>
+        <g transform="translate(50, 110)">
+          <rect x="0" y="30" width="370" height="26" fill={floor} rx="2" stroke={textContrast} strokeOpacity="0.2" />
+          
+          <path d="M 40 30 L 40 38 M 50 30 L 50 35 M 60 30 L 60 38 M 70 30 L 70 35 M 80 30 L 80 38 M 90 30 L 90 35 M 100 30 L 100 38 M 110 30 L 110 35 M 120 30 L 120 38 M 130 30 L 130 35 M 140 30 L 140 38 M 150 30 L 150 35 M 160 30 L 160 38 M 170 30 L 170 35 M 180 30 L 180 38 M 190 30 L 190 35 M 200 30 L 200 38 M 210 30 L 210 38 M 220 30 L 220 35 M 230 30 L 230 38 M 240 30 L 240 35 M 250 30 L 250 38 M 260 30 L 260 35 M 270 30 L 270 38 M 280 30 L 280 35 M 290 30 L 290 38 M 300 30 L 300 35 M 310 30 L 310 38 M 320 30 L 320 35 M 330 30 L 330 38 M 340 30 L 340 35 M 350 30 L 350 38" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
 
-      {/* Widget Cards */}
-      <rect x="70" y="85" width="160" height="180" fill="#fff" rx="4" />
-      <text x="85" y="115" fill={shadow} fontSize="11" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">SYSTEM TEMP</text>
-      <text x="85" y="155" fill={shadow} fontSize="28" fontWeight="800" fontFamily="monospace" letterSpacing="-1">38.4°C</text>
+          <path d="M 0 30 L 0 -40 L 15 -40 L 15 10 L 22 30 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
+          <path d="M 0 56 L 0 120 L 15 120 L 20 62 L 22 56 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
 
-      <rect x="70" y="180" width="160" height="15" fill={floor} rx="2" />
-      <rect x="70" y="180" width="110" height="15" fill={accentTeal} rx="2" />
+          <rect x="370" y="38" width="40" height="8" fill={accentTeal} />
 
-      {/* Right Plot widget */}
-      <rect x="250" y="85" width="180" height="180" fill="#fff" rx="4" />
-      <path d="M 260 230 L 290 190 L 320 210 L 350 150 L 380 180 L 410 120" fill="none" stroke={accent1} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M 260 230 L 290 190 L 320 210 L 350 150 L 380 180 L 410 120 L 410 240 L 260 240 Z" fill={accent1} fillOpacity="0.1" />
+          <rect x="120" y="20" width="100" height="46" fill={shadow} rx="3" stroke={textContrast} strokeOpacity="0.1" />
+          <rect x="130" y="26" width="60" height="24" fill={bg} rx="1" />
+          <text x="160" y="43" fill={textContrast} fontSize="12" fontFamily="monospace" fontWeight="700" textAnchor="middle">24.08</text>
+          <text x="185" y="34" fill={textContrast} fontSize="6" fontFamily="monospace">mm</text>
 
-      <circle cx="410" cy="120" r="5" fill={accent2} />
+          <path d="M 120 20 L 120 -40 L 105 -40 L 115 20 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
+          <path d="M 120 66 L 120 120 L 105 120 L 112 66 Z" fill={wall} stroke={textContrast} strokeOpacity="0.25" />
 
-      <text x="260" y="110" fill={details} fontSize="9" fontWeight="700" fontFamily="monospace">COGNITIVE FEEDBACK</text>
-    </svg>
-  );
+          <circle cx="205" cy="30" r="4.5" fill={accent1} />
+          <circle cx="205" cy="42" r="4.5" fill={accentTeal} />
+          <circle cx="205" cy="54" r="4.5" fill={accent2} />
+        </g>
 
-  // -------------------------------------------------------------
-  // Mode: GRAPHIC - Web Hero Section (PROD Sculptural Composition)
-  // -------------------------------------------------------------
-  const renderGraphLanding = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-      <defs>
-        <radialGradient id="sphere-prod" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-          <stop offset="35%" stopColor={accent1} />
-          <stop offset="100%" stopColor={shadow} />
-        </radialGradient>
-      </defs>
-
-      {/* Minimal Header */}
-      <rect x="40" y="20" width="420" height="24" fill={floor} rx="2" />
-      <circle cx="55" cy="32" r="4" fill={accentTeal} />
-      
-      <rect x="380" y="28" width="30" height="8" fill={shadow} opacity="0.4" rx="1" />
-      <rect x="420" y="26" width="25" height="12" fill={accent1} rx="2" />
-
-      {/* Headline */}
-      <text x="45" y="90" fill={shadow} fontSize="20" fontWeight="800" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="-0.5">Quiet Geometry</text>
-      <text x="45" y="110" fill={shadow} fontSize="20" fontWeight="800" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="-0.5">for Modern CMF</text>
-      
-      <text x="45" y="130" fill={details} fontSize="8" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif">Swiss grid layouts and cinematic functional compositions.</text>
-      <text x="45" y="140" fill={details} fontSize="8" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif">Combining tactile materials with color engine calculations.</text>
-
-      {/* CTAs */}
-      <rect x="45" y="165" width="65" height="22" fill={accent1} rx="2" />
-      <text x="77" y="179" fill="#fff" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle">INIT</text>
-
-      <rect x="118" y="165" width="65" height="22" fill="none" stroke={details} strokeWidth="1.5" rx="2" />
-      <text x="150" y="178" fill={shadow} fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle">SPEC</text>
-
-      {/* 3D Isometric Art Composition (PROD style) */}
-      <g transform="translate(240, 50)" filter="url(#soft-shadow-day)">
-        {/* Floor Slab */}
-        <polygon points="10,180 190,180 140,210 -40,210" fill={floor} />
-
-        {/* Red block */}
-        <polygon points="10,150 60,130 60,180 10,200" fill={accentTeal} />
-        <polygon points="60,130 110,150 110,200 60,180" fill={accent2} />
-        <polygon points="10,150 60,130 110,150 60,170" fill={bg} />
-
-        {/* Tall slab */}
-        <polygon points="100,100 130,90 130,190 100,200" fill={details} />
-        <polygon points="130,90 150,100 150,200 130,190" fill={shadow} opacity="0.6" />
-
-        {/* Shaded Sphere */}
-        <circle cx="50" cy="110" r="22" fill="url(#sphere-prod)" />
-      </g>
-    </svg>
-  );
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">BEAM [BDR]: {floor.toUpperCase()} // DISPLAY CASE [TXT]: {shadow.toUpperCase()} // MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
+        <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.1" />
+      </svg>
+    );
+  };
 
   // -------------------------------------------------------------
-  // Mode: GRAPHIC - Product Sleeve / Flat Packaging
+  // Mode: INDUSTRIAL - Coffee Brewer (2D Technical Elevation)
   // -------------------------------------------------------------
-  const renderGraphPackaging = () => (
-    <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#17171a', borderRadius: '4px' }}>
-      {/* Box layout */}
-      <g transform="translate(50, 30)">
-        <rect x="0" y="0" width="400" height="260" fill={bg} rx="2" />
+  const renderIndAppliance = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">ESPRESSO MACHINE ELEVATION / DOMESTIC APPLIANCE CMF</text>
+
+        <g transform="translate(180, 45)">
+          <rect x="0" y="20" width="130" height="200" fill={wall} rx="4" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1.5" />
+          
+          <rect x="-10" y="210" width="150" height="15" fill={floor} rx="2" stroke={textContrast} strokeOpacity="0.2" />
+          <line x1="-10" y1="215" x2="140" y2="215" stroke={textContrast} strokeOpacity="0.15" />
+
+          <rect x="35" y="80" width="60" height="20" fill={details} rx="1" />
+          
+          <rect x="60" y="90" width="65" height="10" fill={shadow} rx="2" />
+          <circle cx="120" cy="95" r="7" fill={accent1} />
+
+          <rect x="12" y="40" width="10" height="120" fill={floor} rx="2" />
+          <rect x="14" y="60" width="6" height="90" fill={accentTeal} opacity="0.8" rx="1" />
+          <circle cx="17" cy="85" r="3.5" fill="#ffffff" opacity="0.9" />
+
+          <rect x="10" y="10" width="110" height="10" fill="none" stroke={details} strokeWidth="2.5" strokeLinecap="round" />
+
+          <circle cx="65" cy="50" r="16" fill={bg} stroke={textContrast} strokeOpacity="0.3" />
+          <line x1="65" y1="50" x2="72" y2="40" stroke={accent2} strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="65" cy="50" r="2" fill={shadow} />
+
+          <circle cx="98" cy="180" r="9" fill={shadow} />
+          <rect x="96" y="174" width="4" height="12" fill={accent1} rx="1" />
+        </g>
+
+        <line x1="130" y1="65" x2="180" y2="65" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="120" y="68" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="monospace" textAnchor="end">BOILER PRESSURE GAUGE</text>
+
+        <line x1="310" y1="140" x2="350" y2="140" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="monospace" textAnchor="start">PORTAFILTER CMF ACCENT</text>
+
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CHASSIS [SRF]: {wall.toUpperCase()} // PORTAFILTER [TXT]: {shadow.toUpperCase()} // FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
+      </svg>
+    );
+  };
+
+  // -------------------------------------------------------------
+  // Mode: GRAPHIC - Editorial Poster (Swiss Layout)
+  // -------------------------------------------------------------
+  const renderGraphPoster = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <defs>
+          <pattern id="poster-grid-pat" width="40" height="40" patternUnits="userSpaceOnUse">
+            <rect width="40" height="40" fill="none" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.05" />
+          </pattern>
+        </defs>
+        <rect width="500" height="320" fill="url(#poster-grid-pat)" />
+
+        <rect x="15" y="15" width="470" height="290" fill="none" stroke={textContrast} strokeOpacity="0.15" strokeWidth="1" />
+
+        <text x="35" y="55" fill={textContrast} fontSize="28" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1.5">CRAN3O COLOR</text>
+        <text x="35" y="75" fill={accent1} fontSize="14" fontWeight="600" fontFamily="monospace" letterSpacing="4">OKLCH CHROMATIC SYSTEM</text>
+
+        <g transform="translate(190, 40)">
+          <path d="M 60 170 A 60 60 0 0 1 180 170 Z" fill={accent2} opacity="0.85" />
+          <circle cx="160" cy="140" r="50" fill={accentTeal} opacity="0.8" style={{ mixBlendMode: 'multiply' }} />
+          <rect x="40" y="80" width="80" height="80" fill={accent1} opacity="0.85" style={{ mixBlendMode: 'multiply' }} />
+
+          <line x1="0" y1="170" x2="220" y2="170" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
+          <line x1="120" y1="30" x2="120" y2="190" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
+        </g>
+
+        <text x="35" y="220" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace">EDITION SWISS GRAPHICS LAB</text>
+        <text x="35" y="232" fill={textContrast} opacity="0.6" fontSize="7.5" fontFamily="monospace">MAX CHROMA CAP: 0.10 OKLCH</text>
+        <text x="35" y="244" fill={accentTeal} fontSize="8" fontWeight="700" fontFamily="monospace">SYS.ACC_TL: {accentTeal.toUpperCase()}</text>
+
+        <g transform="translate(360, 220)">
+          <text x="0" y="0" fill={textContrast} opacity="0.8" fontSize="8" fontWeight="700" fontFamily="monospace">COLORWEIGHT PROPORTIONS</text>
+          <rect x="0" y="8" width="100" height="6" fill={wall} />
+          <rect x="0" y="8" width="60" height="6" fill={accent1} />
+          <rect x="0" y="8" width="30" height="6" fill={accentTeal} />
+          <text x="0" y="24" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">TOTAL SYSTEM HARMONY VALUE: PASS</text>
+        </g>
+      </svg>
+    );
+  };
+
+  // -------------------------------------------------------------
+  // Mode: GRAPHIC - UI Dashboard Card (Adaptive contrast)
+  // -------------------------------------------------------------
+  const renderGraphDashboard = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    const windowHeader = floor;
+    const widgetBg = wall;
+
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: shadow, borderRadius: '4px' }}>
+        <rect x="20" y="20" width="460" height="280" fill={bg} rx="6" stroke={details} strokeOpacity="0.3" />
         
-        {/* Color wrap band */}
-        <rect x="130" y="0" width="140" height="260" fill={accentTeal} />
+        <path d="M 20 26 L 480 26 L 480 50 L 20 50 Z" fill={windowHeader} />
+        <line x1="20" y1="50" x2="480" y2="50" stroke={details} strokeOpacity="0.2" />
 
-        {/* Center Label */}
-        <rect x="150" y="40" width="100" height="180" fill={wall} rx="2" />
+        <circle cx="36" cy="38" r="4.5" fill={accent1} />
+        <circle cx="48" cy="38" r="4.5" fill={accentTeal} />
+        <circle cx="60" cy="38" r="4.5" fill={accent2} />
+
+        <text x="460" y="42" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="end">CRAN3O OS / LABORATORY DASHBOARD</text>
+
+        {/* Navigation Sidebar */}
+        <rect x="35" y="65" width="100" height="220" fill={widgetBg} rx="3" stroke={details} strokeOpacity="0.2" />
         
-        <text x="200" y="70" fill={shadow} fontSize="12" fontWeight="800" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="middle">SPEC.01</text>
-        <line x1="165" y1="80" x2="235" y2="80" stroke={shadow} strokeWidth="1" />
+        <rect x="45" y="80" width="80" height="12" fill={accent1} rx="1" opacity="0.8" />
+        <rect x="45" y="102" width="80" height="12" fill={bg} rx="1" />
+        <rect x="45" y="124" width="80" height="12" fill={bg} rx="1" />
+        <rect x="45" y="146" width="80" height="12" fill={bg} rx="1" />
 
-        {/* Primitives graphic */}
-        <circle cx="200" cy="120" r="22" fill={accent1} />
-        <circle cx="200" cy="120" r="16" fill={accent2} />
-        <circle cx="200" cy="120" r="4" fill="#fff" />
-
-        {/* Barcode */}
-        <rect x="170" y="175" width="2" height="20" fill={shadow} />
-        <rect x="174" y="175" width="5" height="20" fill={shadow} />
-        <rect x="181" y="175" width="1" height="20" fill={shadow} />
-        <rect x="184" y="175" width="3" height="20" fill={shadow} />
-        <rect x="190" y="175" width="6" height="20" fill={shadow} />
-        <rect x="198" y="175" width="2" height="20" fill={shadow} />
-        <rect x="202" y="175" width="4" height="20" fill={shadow} />
-        <rect x="208" y="175" width="1" height="20" fill={shadow} />
-        <rect x="211" y="175" width="7" height="20" fill={shadow} />
-        <rect x="220" y="175" width="2" height="20" fill={shadow} />
-        <text x="200" y="210" fill={shadow} fontSize="6" fontFamily="monospace" textAnchor="middle">5042-2026</text>
-
-        {/* Corner Stamps */}
-        <rect x="15" y="15" width="50" height="16" fill={shadow} rx="1" />
-        <text x="40" y="26" fill="#fff" fontSize="6" fontWeight="700" fontFamily="monospace" textAnchor="middle">OBJECT LAB</text>
-
-        <rect x="15" y="36" width="50" height="16" fill={floor} rx="1" />
-        <text x="40" y="47" fill={shadow} fontSize="6" fontWeight="700" fontFamily="monospace" textAnchor="middle">RAMS MD</text>
+        {/* Widgets */}
+        <rect x="150" y="65" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
+        <text x="165" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">CORE TEMPERATURE</text>
+        <text x="165" y="120" fill={textContrast} fontSize="24" fontWeight="800" fontFamily="monospace">38.4</text>
+        <text x="235" y="110" fill={textContrast} opacity="0.7" fontSize="10" fontFamily="monospace">°C</text>
         
-        {/* Warning strip */}
-        <line x1="270" y1="0" x2="270" y2="260" stroke={accent1} strokeWidth="3" />
-      </g>
-      <text x="20" y="20" fill="#fff" opacity="0.3" fontSize="8" fontWeight="600" fontFamily="monospace">FLAT PACKAGING SLEEVE TEMPLATE</text>
-    </svg>
-  );
+        <rect x="165" y="135" width="120" height="8" fill={bg} rx="2" />
+        <rect x="165" y="135" width="80" height="8" fill={accentTeal} rx="2" />
 
-// -------------------------------------------------------------
-const getRoleAbbreviation = (role: string): string => {
-  switch (role.toLowerCase()) {
-    case 'primary': return 'PRM';
-    case 'secondary': return 'SEC';
-    case 'accent': return 'ACC';
-    case 'surface': return 'SRF';
-    case 'background': return 'BG';
-    case 'text': return 'TXT';
-    case 'muted': return 'MUT';
-    case 'border': return 'BDR';
-    case 'success': return 'OK';
-    case 'warning': return 'WRN';
-    case 'error': return 'ERR';
-    case 'none': return 'NON';
-    default: return role.substring(0, 3).toUpperCase();
-  }
-};
+        {/* Chart Widget */}
+        <rect x="315" y="65" width="150" height="220" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
+        <text x="330" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">HARMONY METRIC</text>
+        
+        <path d="M 330 220 Q 355 130 380 180 T 430 110" fill="none" stroke={accent1} strokeWidth="3" strokeLinecap="round" />
+        <path d="M 330 220 Q 355 130 380 180 T 430 110 L 430 230 L 330 230 Z" fill={accent1} opacity="0.08" />
+        <circle cx="430" cy="110" r="4.5" fill={accentTeal} />
 
-// -------------------------------------------------------------
-// Mode: SPEC - List View (Horizontal Technical Card Rows)
-// -------------------------------------------------------------
-const renderSpecList = () => (
-  <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#fcfbfa', borderRadius: '4px' }}>
-    <rect width="500" height="500" fill="#fcfbfa" />
-    <line x1="20" y1="45" x2="480" y2="45" stroke="#000000" strokeWidth="1" opacity="0.1" />
-    <text x="20" y="26" fill="#000000" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR STUDIO</text>
-    <text x="480" y="26" fill="#000000" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
-    <text x="20" y="38" fill="#000000" opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">PALETTE: {paletteName.toUpperCase()}</text>
+        <rect x="150" y="180" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
+        <text x="165" y="200" fill={details} fontSize="8" fontWeight="700" fontFamily="monospace">SYSTEM METRIC</text>
+        <text x="165" y="235" fill={textContrast} fontSize="18" fontWeight="800" fontFamily="monospace">OKLCH OK</text>
+        <text x="165" y="255" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace">CONTRAST Lc: 78.5</text>
+      </svg>
+    );
+  };
 
-    {colors.map((color, i) => {
-      const rowHeight = Math.floor(430 / colors.length);
-      const y = 55 + i * rowHeight;
-      const swatchHeight = rowHeight - 8;
-      const swatchWidth = 300; // Increased to 300 for maximum color prominence
-      const isStacked = rowHeight >= 45;
+  // -------------------------------------------------------------
+  // Mode: GRAPHIC - Web Hero Section (Pristine 2D Layout)
+  // -------------------------------------------------------------
+  const renderGraphLanding = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <defs>
+          <pattern id="landing-grid-pat" width="30" height="30" patternUnits="userSpaceOnUse">
+            <rect width="30" height="30" fill="none" />
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.04" />
+          </pattern>
+        </defs>
+        <rect width="500" height="320" fill="url(#landing-grid-pat)" />
 
-      if (rowHeight >= 75) {
-        // Case 1: Dynamic typography and stacked layout for spacious rows (3-5 colors)
-        const nameSize = rowHeight >= 100 ? 13 : 11.5;
-        const hexSize = rowHeight >= 100 ? 10.5 : 9.5;
-        const badgeHeight = 16;
-        const badgeY = y + rowHeight / 2 + 12;
-        const lines = splitName(color.displayName);
-        const lineSpacing = nameSize + 2;
+        <rect x="25" y="20" width="450" height="24" fill={floor} rx="2" stroke={textContrast} strokeOpacity="0.15" />
+        <circle cx="40" cy="32" r="3.5" fill={accentTeal} />
+        
+        <rect x="360" y="28" width="40" height="8" fill={shadow} opacity="0.4" rx="1" />
+        <rect x="415" y="26" width="40" height="12" fill={accent1} rx="2" />
+        <text x="435" y="34" fill="#ffffff" fontSize="6.5" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>GET</text>
 
-        return (
-          <g key={color.id}>
-            {/* Color block */}
-            <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke="rgba(0,0,0,0.08)" />
+        <g transform="translate(35, 75)">
+          <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1">Quiet Systems.</text>
+          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Outfit', 'Inter', -apple-system, sans-serif" letterSpacing="-1">Rams Aesthetic.</text>
+          <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="monospace">OKLCH CHROMA CONTROL ENGINE</text>
+          
+          <rect x="0" y="115" width="85" height="26" fill={accent1} rx="3" />
+          <text x="42.5" y="131" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>START LAB</text>
 
-            {/* Name */}
-            {lines.map((line, idx) => (
-              <text 
-                key={idx} 
-                x="340" 
-                y={y + rowHeight / 2 - 16 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
-                fill="#000000" 
-                fontSize={nameSize} 
-                fontWeight="700" 
-                fontFamily="'Inter', -apple-system, sans-serif"
-              >
-                {line}
-              </text>
-            ))}
+          <rect x="100" y="115" width="85" height="26" fill="none" stroke={details} strokeWidth="1.5" rx="3" />
+          <text x="142.5" y="131" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle">EXPLORE</text>
+        </g>
 
-            {/* Hex */}
-            <text x="340" y={y + rowHeight / 2 + 2 + (lines.length > 1 ? 4 : 0)} fill="#000000" opacity="0.5" fontSize={hexSize} fontFamily="'Inter', -apple-system, sans-serif">
-              {color.hex.toUpperCase()}
-            </text>
+        {/* 2D Geometric Composition */}
+        <g transform="translate(290, 75)">
+          <rect x="0" y="0" width="165" height="175" fill={floor} rx="4" stroke={textContrast} strokeOpacity="0.15" />
+          
+          <line x1="30" y1="0" x2="30" y2="175" stroke={textContrast} strokeOpacity="0.1" />
+          <line x1="110" y1="0" x2="110" y2="175" stroke={textContrast} strokeOpacity="0.1" />
+          <line x1="0" y1="80" x2="165" y2="80" stroke={textContrast} strokeOpacity="0.1" />
 
-            {/* Role Badge */}
-            <rect x="340" y={badgeY} width="50" height={badgeHeight} rx="2" fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
-            <text x="365" y={badgeY + badgeHeight / 2 + 3} fill="#000000" opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="middle" letterSpacing="0.5">
-              {getRoleAbbreviation(color.role)}
-            </text>
+          <circle cx="70" cy="80" r="45" fill={accentTeal} opacity="0.8" />
+          <circle cx="100" cy="90" r="30" fill={accent2} opacity="0.85" style={{ mixBlendMode: 'multiply' }} />
+          
+          <rect x="25" y="135" width="115" height="15" fill={accent1} rx="2" opacity="0.9" />
 
-            {/* Subtle separator line between rows */}
-            {i < colors.length - 1 && (
-              <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke="#000000" strokeWidth="1" opacity="0.05" />
-            )}
+          <text x="12" y="163" fill={textContrast} opacity="0.5" fontSize="6.5" fontFamily="monospace">FIG 01. ENGINE CORE</text>
+        </g>
+      </svg>
+    );
+  };
+
+  // -------------------------------------------------------------
+  // Mode: GRAPHIC - Product Sleeve / Flat Packaging Die-Cut
+  // -------------------------------------------------------------
+  const renderGraphPackaging = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <defs>
+          <pattern id="packaging-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <rect width="20" height="20" fill="none" />
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.04" />
+          </pattern>
+        </defs>
+        <rect width="500" height="320" fill="url(#packaging-grid)" />
+
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="monospace">DIE-CUT PACKAGING SLEEVE / FLAT LAYOUT</text>
+
+        <g transform="translate(30, 45)">
+          <rect x="20" y="20" width="90" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
+          <text x="65" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle">REAR COVER</text>
+
+          <rect x="110" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
+          <text x="125" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 125, 110)">SPINE A</text>
+
+          <rect x="140" y="20" width="90" height="180" fill={wall} stroke={textContrast} strokeOpacity="0.4" />
+          
+          <rect x="150" y="35" width="70" height="15" fill={accent1} rx="1" />
+          <text x="185" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>CRAN3O</text>
+          
+          <circle cx="185" cy="100" r="28" fill={accentTeal} opacity="0.8" />
+          <circle cx="185" cy="100" r="16" fill={accent2} opacity="0.85" />
+          <circle cx="185" cy="100" r="4" fill={bg} />
+
+          <g transform="translate(155, 160)">
+            <rect x="0" y="0" width="1" height="15" fill={shadow} />
+            <rect x="3" y="0" width="3" height="15" fill={shadow} />
+            <rect x="8" y="0" width="1" height="15" fill={shadow} />
+            <rect x="11" y="0" width="2" height="15" fill={shadow} />
+            <rect x="15" y="0" width="4" height="15" fill={shadow} />
+            <rect x="21" y="0" width="1" height="15" fill={shadow} />
+            <rect x="24" y="0" width="3" height="15" fill={shadow} />
+            <rect x="29" y="0" width="1" height="15" fill={shadow} />
+            <rect x="32" y="0" width="5" height="15" fill={shadow} />
+            <rect x="39" y="0" width="1" height="15" fill={shadow} />
           </g>
-        );
-      } else if (isStacked) {
-        // Case 2: Standard stacked layout (6-9 colors)
-        const lines = splitName(color.displayName);
-        const nameSize = 10;
-        const lineSpacing = nameSize + 1.5;
 
-        return (
-          <g key={color.id}>
-            {/* Color block */}
-            <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke="rgba(0,0,0,0.08)" />
+          <rect x="230" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
+          <text x="245" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 245, 110)">SPINE B</text>
 
-            {/* Name & Hex stacked */}
-            {lines.map((line, idx) => (
-              <text 
-                key={idx} 
-                x="340" 
-                y={y + rowHeight / 2 - 4 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
-                fill="#000000" 
-                fontSize={nameSize} 
-                fontWeight="700" 
-                fontFamily="'Inter', -apple-system, sans-serif"
-              >
-                {line}
-              </text>
-            ))}
-            <text x="340" y={y + rowHeight / 2 + 10 + (lines.length > 1 ? 5 : 0)} fill="#000000" opacity="0.5" fontSize="8.5" fontFamily="'Inter', -apple-system, sans-serif">
-              {color.hex.toUpperCase()}
-            </text>
+          <polygon points="260,30 280,45 280,175 260,190" fill={details} opacity="0.25" stroke={textContrast} strokeOpacity="0.4" />
+          <text x="270" y="110" fill={textContrast} opacity="0.3" fontSize="6.5" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 270, 110)">GLUE FLAP</text>
 
-            {/* Role Badge on the right to prevent overlap */}
-            <text x="480" y={y + rowHeight / 2 + 4} fill="#000000" opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
-              {getRoleAbbreviation(color.role)}
-            </text>
+          <path d="M 20 20 L 260 20 M 20 200 L 260 200" stroke={accent1} strokeWidth="1.2" strokeOpacity="0.5" />
+        </g>
 
-            {/* Subtle separator line between rows */}
-            {i < colors.length - 1 && (
-              <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke="#000000" strokeWidth="1" opacity="0.05" />
-            )}
-          </g>
-        );
-      } else {
-        // Case 3: High density layout (10-12 colors)
-        const lines = splitName(color.displayName);
-        const nameSize = 8.5;
-        const lineSpacing = nameSize + 1.5;
-        
-        return (
-          <g key={color.id}>
-            {/* Color block */}
-            <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke="rgba(0,0,0,0.08)" />
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE</text>
+        <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.15" />
+      </svg>
+    );
+  };
 
-            {/* Name & Hex stacked */}
-            {lines.map((line, idx) => (
-              <text 
-                key={idx} 
-                x="340" 
-                y={y + rowHeight / 2 - 3 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
-                fill="#000000" 
-                fontSize={nameSize} 
-                fontWeight="700" 
-                fontFamily="'Inter', -apple-system, sans-serif"
-              >
-                {line}
-              </text>
-            ))}
-            <text x="340" y={y + rowHeight / 2 + 8 + (lines.length > 1 ? 4 : 0)} fill="#000000" opacity="0.5" fontSize="7.5" fontFamily="'Inter', -apple-system, sans-serif">
-              {color.hex.toUpperCase()}
-            </text>
+  // -------------------------------------------------------------
+  // Mode: SPEC - List View (Horizontal Technical Card Rows)
+  // -------------------------------------------------------------
+  const renderSpecList = () => {
+    const textContrast = getContrastColor(bg, resolved);
+    return (
+      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        <line x1="20" y1="45" x2="480" y2="45" stroke={textContrast} strokeWidth="1" opacity="0.15" />
+        <text x="20" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR STUDIO</text>
+        <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
+        <text x="20" y="38" fill={textContrast} opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">PALETTE: {paletteName.toUpperCase()}</text>
 
-            {/* Role Badge on the right */}
-            <text x="480" y={y + rowHeight / 2 + 3} fill="#000000" opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
-              {getRoleAbbreviation(color.role)}
-            </text>
+        {colors.map((color, i) => {
+          const rowHeight = Math.floor(430 / colors.length);
+          const y = 55 + i * rowHeight;
+          const swatchHeight = rowHeight - 8;
+          const swatchWidth = 300;
+          const isStacked = rowHeight >= 45;
 
-            {/* Subtle separator line between rows */}
-            {i < colors.length - 1 && (
-              <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke="#000000" strokeWidth="1" opacity="0.05" />
-            )}
-          </g>
-        );
-      }
-    })}
-  </svg>
-);
+          if (rowHeight >= 75) {
+            const nameSize = rowHeight >= 100 ? 13 : 11.5;
+            const hexSize = rowHeight >= 100 ? 10.5 : 9.5;
+            const badgeHeight = 16;
+            const badgeY = y + rowHeight / 2 + 12;
+            const lines = splitName(color.displayName);
+            const lineSpacing = nameSize + 2;
 
-// -------------------------------------------------------------
-// Mode: SPEC - Columns View (Vertical Color Bands & Rotated Technical Text)
-// -------------------------------------------------------------
-const renderSpecColumns = () => {
-  const N = colors.length;
-  const w = 500 / N;
-  
-  return (
-    <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#fcfbfa', borderRadius: '4px' }}>
-      {colors.map((color, i) => {
-        const x = i * w;
-        return (
-          <g key={color.id}>
-            <rect x={x} y="0" width={w} height="360" fill={color.hex} />
-            <rect x={x} y="360" width={w} height="140" fill="#fcfbfa" />
-            {i > 0 && (
-              <line x1={x} y1="0" x2={x} y2="500" stroke="#000000" strokeWidth="1" opacity="0.08" />
-            )}
-            <g transform={`translate(${x + w/2}, 485) rotate(-90)`}>
-              <text x="0" y="-10" fill="#000000" fontSize="9.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
-                {color.displayName}
-              </text>
-              <text x="0" y="1.5" fill="#000000" opacity="0.5" fontSize="8.5" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
-                {color.hex.toUpperCase()}
-              </text>
-              <text x="0" y="11" fill="#000000" opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start" letterSpacing="0.5">
-                {getRoleAbbreviation(color.role)}
-              </text>
+            return (
+              <g key={color.id}>
+                <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke={textContrast} strokeOpacity="0.1" />
+
+                {lines.map((line, idx) => (
+                  <text 
+                    key={idx} 
+                    x="340" 
+                    y={y + rowHeight / 2 - 16 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
+                    fill={textContrast} 
+                    fontSize={nameSize} 
+                    fontWeight="700" 
+                    fontFamily="'Inter', -apple-system, sans-serif"
+                  >
+                    {line}
+                  </text>
+                ))}
+
+                <text x="340" y={y + rowHeight / 2 + 2 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize={hexSize} fontFamily="'Inter', -apple-system, sans-serif">
+                  {color.hex.toUpperCase()}
+                </text>
+
+                <rect x="340" y={badgeY} width="50" height={badgeHeight} rx="2" fill="none" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
+                <text x="365" y={badgeY + badgeHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="middle" letterSpacing="0.5">
+                  {getRoleAbbreviation(color.role)}
+                </text>
+
+                {i < colors.length - 1 && (
+                  <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke={textContrast} strokeWidth="1" opacity="0.08" />
+                )}
+              </g>
+            );
+          } else if (isStacked) {
+            const lines = splitName(color.displayName);
+            const nameSize = 10;
+            const lineSpacing = nameSize + 1.5;
+
+            return (
+              <g key={color.id}>
+                <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke={textContrast} strokeOpacity="0.1" />
+
+                {lines.map((line, idx) => (
+                  <text 
+                    key={idx} 
+                    x="340" 
+                    y={y + rowHeight / 2 - 4 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
+                    fill={textContrast} 
+                    fontSize={nameSize} 
+                    fontWeight="700" 
+                    fontFamily="'Inter', -apple-system, sans-serif"
+                  >
+                    {line}
+                  </text>
+                ))}
+                <text x="340" y={y + rowHeight / 2 + 10 + (lines.length > 1 ? 5 : 0)} fill={textContrast} opacity="0.5" fontSize="8.5" fontFamily="'Inter', -apple-system, sans-serif">
+                  {color.hex.toUpperCase()}
+                </text>
+
+                <text x="480" y={y + rowHeight / 2 + 4} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
+                  {getRoleAbbreviation(color.role)}
+                </text>
+
+                {i < colors.length - 1 && (
+                  <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke={textContrast} strokeWidth="1" opacity="0.08" />
+                )}
+              </g>
+            );
+          } else {
+            const lines = splitName(color.displayName);
+            const nameSize = 8.5;
+            const lineSpacing = nameSize + 1.5;
+            
+            return (
+              <g key={color.id}>
+                <rect x="20" y={y + 4} width={swatchWidth} height={swatchHeight} rx="3" fill={color.hex} stroke={textContrast} strokeOpacity="0.1" />
+
+                {lines.map((line, idx) => (
+                  <text 
+                    key={idx} 
+                    x="340" 
+                    y={y + rowHeight / 2 - 3 + (idx * lineSpacing) - (lines.length > 1 ? lineSpacing / 2 : 0)} 
+                    fill={textContrast} 
+                    fontSize={nameSize} 
+                    fontWeight="700" 
+                    fontFamily="'Inter', -apple-system, sans-serif"
+                  >
+                    {line}
+                  </text>
+                ))}
+                <text x="340" y={y + rowHeight / 2 + 8 + (lines.length > 1 ? 4 : 0)} fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Inter', -apple-system, sans-serif">
+                  {color.hex.toUpperCase()}
+                </text>
+
+                <text x="480" y={y + rowHeight / 2 + 3} fill={textContrast} opacity="0.7" fontSize="7.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end">
+                  {getRoleAbbreviation(color.role)}
+                </text>
+
+                {i < colors.length - 1 && (
+                  <line x1="20" y1={y + rowHeight} x2="480" y2={y + rowHeight} stroke={textContrast} strokeWidth="1" opacity="0.08" />
+                )}
+              </g>
+            );
+          }
+        })}
+      </svg>
+    );
+  };
+
+  // -------------------------------------------------------------
+  // Mode: SPEC - Columns View (Vertical Color Bands & Rotated technical text)
+  // -------------------------------------------------------------
+  const renderSpecColumns = () => {
+    const N = colors.length;
+    const w = 500 / N;
+    const textContrast = getContrastColor(bg, resolved);
+    
+    return (
+      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+        {colors.map((color, i) => {
+          const x = i * w;
+          return (
+            <g key={color.id}>
+              <rect x={x} y="0" width={w} height="360" fill={color.hex} />
+              <rect x={x} y="360" width={w} height="140" fill={bg} />
+              {i > 0 && (
+                <line x1={x} y1="0" x2={x} y2="500" stroke={textContrast} strokeWidth="1" opacity="0.1" />
+              )}
+              <g transform={`translate(${x + w/2}, 485) rotate(-90)`}>
+                <text x="0" y="-10" fill={textContrast} fontSize="9.5" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
+                  {color.displayName}
+                </text>
+                <text x="0" y="1.5" fill={textContrast} opacity="0.5" fontSize="8.5" fontWeight="500" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start">
+                  {color.hex.toUpperCase()}
+                </text>
+                <text x="0" y="11" fill={textContrast} opacity="0.7" fontSize="7" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="start" letterSpacing="0.5">
+                  {getRoleAbbreviation(color.role)}
+                </text>
+              </g>
             </g>
-          </g>
-        );
-      })}
-      <line x1="0" y1="360" x2="500" y2="360" stroke="#000000" strokeWidth="1" opacity="0.1" />
-    </svg>
-  );
-};
+          );
+        })}
+        <line x1="0" y1="360" x2="500" y2="360" stroke={textContrast} strokeWidth="1" opacity="0.15" />
+      </svg>
+    );
+  };
 
 const handleDownloadJpg = () => {
   const svgElement = document.querySelector('.mockup-canvas-wrapper svg') as SVGSVGElement | null;
