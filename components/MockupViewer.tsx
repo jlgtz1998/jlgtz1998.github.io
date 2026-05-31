@@ -87,7 +87,7 @@ function resolveColorRoles(colors: ColorData[]) {
   return { bg, wall, floor, shadow, details, accent1, accent2, accentTeal };
 }
 
-export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'Craneo Spec' }: MockupViewerProps) {
+export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O SPEC' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
 
   const resolved = resolveColorRoles(colors);
@@ -606,7 +606,7 @@ const renderSpecList = () => (
   <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#fcfbfa', borderRadius: '4px' }}>
     <rect width="500" height="500" fill="#fcfbfa" />
     <line x1="20" y1="45" x2="480" y2="45" stroke="#000000" strokeWidth="1" opacity="0.1" />
-    <text x="20" y="26" fill="#000000" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRANEO COLOR STUDIO</text>
+    <text x="20" y="26" fill="#000000" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR</text>
     <text x="480" y="26" fill="#000000" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
     <text x="20" y="38" fill="#000000" opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">PALETTE: {paletteName.toUpperCase()}</text>
 

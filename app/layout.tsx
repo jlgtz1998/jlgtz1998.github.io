@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Craneo Color Studio - OKLCH Generative Design Workspace',
+  title: 'CRAN3O COLOR - OKLCH Generative Design Workspace',
   description: 'A premium color studio utility for architectural, CMF industrial, and graphic design systems using OKLCH and APCA contrast validation.',
   manifest: '/manifest.json',
   icons: {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'Craneo Color',
+    title: 'CRAN3O COLOR',
     statusBarStyle: 'black-translucent',
   },
 };

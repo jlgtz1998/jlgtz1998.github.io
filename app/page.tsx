@@ -32,11 +32,11 @@ const DEFAULT_IDENTITY: UserIdentity = {
 };
 
 const STORAGE_KEYS = {
-  identity: 'craneo_identity',
-  mode: 'craneo_mode',
-  paletteSize: 'craneo_palette_size',
-  customPresets: 'craneo_custom_presets',
-  pickerShape: 'craneo_picker_shape',
+  identity: 'cran3o_identity',
+  mode: 'cran3o_mode',
+  paletteSize: 'cran3o_palette_size',
+  customPresets: 'cran3o_custom_presets',
+  pickerShape: 'cran3o_picker_shape',
 } as const;
 
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
@@ -51,7 +51,7 @@ function normalizeHexDraft(value: string): string | null {
   return `#${clean.toLowerCase()}`;
 }
 
-export default function CraneoColorStudio() {
+export default function Cran3oColorStudio() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<DesignMode>('architecture');
   const [colors, setColors] = useState<ColorData[]>([]);
@@ -62,7 +62,7 @@ export default function CraneoColorStudio() {
   const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
   const [blindnessSim, setBlindnessSim] = useState<VisionMode>('normal');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [paletteName, setPaletteName] = useState<string>('Craneo Spec');
+  const [paletteName, setPaletteName] = useState<string>('CRAN3O SPEC');
   const [paletteSize, setPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -532,11 +532,11 @@ export default function CraneoColorStudio() {
 
   const handleExportCss = () => {
     const cssContent = [
-      `/* Craneo Color Studio - ${paletteName} variables */`,
+      `/* CRAN3O COLOR - ${paletteName} variables */`,
       ':root {',
       ...colors.map((color) => {
         const varName = color.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        return `  --craneo-${varName}: ${color.hex}; /* ${color.role}, OKLCH ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)} */`;
+        return `  --cran3o-${varName}: ${color.hex}; /* ${color.role}, OKLCH ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)} */`;
       }),
       '}',
       '',
@@ -624,7 +624,7 @@ export default function CraneoColorStudio() {
 
       <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px' }}>
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <h1 className="logo-main">CRANEO COLOR STUDIO</h1>
+          <h1 className="logo-main">CRAN3O COLOR</h1>
           <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
         </div>
 

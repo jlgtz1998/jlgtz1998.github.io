@@ -92,7 +92,7 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
     <div style="border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
       <div>
         <h1 style="font-size: 24px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; color: #111;">${paletteName}</h1>
-        <p style="font-size: 11px; color: #666; margin: 4px 0 0 0; letter-spacing: 1px; font-weight: 600;">CRANEO COLOR STUDIO • SWATCH CATALOG</p>
+        <p style="font-size: 11px; color: #666; margin: 4px 0 0 0; letter-spacing: 1px; font-weight: 600;">CRAN3O COLOR • SWATCH CATALOG</p>
       </div>
       <div style="text-align: right;">
         <div style="font-size: 11px; font-weight: 700; color: #111;">DATE: ${dateStr.toUpperCase()}</div>

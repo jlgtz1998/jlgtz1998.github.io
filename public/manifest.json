@@ -1,15 +1,15 @@
 {
-  "name": "Craneo Color Studio",
-  "short_name": "Craneo Color",
+  "name": "CRAN3O COLOR",
+  "short_name": "CRAN3O COLOR",
   "description": "OKLCH color studio for architecture, industrial CMF, and graphic systems.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#111313",
   "theme_color": "#e9e4da",
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
