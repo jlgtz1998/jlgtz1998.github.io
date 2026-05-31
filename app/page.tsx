@@ -27,6 +27,9 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
+const APP_VERSION_LABEL = 'v0.1.1';
+const APP_BUILD_LABEL = '2026.05.31';
+
 const STORAGE_KEYS = {
   identity: 'cran3o_identity',
   mode: 'cran3o_mode',
@@ -725,6 +728,9 @@ export default function Cran3oColorStudio() {
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <h1 className="logo-main">CRAN3O COLOR STUDIO</h1>
           <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
+          <span className="build-badge" title="Current deployed build">
+            {APP_VERSION_LABEL} / {APP_BUILD_LABEL}
+          </span>
         </div>
 
         <div className="workspace-toggle-bar">

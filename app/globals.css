@@ -137,6 +137,21 @@ input, button, select, textarea {
   color: var(--text-muted);
 }
 
+.build-badge {
+  align-items: center;
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xxs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  min-height: 20px;
+  padding: 0 7px;
+  text-transform: uppercase;
+}
+
 .mode-toggle-group {
   display: flex;
   border: 1px solid var(--border-medium);
@@ -2140,4 +2155,3 @@ button:disabled,
     grid-column: span 1;
   }
 }
-
