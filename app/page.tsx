@@ -118,19 +118,7 @@ export default function Cran3oColorStudio() {
     if (savedCustom) {
       try {
         const parsed = JSON.parse(savedCustom) as Preset[];
-        const hasStarry = parsed.some((p) => p.id === 'user-starry-night');
-        if (!hasStarry) {
-          const starryPreset = CUSTOM_PRESETS_DEFAULTS.find((p) => p.id === 'user-starry-night');
-          if (starryPreset) {
-            const updated = [...parsed, starryPreset];
-            setCustomPresets(updated);
-            localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(updated));
-          } else {
-            setCustomPresets(parsed);
-          }
-        } else {
-          setCustomPresets(parsed);
-        }
+        setCustomPresets(parsed);
       } catch {
         setCustomPresets(CUSTOM_PRESETS_DEFAULTS);
         localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(CUSTOM_PRESETS_DEFAULTS));

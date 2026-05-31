@@ -892,9 +892,10 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   // Mode: SPEC - List View (Horizontal Technical Card Rows)
   // -------------------------------------------------------------
   const renderSpecList = () => {
-    const textContrast = getContrastColor(bg, resolved);
+    const textContrast = getContrastColor('#ffffff', resolved);
     return (
-      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#ffffff', borderRadius: '4px' }}>
+        <rect width="500" height="500" fill="#ffffff" />
         <line x1="20" y1="45" x2="480" y2="45" stroke={textContrast} strokeWidth="1" opacity="0.15" />
         <text x="20" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="2">CRAN3O COLOR STUDIO</text>
         <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
@@ -1029,16 +1030,17 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const renderSpecColumns = () => {
     const N = colors.length;
     const w = 500 / N;
-    const textContrast = getContrastColor(bg, resolved);
+    const textContrast = getContrastColor('#ffffff', resolved);
     
     return (
-      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+      <svg viewBox="0 0 500 500" width="100%" height="100%" style={{ background: '#ffffff', borderRadius: '4px' }}>
+        <rect width="500" height="500" fill="#ffffff" />
         {colors.map((color, i) => {
           const x = i * w;
           return (
             <g key={color.id}>
               <rect x={x} y="0" width={w} height="360" fill={color.hex} />
-              <rect x={x} y="360" width={w} height="140" fill={bg} />
+              <rect x={x} y="360" width={w} height="140" fill="#ffffff" />
               {i > 0 && (
                 <line x1={x} y1="0" x2={x} y2="500" stroke={textContrast} strokeWidth="1" opacity="0.1" />
               )}
@@ -1066,7 +1068,8 @@ const handleDownloadJpg = () => {
   if (!svgElement) return;
 
   const isNight = activeSubtype === 'night';
-  const bgColor = isNight ? '#0b0d0e' : '#fcfbfa';
+  const isSpec = mode === 'spec';
+  const bgColor = isSpec ? '#ffffff' : (isNight ? '#0b0d0e' : '#fcfbfa');
 
   const svgString = new XMLSerializer().serializeToString(svgElement);
   const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
