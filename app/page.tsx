@@ -9,7 +9,7 @@ import { CUSTOM_PRESETS_DEFAULTS } from '../data/custom-presets-defaults';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
-import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch } from '../lib/color-spaces';
+import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch, oklchToHex } from '../lib/color-spaces';
 import { applySliders, DEFAULT_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
@@ -80,10 +80,10 @@ export default function Cran3oColorStudio() {
   const [myPresetsOpen, setMyPresetsOpen] = useState(false);
   const [history, setHistory] = useState<ColorData[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [localHsv, setLocalHsv] = useState<{ h: number; s: number; v: number } | null>(null);
+  const [localOklch, setLocalOklch] = useState<OklchColor | null>(null);
   const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
   const [slidersOpen, setSlidersOpen] = useState(false);
-  const [pickerShape, setPickerShape] = useState<'circle' | 'square' | 'triangle'>('circle');
+  const [pickerShape, setPickerShape] = useState<'plane_lc' | 'plane_hc'>('plane_lc');
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -143,8 +143,8 @@ export default function Cran3oColorStudio() {
     setMode(initialMode);
     setPaletteSize(initialSize);
 
-    const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as 'circle' | 'square' | 'triangle' | null;
-    if (savedShape === 'circle' || savedShape === 'square' || savedShape === 'triangle') {
+    const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as 'plane_lc' | 'plane_hc' | null;
+    if (savedShape === 'plane_lc' || savedShape === 'plane_hc') {
       setPickerShape(savedShape);
     }
 
@@ -189,15 +189,14 @@ export default function Cran3oColorStudio() {
 
   useEffect(() => {
     if (activeColor) {
-      const currentHsv = rgbToHsv(activeColor.rgb);
-      const localHex = rgbToHex(hsvToRgb(localHsv || { h: 0, s: 0, v: 0 }));
+      const localHex = localOklch ? oklchToHex(localOklch) : '';
       if (localHex !== activeColor.hex) {
-        setLocalHsv(currentHsv);
+        setLocalOklch(activeColor.oklch);
       }
     } else {
-      setLocalHsv(null);
+      setLocalOklch(null);
     }
-  }, [activeColor, localHsv]);
+  }, [activeColor, localOklch]);
 
   const getActiveColor = (): ColorData | null => activeColor;
 
@@ -369,33 +368,13 @@ export default function Cran3oColorStudio() {
     updateColorsAndPushHistory(nextColors);
   };
 
-  const handleColorWheelChange = (newOklch: OklchColor, hsv?: { h: number; s: number; v: number }) => {
+  const handleColorWheelChange = (newOklch: OklchColor) => {
     const active = getActiveColor();
     if (!active) return;
 
-    if (hsv) {
-      setLocalHsv(hsv);
-    }
+    setLocalOklch(newOklch);
 
     const nextColor = createColorFromOklch(newOklch, generateColorName(newOklch));
-    nextColor.id = active.id;
-    nextColor.role = active.role;
-    nextColor.locked = active.locked;
-    setColors(colors.map((color) => (color.id === active.id ? nextColor : color)));
-  };
-
-  const handleHsvSliderChange = (h: number, s: number, v: number) => {
-    const active = getActiveColor();
-    if (!active) return;
-
-    const newHsv = { h, s, v };
-    setLocalHsv(newHsv);
-
-    const nextRgb = hsvToRgb(newHsv);
-    const nextHex = rgbToHex(nextRgb);
-    const oklch = hexToOklch(nextHex);
-
-    const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
     nextColor.id = active.id;
     nextColor.role = active.role;
     nextColor.locked = active.locked;
@@ -470,7 +449,7 @@ export default function Cran3oColorStudio() {
     nextColor.locked = current.locked;
 
     const nextColors = colors.map((color) => (color.id === id ? nextColor : color));
-    setLocalHsv(rgbToHsv(nextColor.rgb));
+    setLocalOklch(nextColor.oklch);
     updateColorsAndPushHistory(nextColors);
   };
 
@@ -785,16 +764,15 @@ export default function Cran3oColorStudio() {
               <div className="instrument-vertical-stack">
                 {/* Picker Shape Selector */}
                 <div className="picker-shape-selector" style={{ display: 'flex', gap: '6px', justifyContent: 'center', margin: '4px 0 8px' }}>
-                  {(['circle', 'square', 'triangle'] as const).map((shape) => (
+                  {(['plane_lc', 'plane_hc'] as const).map((shape) => (
                     <button
                       key={shape}
                       className={`shape-btn ${pickerShape === shape ? 'active' : ''}`}
                       onClick={() => setPickerShape(shape)}
-                      title={`${shape.toUpperCase()} PICKER`}
+                      title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
                     >
-                      {shape === 'circle' && '●'}
-                      {shape === 'square' && '■'}
-                      {shape === 'triangle' && '▲'}
+                      {shape === 'plane_lc' && 'L-C'}
+                      {shape === 'plane_hc' && 'H-C'}
                     </button>
                   ))}
                 </div>
@@ -805,7 +783,6 @@ export default function Cran3oColorStudio() {
                     colors={colors} 
                     onColorChange={handleColorWheelChange} 
                     onSelectColor={(color) => setActiveColorId(color.id)} 
-                    hideLightnessSlider 
                     size={260}
                     hoveredColorId={hoveredColorId}
                     onHoverColor={setHoveredColorId}
@@ -814,88 +791,7 @@ export default function Cran3oColorStudio() {
                   />
                 </div>
 
-                {/* Monospaced coordinates readout */}
-                {activeColor && (
-                  <div className="sci-fi-readout" style={{ margin: '4px 0', textTransform: 'uppercase' }}>
-                    {(() => {
-                      const hsv = localHsv || rgbToHsv(activeColor.rgb);
-                      return `H:${Math.round(hsv.h).toString().padStart(3, '0')}° S:${Math.round(hsv.s * 100).toString().padStart(3, '0')}% V:${Math.round(hsv.v * 100).toString().padStart(3, '0')}%`;
-                    })()}
-                  </div>
-                )}
 
-                {activeColor && (() => {
-                  const currentHsv = localHsv || rgbToHsv(activeColor.rgb);
-                  return (
-                    <div className="instrument-sliders-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-                      {/* HUE */}
-                      <div className="blender-slider-wrapper">
-                        <input
-                          type="range"
-                          min="0"
-                          max="360"
-                          step="1"
-                          value={currentHsv.h}
-                          onChange={(e) => {
-                            handleHsvSliderChange(parseFloat(e.target.value), currentHsv.s, currentHsv.v);
-                          }}
-                          onMouseUp={() => pushHistory(colors)}
-                          onTouchEnd={() => pushHistory(colors)}
-                          className="blender-slider"
-                          style={{ '--value-percent': `${(currentHsv.h / 360) * 100}%` } as React.CSSProperties}
-                        />
-                        <div className="blender-slider-overlay">
-                          <span className="blender-slider-label">HUE</span>
-                          <span className="blender-slider-value">{Math.round(currentHsv.h)}°</span>
-                        </div>
-                      </div>
-
-                      {/* SATURATION */}
-                      <div className="blender-slider-wrapper">
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="1"
-                          value={Math.round(currentHsv.s * 100)}
-                          onChange={(e) => {
-                            handleHsvSliderChange(currentHsv.h, parseFloat(e.target.value) / 100, currentHsv.v);
-                          }}
-                          onMouseUp={() => pushHistory(colors)}
-                          onTouchEnd={() => pushHistory(colors)}
-                          className="blender-slider"
-                          style={{ '--value-percent': `${currentHsv.s * 100}%` } as React.CSSProperties}
-                        />
-                        <div className="blender-slider-overlay">
-                          <span className="blender-slider-label">SATURATION</span>
-                          <span className="blender-slider-value">{Math.round(currentHsv.s * 100)}%</span>
-                        </div>
-                      </div>
-
-                      {/* VALUE */}
-                      <div className="blender-slider-wrapper">
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="1"
-                          value={Math.round(currentHsv.v * 100)}
-                          onChange={(e) => {
-                            handleHsvSliderChange(currentHsv.h, currentHsv.s, parseFloat(e.target.value) / 100);
-                          }}
-                          onMouseUp={() => pushHistory(colors)}
-                          onTouchEnd={() => pushHistory(colors)}
-                          className="blender-slider"
-                          style={{ '--value-percent': `${currentHsv.v * 100}%` } as React.CSSProperties}
-                        />
-                        <div className="blender-slider-overlay">
-                          <span className="blender-slider-label">VALUE</span>
-                          <span className="blender-slider-value">{Math.round(currentHsv.v * 100)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
 
                 <div className="harmony-controls-block">
                   <span className="control-label-mini">HARMONY</span>
