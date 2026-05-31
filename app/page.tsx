@@ -31,6 +31,14 @@ const DEFAULT_IDENTITY: UserIdentity = {
   futurism: 20,
 };
 
+const STORAGE_KEYS = {
+  identity: 'craneo_identity',
+  mode: 'craneo_mode',
+  paletteSize: 'craneo_palette_size',
+  customPresets: 'craneo_custom_presets',
+  pickerShape: 'craneo_picker_shape',
+} as const;
+
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 
 function sanitizeFileName(name: string): string {
@@ -85,9 +93,10 @@ export default function CraneoColorStudio() {
       navigator.serviceWorker.register('/sw.js').catch(() => undefined);
     }
 
-    const savedIdentity = localStorage.getItem('qfcs_identity');
-    const savedMode = localStorage.getItem('qfcs_mode') as DesignMode | null;
-    const savedSize = Number(localStorage.getItem('qfcs_palette_size'));
+    const savedIdentity = localStorage.getItem(STORAGE_KEYS.identity);
+    const savedMode = localStorage.getItem(STORAGE_KEYS.mode) as DesignMode | null;
+    const savedSizeRaw = localStorage.getItem(STORAGE_KEYS.paletteSize);
+    const savedSize = savedSizeRaw ? Number(savedSizeRaw) : Number.NaN;
     const initialMode = savedMode || 'architecture';
     const initialSize = Number.isFinite(savedSize) ? Math.max(MIN_PALETTE_SIZE, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
 
@@ -99,7 +108,7 @@ export default function CraneoColorStudio() {
       }
     }
 
-    const savedCustom = localStorage.getItem('qfcs_custom_presets');
+    const savedCustom = localStorage.getItem(STORAGE_KEYS.customPresets);
     if (savedCustom) {
       try {
         const parsed = JSON.parse(savedCustom) as Preset[];
@@ -109,7 +118,7 @@ export default function CraneoColorStudio() {
           if (starryPreset) {
             const updated = [...parsed, starryPreset];
             setCustomPresets(updated);
-            localStorage.setItem('qfcs_custom_presets', JSON.stringify(updated));
+            localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(updated));
           } else {
             setCustomPresets(parsed);
           }
@@ -118,17 +127,17 @@ export default function CraneoColorStudio() {
         }
       } catch {
         setCustomPresets(CUSTOM_PRESETS_DEFAULTS);
-        localStorage.setItem('qfcs_custom_presets', JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
+        localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
       }
     } else {
       setCustomPresets(CUSTOM_PRESETS_DEFAULTS);
-      localStorage.setItem('qfcs_custom_presets', JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
+      localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
     }
 
     setMode(initialMode);
     setPaletteSize(initialSize);
 
-    const savedShape = localStorage.getItem('qfcs_picker_shape') as 'circle' | 'square' | 'triangle' | null;
+    const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as 'circle' | 'square' | 'triangle' | null;
     if (savedShape === 'circle' || savedShape === 'square' || savedShape === 'triangle') {
       setPickerShape(savedShape);
     }
@@ -144,17 +153,17 @@ export default function CraneoColorStudio() {
 
   useEffect(() => {
     if (!mounted) return;
-    localStorage.setItem('qfcs_identity', JSON.stringify(identity));
+    localStorage.setItem(STORAGE_KEYS.identity, JSON.stringify(identity));
   }, [identity, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
-    localStorage.setItem('qfcs_palette_size', String(paletteSize));
+    localStorage.setItem(STORAGE_KEYS.paletteSize, String(paletteSize));
   }, [paletteSize, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
-    localStorage.setItem('qfcs_picker_shape', pickerShape);
+    localStorage.setItem(STORAGE_KEYS.pickerShape, pickerShape);
   }, [pickerShape, mounted]);
 
   const activeColor = useMemo(
@@ -275,7 +284,7 @@ export default function CraneoColorStudio() {
 
   const handleModeChange = (newMode: DesignMode) => {
     setMode(newMode);
-    localStorage.setItem('qfcs_mode', newMode);
+    localStorage.setItem(STORAGE_KEYS.mode, newMode);
     setSettingsOpen(false);
     setExportOpen(false);
     setContrastOpen(false);
@@ -411,14 +420,14 @@ export default function CraneoColorStudio() {
     };
     const nextCustom = [newPreset, ...customPresets];
     setCustomPresets(nextCustom);
-    localStorage.setItem('qfcs_custom_presets', JSON.stringify(nextCustom));
+    localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(nextCustom));
     setNewPresetName('');
   };
 
   const handleDeletePreset = (id: string) => {
     const nextCustom = customPresets.filter((preset) => preset.id !== id);
     setCustomPresets(nextCustom);
-    localStorage.setItem('qfcs_custom_presets', JSON.stringify(nextCustom));
+    localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(nextCustom));
   };
 
   const handleToggleLock = (id: string) => {
@@ -791,7 +800,7 @@ export default function CraneoColorStudio() {
                     onColorChange={handleColorWheelChange} 
                     onSelectColor={(color) => setActiveColorId(color.id)} 
                     hideLightnessSlider 
-                    size={180}
+                    size={260}
                     hoveredColorId={hoveredColorId}
                     onHoverColor={setHoveredColorId}
                     onInteractionEnd={() => pushHistory(colors)}
