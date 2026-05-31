@@ -331,6 +331,25 @@ export default function Cran3oColorStudio() {
     updateColorsAndPushHistory(nextColors);
   };
 
+  const handleHarmonyChange = (harmonyId: string) => {
+    setActiveHarmonyId(harmonyId);
+    const active = getActiveColor();
+    if (!active) return;
+
+    const generatedOklchs = generateHarmony(active.oklch, harmonyId, identity.chroma / 50);
+    const nextColors = colors.map((color, index) => {
+      if (color.locked) return color;
+      const oklch = generatedOklchs[index % generatedOklchs.length];
+      const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
+      nextColor.id = color.id;
+      nextColor.role = color.role;
+      nextColor.locked = false;
+      return nextColor;
+    });
+    setSliders(NEUTRAL_SLIDERS);
+    updateColorsAndPushHistory(nextColors);
+  };
+
   const handleRefinePalette = () => {
     const nextColors = colors.map((color) => (color.locked ? color : mutateColor(color, 'subtle')));
     setSliders(NEUTRAL_SLIDERS);
@@ -754,26 +773,32 @@ export default function Cran3oColorStudio() {
           {/* Row 2: Wheel & Swatches Side-by-Side Row */}
           <div className="wheel-and-swatches-row">
             
-            {/* Left: HSV Instrument */}
+            {/* Left: OKLCH Color Space Instrument */}
             <section className="studio-panel calculator-face color-space-instrument">
-              <h3 className="section-title">COLOR INSTRUMENT</h3>
+              <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 className="section-title" style={{ margin: 0 }}>COLOR INSTRUMENT</h3>
+                  <p className="section-description" style={{ margin: '4px 0 0' }}>Edit coordinates on L-C/H-C planes and apply harmonies.</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PLANE</span>
+                  <div className="button-strip">
+                    {(['plane_lc', 'plane_hc'] as const).map((shape) => (
+                      <button
+                        key={shape}
+                        className={pickerShape === shape ? 'active' : ''}
+                        onClick={() => setPickerShape(shape)}
+                        style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
+                        title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
+                      >
+                        {shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               
               <div className="instrument-vertical-stack">
-                {/* Picker Shape Selector */}
-                <div className="picker-shape-selector" style={{ display: 'flex', gap: '6px', justifyContent: 'center', margin: '4px 0 8px' }}>
-                  {(['plane_lc', 'plane_hc'] as const).map((shape) => (
-                    <button
-                      key={shape}
-                      className={`shape-btn ${pickerShape === shape ? 'active' : ''}`}
-                      onClick={() => setPickerShape(shape)}
-                      title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
-                    >
-                      {shape === 'plane_lc' && 'L-C'}
-                      {shape === 'plane_hc' && 'H-C'}
-                    </button>
-                  ))}
-                </div>
-
                 <div className="instrument-wheel-wrapper">
                   <ColorWheel 
                     activeColor={activeColor} 
@@ -788,17 +813,15 @@ export default function Cran3oColorStudio() {
                   />
                 </div>
 
-
-
                 <div className="harmony-controls-block">
                   <span className="control-label-mini">HARMONY</span>
                   <div className="harmony-action-row">
-                    <select className="select-control" value={activeHarmonyId} onChange={(event) => setActiveHarmonyId(event.target.value)}>
+                    <select className="select-control" value={activeHarmonyId} onChange={(event) => handleHarmonyChange(event.target.value)}>
                       {HARMONIES.map((harmony) => <option key={harmony.id} value={harmony.id}>{harmony.name}</option>)}
                     </select>
-                    <button onClick={handleGenerateHarmony} className="calculator-action primary">
-                      <MaterialIcon name="explore" size={12} />
-                      APPLY
+                    <button onClick={handleGenerateHarmony} className="calculator-action primary" title="Re-apply active harmony to non-locked colors">
+                      <MaterialIcon name="sync" size={12} />
+                      RE-APPLY
                     </button>
                   </div>
                 </div>
@@ -1139,10 +1162,10 @@ export default function Cran3oColorStudio() {
 
           {/* Unified Variation & Mutation Engine Panel */}
           <section className="studio-panel calculator-face variation-panel">
-            <div className="variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
               <div>
-                <h3 className="section-title">VARIATION & MUTATION ENGINE</h3>
-                <p className="section-description">Fine tune temperature, muting, contrast, and material feel inside OKLCH.</p>
+                <h3 className="section-title" style={{ margin: 0 }}>VARIATION & MUTATION ENGINE</h3>
+                <p className="section-description" style={{ margin: '4px 0 0' }}>Fine tune temperature, muting, contrast, and material feel inside OKLCH.</p>
               </div>
               
               <div className="mutation-controls-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1163,7 +1186,7 @@ export default function Cran3oColorStudio() {
             </div>
 
             {slidersOpen && (
-              <div className="variation-sliders-drawer" style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', marginTop: '12px' }}>
+              <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
                   <div className="button-strip">
@@ -1208,19 +1231,45 @@ export default function Cran3oColorStudio() {
             )}
           </section>
 
-          {/* Row 6: Collapsible My Color Identity Settings */}
+          {/* Row 6: Collapsible Color Identity Settings */}
           <section className="studio-panel calculator-face">
-            <button className="identity-collapsible-trigger" onClick={() => setIdentityOpen(!identityOpen)}>
-              <span className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <MaterialIcon name="settings" size={16} />
-                COLOR IDENTITY
-              </span>
-              <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
-                <MaterialIcon name="keyboard_arrow_right" size={16} />
-              </span>
+            <button 
+              className="identity-collapsible-trigger" 
+              onClick={() => setIdentityOpen(!identityOpen)}
+              style={{
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                background: 'transparent',
+                border: 0,
+                width: '100%',
+                cursor: 'pointer',
+                textAlign: 'left',
+                paddingBottom: identityOpen ? '14px' : '4px',
+                borderBottom: identityOpen ? '1px solid var(--border-light)' : 'none',
+                marginBottom: identityOpen ? '16px' : '0px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div>
+                <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
+                    <MaterialIcon name="settings" size={14} />
+                  </span>
+                  COLOR IDENTITY
+                </h3>
+                <p className="section-description" style={{ margin: '4px 0 0' }}>
+                  Define your core aesthetic profile. Active palettes morph smoothly as you adjust the axes.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                  <MaterialIcon name="keyboard_arrow_right" size={18} />
+                </span>
+              </div>
             </button>
             {identityOpen && (
-              <div style={{ marginTop: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+              <div className="collapsible-content">
                 <IdentityPanel 
                   identity={identity} 
                   onIdentityChange={handleIdentitySliderChange} 

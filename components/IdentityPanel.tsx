@@ -35,13 +35,6 @@ export default function IdentityPanel({
 
   return (
     <div className="identity-panel">
-      <div className="panel-header-row" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-        <h3 className="section-title" style={{ margin: 0 }}>COLOR IDENTITY</h3>
-        <p className="section-description" style={{ margin: 0 }}>
-          Define your core aesthetic profile. The active palette will morph smoothly and dynamically in real time as you adjust the axes.
-        </p>
-      </div>
-
       <div className="identity-sliders-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {slidersList.map((slider) => (
           <div key={slider.key} className="blender-slider-wrapper">

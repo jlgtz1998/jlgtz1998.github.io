@@ -32,16 +32,16 @@ interface NumberControlProps {
 function NumberControl({ label, value, min, max, step, onChange }: NumberControlProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-      <span style={{ fontSize: '9px', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
-        <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>-</button>
+      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border-medium)', borderRadius: '3px' }}>
+        <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7 }}>-</button>
         <input 
           type="number" 
           value={Number(value).toFixed(step < 1 ? 2 : 0)} 
           onChange={(e) => onChange(clampNumber(parseFloat(e.target.value) || 0, min, max))}
-          style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+          style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text-primary)', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
         />
-        <button onClick={() => onChange(clampNumber(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>+</button>
+        <button onClick={() => onChange(clampNumber(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7 }}>+</button>
       </div>
     </div>
   );
@@ -391,18 +391,20 @@ export default function ColorWheel({
               <div style={{
                 position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                 width: 8, height: 8, borderRadius: '50%', backgroundColor: activeColor.hex,
-                border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 0 4px rgba(0,0,0,0.8)',
+                border: '1.5px solid #ffffff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.6)',
               }} />
               {/* Outer target scope circle */}
               <div style={{
                 position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                width: 24, height: 24, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.4)',
+                width: 24, height: 24, borderRadius: '50%', 
+                border: '1px solid rgba(255,255,255,0.85)',
+                boxShadow: '0 0 0 1px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(0,0,0,0.25)',
               }} />
               {/* Crosshair lines extending outward */}
-              <div style={{ position: 'absolute', top: '50%', left: '-10px', width: '20px', height: '1px', background: 'rgba(255,255,255,0.6)' }} />
-              <div style={{ position: 'absolute', top: '50%', right: '-10px', width: '20px', height: '1px', background: 'rgba(255,255,255,0.6)' }} />
-              <div style={{ position: 'absolute', top: '-10px', left: '50%', width: '1px', height: '20px', background: 'rgba(255,255,255,0.6)' }} />
-              <div style={{ position: 'absolute', bottom: '-10px', left: '50%', width: '1px', height: '20px', background: 'rgba(255,255,255,0.6)' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '-10px', width: '20px', height: '1px', background: '#ffffff', boxShadow: '0 1px 1px rgba(0,0,0,0.3)' }} />
+              <div style={{ position: 'absolute', top: '50%', right: '-10px', width: '20px', height: '1px', background: '#ffffff', boxShadow: '0 1px 1px rgba(0,0,0,0.3)' }} />
+              <div style={{ position: 'absolute', top: '-10px', left: '50%', width: '1px', height: '20px', background: '#ffffff', boxShadow: '1px 0 1px rgba(0,0,0,0.3)' }} />
+              <div style={{ position: 'absolute', bottom: '-10px', left: '50%', width: '1px', height: '20px', background: '#ffffff', boxShadow: '1px 0 1px rgba(0,0,0,0.3)' }} />
             </div>
           );
         })()}
@@ -410,7 +412,7 @@ export default function ColorWheel({
       
       {/* CAD-Style Input Controls for OKLCH */}
       {activeColor && (
-        <div style={{ display: 'flex', gap: '8px', width: '100%', padding: '8px', background: 'rgba(0,0,0,0.1)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', gap: '8px', width: '100%', padding: '8px', background: 'var(--bg-panel-deep)', borderRadius: '3px', border: '1px solid var(--border-medium)' }}>
           <NumberControl 
             label="LIGHTNESS (L)" 
             value={currentL} 
