@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'CRAN3O COLOR - OKLCH Generative Design Workspace',
+  title: 'CRAN3O Color Studio - OKLCH Generative Design Workspace',
   description: 'A premium color studio utility for architectural, CMF industrial, and graphic design systems using OKLCH and APCA contrast validation.',
-  manifest: '/manifest.json',
+  manifest: '/CRAN3O_Color_Studio/manifest.json',
   icons: {
-    icon: '/icons/icon.svg',
-    apple: '/icons/icon.svg',
+    icon: '/CRAN3O_Color_Studio/icons/icon.svg',
+    apple: '/CRAN3O_Color_Studio/icons/icon.svg',
   },
   appleWebApp: {
     capable: true,
-    title: 'CRAN3O COLOR',
+    title: 'CRAN3O Color Studio',
     statusBarStyle: 'black-translucent',
   },
 };

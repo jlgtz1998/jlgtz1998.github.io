@@ -1,6 +1,6 @@
-# CRAN3O COLOR
+# CRAN3O Color Studio
 
-CRAN3O COLOR is a professional, high-fidelity web utility built for generating, varying, visualizing, and exporting premium color palettes. Designed specifically for architectural systems, CMF industrial design, and graphic design, the application implements state-of-the-art color space transformations using OKLCH and monitors accessibility parameters via APCA and WCAG 2.1.
+CRAN3O Color Studio is a professional, high-fidelity web utility built for generating, varying, visualizing, and exporting premium color palettes. Designed specifically for architectural systems, CMF industrial design, and graphic design, the application implements state-of-the-art color space transformations using OKLCH and monitors accessibility parameters via APCA and WCAG 2.1.
 
 ## 🚀 Features
 

@@ -20,7 +20,7 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
 
     <!-- Header -->
     <text x="40" y="80" fill="#ffffff" font-size="24" font-weight="700" letter-spacing="-0.5">${paletteName.toUpperCase()}</text>
-    <text x="40" y="105" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="1">CRAN3O COLOR</text>
+    <text x="40" y="105" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="1">CRAN3O COLOR STUDIO</text>
     
     <text x="${width - 40}" y="80" text-anchor="end" fill="#70808a" font-size="12" font-weight="600">${dateStr.toUpperCase()}</text>
     <text x="${width - 40}" y="105" text-anchor="end" fill="#ffffff" fill-opacity="0.6" font-size="12" font-weight="500" letter-spacing="0.5">MODE: ${modeName.toUpperCase()}</text>

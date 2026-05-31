@@ -1,15 +1,15 @@
 {
-  "name": "CRAN3O COLOR",
-  "short_name": "CRAN3O COLOR",
+  "name": "CRAN3O Color Studio",
+  "short_name": "CRAN3O Studio",
   "description": "OKLCH color studio for architecture, industrial CMF, and graphic systems.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/CRAN3O_Color_Studio/",
+  "scope": "/CRAN3O_Color_Studio/",
   "display": "standalone",
   "background_color": "#111313",
   "theme_color": "#e9e4da",
   "icons": [
     {
-      "src": "icons/icon.svg",
+      "src": "/CRAN3O_Color_Studio/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

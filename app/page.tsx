@@ -39,6 +39,8 @@ const STORAGE_KEYS = {
   pickerShape: 'cran3o_picker_shape',
 } as const;
 
+const APP_BASE_PATH = '/CRAN3O_Color_Studio';
+
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 
 function sanitizeFileName(name: string): string {
@@ -62,7 +64,7 @@ export default function Cran3oColorStudio() {
   const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
   const [blindnessSim, setBlindnessSim] = useState<VisionMode>('normal');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [paletteName, setPaletteName] = useState<string>('CRAN3O SPEC');
+  const [paletteName, setPaletteName] = useState<string>('CRAN3O Spec');
   const [paletteSize, setPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -90,7 +92,7 @@ export default function Cran3oColorStudio() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+      navigator.serviceWorker.register(`${APP_BASE_PATH}/sw.js`).catch(() => undefined);
     }
 
     const savedIdentity = localStorage.getItem(STORAGE_KEYS.identity);
@@ -532,7 +534,7 @@ export default function Cran3oColorStudio() {
 
   const handleExportCss = () => {
     const cssContent = [
-      `/* CRAN3O COLOR - ${paletteName} variables */`,
+      `/* CRAN3O Color Studio - ${paletteName} variables */`,
       ':root {',
       ...colors.map((color) => {
         const varName = color.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -624,7 +626,7 @@ export default function Cran3oColorStudio() {
 
       <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px' }}>
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <h1 className="logo-main">CRAN3O COLOR</h1>
+          <h1 className="logo-main">CRAN3O COLOR STUDIO</h1>
           <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
         </div>
 
