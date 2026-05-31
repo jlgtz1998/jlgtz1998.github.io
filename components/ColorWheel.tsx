@@ -15,7 +15,6 @@ interface ColorWheelProps {
   onInteractionEnd?: () => void;
   pickerShape?: 'plane_lc' | 'plane_hc';
   drawHarmonyLines?: boolean;
-  harmonyRule?: string;
   harmonyBaseColorId?: string | null;
 }
 
@@ -76,7 +75,6 @@ export default function ColorWheel({
   onInteractionEnd,
   pickerShape = 'plane_lc',
   drawHarmonyLines = false,
-  harmonyRule,
   harmonyBaseColorId = null,
 }: ColorWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

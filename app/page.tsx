@@ -9,12 +9,12 @@ import { CUSTOM_PRESETS_DEFAULTS } from '../data/custom-presets-defaults';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
-import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch, oklchToHex, isColorInGamut } from '../lib/color-spaces';
+import { createColorFromHex, createColorFromOklch, hexToOklch, oklchToHex, isColorInGamut } from '../lib/color-spaces';
 import { applySliders, NEUTRAL_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
-import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, MIN_PALETTE_SIZE, moveColor, normalizePaletteSize, roleForIndex } from '../lib/palette';
+import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, MIN_PALETTE_SIZE, moveColor, roleForIndex } from '../lib/palette';
 import ColorWheel from '../components/ColorWheel';
 import IdentityPanel from '../components/IdentityPanel';
 import MaterialIcon from '../components/MaterialIcon';
@@ -1634,7 +1634,6 @@ export default function Cran3oColorStudio() {
                   onInteractionEnd={() => pushHistory(colors)}
                   pickerShape={pickerShape}
                   drawHarmonyLines={true}
-                  harmonyRule={activeHarmonyId}
                   harmonyBaseColorId={harmonyBaseColorId}
                 />
               </section>
