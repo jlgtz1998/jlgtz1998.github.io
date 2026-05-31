@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ColorData, ColorRole, DesignMode } from '../types';
 import { createColorFromHex } from '../lib/color-spaces';
 import { checkApca, getWcagContrast } from '../lib/accessibility';
@@ -265,17 +265,19 @@ function getContrastColor(surfaceHex: string, resolved: ResolvedRoleColors): str
       }
     }
     return bestColor.hex;
-  } catch (e) {
+  } catch {
     return resolved.shadow.hex;
   }
 }
 
 export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
+  const [prevMode, setPrevMode] = useState<DesignMode>(mode);
 
-  useEffect(() => {
+  if (mode !== prevMode) {
+    setPrevMode(mode);
     setActiveSubtype(getDefaultSubtype(mode));
-  }, [mode]);
+  }
 
   const resolved = useMemo(() => resolveColorRoles(colors), [colors]);
   const applicationMap = useMemo(() => getApplicationMap(mode, resolved), [mode, resolved]);
@@ -467,7 +469,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         {/* Technical notes */}
         <line x1="25" y1="295" x2="475" y2="295" stroke={textContrast} strokeOpacity="0.15" />
-        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL</text>
+        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="monospace">{"CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL"}</text>
       </svg>
     );
   };
@@ -535,7 +537,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="60" y1="50" x2="420" y2="50" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         <line x1="60" y1="250" x2="420" y2="250" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">HOUSING [SRF]: {wall.toUpperCase()} // DIALS [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">HOUSING [SRF]: {wall.toUpperCase()}{" // "}DIALS [MUT]: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -586,7 +588,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="31" y1="240" x2="39" y2="240" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <text x="27" y="170" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 27, 170)">820.0 mm</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CUSHION [ACC1]: {accent1.toUpperCase()} // SHELL [ACC2]: {accent2.toUpperCase()} // TUBE [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CUSHION [ACC1]: {accent1.toUpperCase()}{" // "}SHELL [ACC2]: {accent2.toUpperCase()}{" // "}TUBE [MUT]: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -623,7 +625,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <circle cx="205" cy="54" r="4.5" fill={accent2} />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">BEAM [BDR]: {floor.toUpperCase()} // DISPLAY CASE [TXT]: {shadow.toUpperCase()} // MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">BEAM [BDR]: {floor.toUpperCase()}{" // "}DISPLAY CASE [TXT]: {shadow.toUpperCase()}{" // "}MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.1" />
       </svg>
     );
@@ -669,7 +671,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="310" y1="140" x2="350" y2="140" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
         <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="monospace" textAnchor="start">PORTAFILTER CMF ACCENT</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CHASSIS [SRF]: {wall.toUpperCase()} // PORTAFILTER [TXT]: {shadow.toUpperCase()} // FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="monospace">CHASSIS [SRF]: {wall.toUpperCase()}{" // "}PORTAFILTER [TXT]: {shadow.toUpperCase()}{" // "}FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
       </svg>
     );
   };
@@ -880,7 +882,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <path d="M 20 20 L 260 20 M 20 200 L 260 200" stroke={accent1} strokeWidth="1.2" strokeOpacity="0.5" />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="monospace">{"SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE"}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.15" />
       </svg>
     );

@@ -39,7 +39,6 @@ const STORAGE_KEYS = {
   pickerShape: 'cran3o_picker_shape',
 } as const;
 
-const APP_BASE_PATH = '/CRAN3O_Color_Studio';
 
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 
