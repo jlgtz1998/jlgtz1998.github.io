@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Blinker:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 /* ==========================================================================
    DESIGN TOKENS & SYSTEM VARIABLES (Swiss Graphic Instrument Style)
    ========================================================================== */
 :root {
   /* Fonts */
-  --font-sans: 'Blinker', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Blinker', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', monospace;
 
   /* Typographic Scale */
   --font-size-xxs: 0.68rem;
@@ -128,10 +128,10 @@ input, button, select, textarea {
 
 .logo-main {
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: 'Orbitron', sans-serif;
   font-size: var(--font-size-xxl);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   margin: 0;
   text-transform: uppercase;
 }
@@ -1814,12 +1814,11 @@ html, body {
   background-size: 26px 26px;
 }
 
-/* Unified technical typeface for a coherent monitor-instrument UI */
+/* Futuristic technical headings, balanced with a readable UI body */
 .logo-main,
 .section-title,
 .settings-menu-title {
-  font-family: var(--font-sans) !important;
-  font-weight: 800;
+  font-family: 'Orbitron', sans-serif !important;
   letter-spacing: 0.06em !important;
 }
 
@@ -1880,7 +1879,7 @@ button:disabled,
 }
 
 /* ==========================================
-   ADOBE WORKSPACE LAYOUT & PANEL STYLES
+   harmony WORKSPACE LAYOUT & PANEL STYLES
    ========================================== */
 
 .workspace-toggle-bar {
@@ -1915,7 +1914,7 @@ button:disabled,
   box-shadow: var(--shadow-sm);
 }
 
-.adobe-layout-grid {
+.harmony-layout-grid {
   display: grid;
   flex: 1;
   grid-template-columns: minmax(220px, 0.58fr) minmax(760px, 1.9fr) minmax(360px, 0.82fr);
@@ -1925,13 +1924,13 @@ button:disabled,
   min-height: calc(100vh - 96px);
 }
 
-.adobe-harmony-sidebar {
+.harmony-sidebar {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.adobe-center-workspace {
+.harmony-center-workspace {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1939,7 +1938,7 @@ button:disabled,
   width: 100%;
 }
 
-.adobe-wheel-panel {
+.harmony-wheel-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1949,14 +1948,14 @@ button:disabled,
   padding: clamp(16px, 1.2vw, 22px);
 }
 
-.adobe-swatches-container {
+.harmony-swatches-container {
   display: flex;
   width: 100%;
   gap: 10px;
   margin-top: 4px;
 }
 
-.adobe-swatch-strip {
+.harmony-swatch-strip {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1968,12 +1967,12 @@ button:disabled,
   min-width: 90px;
 }
 
-.adobe-swatch-strip.active {
+.harmony-swatch-strip.active {
   border-color: var(--button-dark);
   box-shadow: 0 0 0 1px var(--button-dark);
 }
 
-.adobe-strip-fill {
+.harmony-strip-fill {
   height: clamp(88px, 7vw, 118px);
   position: relative;
   display: flex;
@@ -1984,7 +1983,7 @@ button:disabled,
   cursor: pointer;
 }
 
-.adobe-strip-badge {
+.harmony-strip-badge {
   background: rgba(0, 0, 0, 0.45);
   color: #ffffff;
   font-family: var(--font-mono);
@@ -1995,14 +1994,14 @@ button:disabled,
   font-weight: 700;
 }
 
-.adobe-strip-actions {
+.harmony-strip-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
-.adobe-strip-btn {
+.harmony-strip-btn {
   background: rgba(0, 0, 0, 0.45);
   border: none;
   color: rgba(255, 255, 255, 0.85);
@@ -2015,17 +2014,17 @@ button:disabled,
   transition: all var(--transition-fast) ease;
 }
 
-.adobe-strip-btn:hover {
+.harmony-strip-btn:hover {
   color: #ffffff;
   background: rgba(0, 0, 0, 0.65);
 }
 
-.adobe-strip-btn.active-base {
+.harmony-strip-btn.active-base {
   background: var(--button-dark);
   color: var(--bg-object);
 }
 
-.adobe-strip-info {
+.harmony-strip-info {
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -2034,7 +2033,7 @@ button:disabled,
   border-top: 1px solid var(--border-light);
 }
 
-.adobe-strip-name {
+.harmony-strip-name {
   width: 100%;
   background: transparent;
   border: none;
@@ -2049,12 +2048,12 @@ button:disabled,
   white-space: nowrap;
 }
 
-.adobe-strip-name:focus {
+.harmony-strip-name:focus {
   border-bottom-color: var(--border-medium);
   outline: none;
 }
 
-.adobe-strip-hex {
+.harmony-strip-hex {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-medium);
@@ -2067,25 +2066,25 @@ button:disabled,
   padding: 4px 0;
 }
 
-.adobe-strip-hex.invalid {
+.harmony-strip-hex.invalid {
   border-color: var(--button-amber);
   color: var(--button-amber);
 }
 
-.adobe-strip-sliders {
+.harmony-strip-sliders {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-top: 4px;
 }
 
-.adobe-mini-slider-wrapper {
+.harmony-mini-slider-wrapper {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.adobe-mini-slider-header {
+.harmony-mini-slider-header {
   display: flex;
   justify-content: space-between;
   font-size: var(--font-size-xxs);
@@ -2093,7 +2092,7 @@ button:disabled,
   font-family: var(--font-mono);
 }
 
-.adobe-mini-slider {
+.harmony-mini-slider {
   -webkit-appearance: none;
   width: 100%;
   height: 4px;
@@ -2103,7 +2102,7 @@ button:disabled,
   margin: 2px 0;
 }
 
-.adobe-mini-slider::-webkit-slider-thumb {
+.harmony-mini-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 10px;
@@ -2114,7 +2113,7 @@ button:disabled,
   border: 1.5px solid var(--bg-panel);
 }
 
-.adobe-mini-slider::-moz-range-thumb {
+.harmony-mini-slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -2123,7 +2122,7 @@ button:disabled,
   border: 1.5px solid var(--bg-panel);
 }
 
-.adobe-harmony-rule-btn {
+.harmony-rule-btn {
   width: 100%;
   text-align: left;
   background: transparent;
@@ -2139,43 +2138,43 @@ button:disabled,
   transition: all var(--transition-fast) ease;
 }
 
-.adobe-harmony-rule-btn:hover {
+.harmony-rule-btn:hover {
   background: var(--bg-panel-deep);
   color: var(--text-primary);
 }
 
-.adobe-harmony-rule-btn.active {
+.harmony-rule-btn.active {
   background: var(--bg-panel-deep);
   border-color: var(--border-medium);
   color: var(--text-primary);
 }
 
-.adobe-harmony-rule-name {
+.harmony-rule-name {
   font-weight: 700;
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
 
-.adobe-harmony-rule-desc {
+.harmony-rule-desc {
   font-size: var(--font-size-xxs);
   opacity: 0.6;
 }
 
 @media (max-width: 1300px) {
-  .adobe-layout-grid {
+  .harmony-layout-grid {
     grid-template-columns: 240px minmax(0, 1fr);
   }
-  .adobe-layout-grid .right-column {
+  .harmony-layout-grid .right-column {
     grid-column: span 2;
   }
 }
 
 @media (max-width: 900px) {
-  .adobe-layout-grid {
+  .harmony-layout-grid {
     grid-template-columns: 1fr;
   }
-  .adobe-layout-grid .left-column,
-  .adobe-layout-grid .right-column {
+  .harmony-layout-grid .left-column,
+  .harmony-layout-grid .right-column {
     grid-column: span 1;
   }
 }

@@ -27,7 +27,7 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.2';
+const APP_VERSION_LABEL = 'v0.1.3';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
@@ -87,7 +87,7 @@ export default function Cran3oColorStudio() {
   const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'instrument' | 'adobe'>('instrument');
+  const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -141,8 +141,8 @@ export default function Cran3oColorStudio() {
       setPickerShape(savedShape);
     }
 
-    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'adobe' | null;
-    if (savedViewMode === 'instrument' || savedViewMode === 'adobe') {
+    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'harmony' | null;
+    if (savedViewMode === 'instrument' || savedViewMode === 'harmony') {
       setViewMode(savedViewMode);
     }
 
@@ -449,7 +449,7 @@ export default function Cran3oColorStudio() {
     nextColor.role = active.role;
     nextColor.locked = active.locked;
 
-    if (viewMode === 'adobe' && active.id === harmonyBaseColorId) {
+    if (viewMode === 'harmony' && active.id === harmonyBaseColorId) {
       const generatedOklchs = generateHarmony(newOklch, activeHarmonyId, identity.chroma / 50);
       const nextColors = colors.map((color, index) => {
         if (color.id === active.id) return nextColor;
@@ -476,7 +476,7 @@ export default function Cran3oColorStudio() {
     nextColor.role = current.role;
     nextColor.locked = current.locked;
 
-    if (viewMode === 'adobe' && id === harmonyBaseColorId) {
+    if (viewMode === 'harmony' && id === harmonyBaseColorId) {
       const generatedOklchs = generateHarmony(newOklch, activeHarmonyId, identity.chroma / 50);
       const nextColors = colors.map((color, index) => {
         if (color.id === id) return nextColor;
@@ -741,10 +741,10 @@ export default function Cran3oColorStudio() {
             STUDIO INSTRUMENT
           </button>
           <button 
-            className={`workspace-tab-btn ${viewMode === 'adobe' ? 'active' : ''}`}
-            onClick={() => setViewMode('adobe')}
+            className={`workspace-tab-btn ${viewMode === 'harmony' ? 'active' : ''}`}
+            onClick={() => setViewMode('harmony')}
           >
-            ADOBE WORKSPACE
+            HARMONY WORKSPACE
           </button>
         </div>
 
@@ -885,7 +885,7 @@ export default function Cran3oColorStudio() {
       </header>
 
       <div 
-        className={viewMode === 'instrument' ? "studio-grid" : "adobe-layout-grid"} 
+        className={viewMode === 'instrument' ? "studio-grid" : "harmony-layout-grid"} 
         style={{ filter: blindnessSim !== 'normal' ? `url(#${blindnessSim})` : 'none' }}
       >
         {viewMode === 'instrument' ? (
@@ -901,7 +901,7 @@ export default function Cran3oColorStudio() {
                   <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <h3 className="section-title" style={{ margin: 0 }}>COLOR INSTRUMENT</h3>
-                      <p className="section-description" style={{ margin: '4px 0 0' }}>Edit coordinates on L-C/H-C planes and apply harmonies.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Shape hue, lightness, and chroma with architectural restraint.</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PLANE</span>
@@ -956,7 +956,7 @@ export default function Cran3oColorStudio() {
                   <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
                     <div>
                       <h3 className="section-title">PALETTE SYSTEM MATRIX</h3>
-                      <p className="section-description">Manage and assign roles to your active oklch color tokens.</p>
+                      <p className="section-description">Curate ordered color tokens for spatial, CMF, and graphic systems.</p>
                     </div>
                     <div>
                       <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "var(--font-sans)", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
@@ -1308,7 +1308,7 @@ export default function Cran3oColorStudio() {
                 <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
                   <div>
                     <h3 className="section-title" style={{ margin: 0 }}>VARIATION & MUTATION ENGINE</h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Fine tune temperature, muting, contrast, and material feel inside OKLCH.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Calibrate temperature, restraint, contrast, and material presence in OKLCH.</p>
                   </div>
                   
                   <div className="mutation-controls-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1414,7 +1414,7 @@ export default function Cran3oColorStudio() {
                       COLOR IDENTITY
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>
-                      Define your core aesthetic profile. Active palettes morph smoothly as you adjust the axes.
+                      Tune the studio&apos;s long-term color bias: quiet, material, legible, and controlled.
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
@@ -1462,7 +1462,7 @@ export default function Cran3oColorStudio() {
                       ARCHITECTURAL CMF GUIDE
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>
-                      Learn how OKLCH parameters translate to physical materials (travertine, slate, concrete, plaster).
+                      Read OKLCH values as spatial decisions: plaster, stone, textile, metal, and shadow.
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
@@ -1474,7 +1474,7 @@ export default function Cran3oColorStudio() {
                 {helpOpen && (
                   <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                     <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Blinker', sans-serif" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
                       <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <li>
                           <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
@@ -1505,7 +1505,7 @@ export default function Cran3oColorStudio() {
                     </div>
 
                     <div>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Blinker', sans-serif" }}>PRACTICAL WORKFLOW TIPS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>PRACTICAL WORKFLOW TIPS</h4>
                       <p style={{ margin: 0, lineHeight: 1.4 }}>
                         1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
                         <br />
@@ -1532,12 +1532,12 @@ export default function Cran3oColorStudio() {
           </>
         ) : (
           <>
-            {/* COLUMN 1: Adobe Harmony Sidebar (Left) */}
-            <div className="left-column stack adobe-harmony-sidebar">
+            {/* COLUMN 1: harmony Harmony Sidebar (Left) */}
+            <div className="left-column stack harmony-sidebar">
               <section className="studio-panel calculator-face">
                 <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '16px' }}>
                   <h3 className="section-title" style={{ margin: 0 }}>HARMONY RULES</h3>
-                  <p className="section-description" style={{ margin: '4px 0 0' }}>Select geometric harmony constraint inside OKLCH space.</p>
+                  <p className="section-description" style={{ margin: '4px 0 0' }}>Choose the governing relationship for the active color system.</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {HARMONIES.map((harmony) => {
@@ -1545,11 +1545,11 @@ export default function Cran3oColorStudio() {
                     return (
                       <button
                         key={harmony.id}
-                        className={`adobe-harmony-rule-btn ${isActive ? 'active' : ''}`}
+                        className={`harmony-rule-btn ${isActive ? 'active' : ''}`}
                         onClick={() => handleHarmonyChange(harmony.id)}
                       >
-                        <span className="adobe-harmony-rule-name">{harmony.name}</span>
-                        <span className="adobe-harmony-rule-desc">{harmony.description}</span>
+                        <span className="harmony-rule-name">{harmony.name}</span>
+                        <span className="harmony-rule-desc">{harmony.description}</span>
                       </button>
                     );
                   })}
@@ -1603,14 +1603,14 @@ export default function Cran3oColorStudio() {
               </section>
             </div>
 
-            {/* COLUMN 2: Adobe Center Workspace */}
-            <div className="adobe-center-workspace">
+            {/* COLUMN 2: harmony Center Workspace */}
+            <div className="harmony-center-workspace">
               {/* Polar Color Wheel Section */}
-              <section className="studio-panel calculator-face adobe-wheel-panel" style={{ background: 'var(--bg-panel-deep)' }}>
+              <section className="studio-panel calculator-face harmony-wheel-panel" style={{ background: 'var(--bg-panel-deep)' }}>
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
                     <h3 className="section-title" style={{ margin: 0 }}>GEOMETRIC HARMONY</h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Drag points to morph colors while maintaining the rule.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Move the system points while preserving the selected harmony logic.</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="control-label-mini" style={{ margin: 0 }}>PLANE</span>
@@ -1645,25 +1645,25 @@ export default function Cran3oColorStudio() {
               </section>
 
               {/* Swatches strip container */}
-              <div className="adobe-swatches-container">
+              <div className="harmony-swatches-container">
                 {colors.map((color, index) => {
                   const isActive = color.id === activeColorId;
                   const isBase = color.id === harmonyBaseColorId;
                   return (
                     <article 
                       key={color.id} 
-                      className={`adobe-swatch-strip ${isActive ? 'active' : ''}`}
+                      className={`harmony-swatch-strip ${isActive ? 'active' : ''}`}
                       onClick={() => setActiveColorId(color.id)}
                     >
                       {/* Color block header */}
                       <div 
-                        className="adobe-strip-fill" 
+                        className="harmony-strip-fill" 
                         style={{ backgroundColor: color.hex }}
                       >
-                        <span className="adobe-strip-badge">{index + 1}</span>
-                        <div className="adobe-strip-actions">
+                        <span className="harmony-strip-badge">{index + 1}</span>
+                        <div className="harmony-strip-actions">
                           <button 
-                            className={`adobe-strip-btn ${isBase ? 'active-base' : ''}`}
+                            className={`harmony-strip-btn ${isBase ? 'active-base' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setHarmonyBaseColorId(color.id);
@@ -1686,7 +1686,7 @@ export default function Cran3oColorStudio() {
                             <MaterialIcon name={isBase ? "anchor" : "pin_drop"} size={11} />
                           </button>
                           <button 
-                            className="adobe-strip-btn"
+                            className="harmony-strip-btn"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleToggleLock(color.id);
@@ -1700,9 +1700,9 @@ export default function Cran3oColorStudio() {
                       </div>
 
                       {/* Swatch Info & Mini sliders */}
-                      <div className="adobe-strip-info">
+                      <div className="harmony-strip-info">
                         <input 
-                          className="adobe-strip-name" 
+                          className="harmony-strip-name" 
                           value={color.displayName}
                           onChange={(e) => handleRenameColor(color.id, e.target.value)}
                           onBlur={() => pushHistory(colors)}
@@ -1710,7 +1710,7 @@ export default function Cran3oColorStudio() {
                         />
 
                         <input 
-                          className={`adobe-strip-hex ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
+                          className={`harmony-strip-hex ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
                           value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
                           onChange={(e) => handleHexDraftChange(color.id, e.target.value)}
                           onBlur={() => commitHexChange(color.id)}
@@ -1722,9 +1722,9 @@ export default function Cran3oColorStudio() {
                         />
 
                         {/* Individual Sliders */}
-                        <div className="adobe-strip-sliders">
-                          <div className="adobe-mini-slider-wrapper">
-                            <div className="adobe-mini-slider-header">
+                        <div className="harmony-strip-sliders">
+                          <div className="harmony-mini-slider-wrapper">
+                            <div className="harmony-mini-slider-header">
                               <span>L</span>
                               <span>{color.oklch.l.toFixed(2)}</span>
                             </div>
@@ -1734,7 +1734,7 @@ export default function Cran3oColorStudio() {
                               max="1" 
                               step="0.01" 
                               value={color.oklch.l} 
-                              className="adobe-mini-slider"
+                              className="harmony-mini-slider"
                               onChange={(e) => {
                                 handleIndividualColorOklchChange(color.id, {
                                   ...color.oklch,
@@ -1747,8 +1747,8 @@ export default function Cran3oColorStudio() {
                             />
                           </div>
 
-                          <div className="adobe-mini-slider-wrapper">
-                            <div className="adobe-mini-slider-header">
+                          <div className="harmony-mini-slider-wrapper">
+                            <div className="harmony-mini-slider-header">
                               <span>C</span>
                               <span>{color.oklch.c.toFixed(2)}</span>
                             </div>
@@ -1758,7 +1758,7 @@ export default function Cran3oColorStudio() {
                               max="0.4" 
                               step="0.01" 
                               value={color.oklch.c} 
-                              className="adobe-mini-slider"
+                              className="harmony-mini-slider"
                               onChange={(e) => {
                                 handleIndividualColorOklchChange(color.id, {
                                   ...color.oklch,
@@ -1771,8 +1771,8 @@ export default function Cran3oColorStudio() {
                             />
                           </div>
 
-                          <div className="adobe-mini-slider-wrapper">
-                            <div className="adobe-mini-slider-header">
+                          <div className="harmony-mini-slider-wrapper">
+                            <div className="harmony-mini-slider-header">
                               <span>H</span>
                               <span>{Math.round(color.oklch.h)}°</span>
                             </div>
@@ -1782,7 +1782,7 @@ export default function Cran3oColorStudio() {
                               max="360" 
                               step="1" 
                               value={color.oklch.h} 
-                              className="adobe-mini-slider"
+                              className="harmony-mini-slider"
                               onChange={(e) => {
                                 handleIndividualColorOklchChange(color.id, {
                                   ...color.oklch,
