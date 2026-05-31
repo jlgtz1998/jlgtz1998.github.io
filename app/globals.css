@@ -67,7 +67,7 @@ html, body {
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 13px; /* Reduced base font size */
+  font-size: 16px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -92,9 +92,9 @@ button {
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  max-width: 1440px; /* Swiss grid size */
+  max-width: min(1860px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px 16px;
 }
 
 .studio-header {
@@ -127,7 +127,7 @@ button {
 .logo-main {
   color: var(--text-primary);
   font-family: 'Orbitron', sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.12rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   margin: 0;
@@ -175,8 +175,8 @@ button {
    ========================================================================== */
 .studio-grid {
   display: grid;
-  grid-template-columns: 1fr 380px; /* Two columns layout */
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 460px);
+  gap: 28px;
   align-items: start;
 }
 
@@ -210,7 +210,7 @@ button {
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
   border-radius: 4px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--shadow-object);
   display: flex;
   flex-direction: column;
@@ -363,8 +363,8 @@ button {
    ========================================================================== */
 .swatches-grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
 }
 
 .swatch-card {
@@ -373,7 +373,7 @@ button {
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  height: 190px;
+  height: 236px;
   overflow: hidden;
   position: relative;
   transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
@@ -481,8 +481,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 6px 8px;
-  min-height: 76px;
+  padding: 9px 10px;
+  min-height: 96px;
 }
 
 .swatch-reorder-row {
@@ -528,15 +528,48 @@ button {
   border: 0;
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.84rem;
+  line-height: 1.2;
+  min-height: 1.2em;
   outline: none;
   width: 100%;
 }
 
-.swatch-hex {
+.swatch-hex-row {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+  margin-top: 3px;
+  width: 100%;
+}
+
+.swatch-hex-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  min-width: 0;
+  outline: none;
+  padding: 2px 3px;
+  text-transform: uppercase;
+  width: 86px;
+}
+
+.swatch-hex-input:hover,
+.swatch-hex-input:focus {
+  background: var(--bg-object);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.swatch-hex-input.invalid {
+  border-color: rgba(220, 38, 38, 0.45);
+  color: var(--button-red);
 }
 
 .role-select {
@@ -1061,8 +1094,8 @@ input[type='range']::-moz-range-track {
    ========================================================================== */
 .wheel-and-swatches-row {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 20px;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 24px;
   align-items: stretch;
 }
 
@@ -1072,6 +1105,7 @@ input[type='range']::-moz-range-track {
   }
 
   .studio-shell {
+    max-width: 100%;
     padding: 16px;
   }
 
@@ -1479,7 +1513,7 @@ input[type='range'].blender-slider::-moz-range-track {
 
 /* Swatch add card */
 .swatch-add-card {
-  height: 190px;
+  height: 236px;
   background: transparent;
   border: 1.5px dashed var(--border-medium);
   border-radius: 4px;

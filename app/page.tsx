@@ -9,7 +9,7 @@ import { CUSTOM_PRESETS_DEFAULTS } from '../data/custom-presets-defaults';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
-import { createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch } from '../lib/color-spaces';
+import { createColorFromHex, createColorFromOklch, rgbToHsv, hsvToRgb, rgbToHex, hexToOklch } from '../lib/color-spaces';
 import { applySliders, DEFAULT_SLIDERS, generateFromIdentity, mutateColor } from '../lib/variation';
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
@@ -37,7 +37,13 @@ function sanitizeFileName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-export default function QuietFutureStudio() {
+function normalizeHexDraft(value: string): string | null {
+  const clean = value.trim().replace(/^#/, '');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) return null;
+  return `#${clean.toLowerCase()}`;
+}
+
+export default function CraneoColorStudio() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<DesignMode>('architecture');
   const [colors, setColors] = useState<ColorData[]>([]);
@@ -48,7 +54,7 @@ export default function QuietFutureStudio() {
   const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
   const [blindnessSim, setBlindnessSim] = useState<VisionMode>('normal');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [paletteName, setPaletteName] = useState<string>('Quiet Future Spec');
+  const [paletteName, setPaletteName] = useState<string>('Craneo Spec');
   const [paletteSize, setPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -66,6 +72,7 @@ export default function QuietFutureStudio() {
   const [history, setHistory] = useState<ColorData[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [localHsv, setLocalHsv] = useState<{ h: number; s: number; v: number } | null>(null);
+  const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
   const [slidersOpen, setSlidersOpen] = useState(false);
   const [pickerShape, setPickerShape] = useState<'circle' | 'square' | 'triangle'>('circle');
 
@@ -154,6 +161,16 @@ export default function QuietFutureStudio() {
     () => colors.find((color) => color.id === activeColorId) || colors[0] || null,
     [activeColorId, colors],
   );
+
+  useEffect(() => {
+    setHexDrafts(() => {
+      const next: Record<string, string> = {};
+      colors.forEach((color) => {
+        next[color.id] = color.hex.toUpperCase();
+      });
+      return next;
+    });
+  }, [colors]);
 
   useEffect(() => {
     if (activeColor) {
@@ -413,6 +430,35 @@ export default function QuietFutureStudio() {
     setColors(colors.map((color) => (color.id === id ? { ...color, displayName: newName } : color)));
   };
 
+  const handleHexDraftChange = (id: string, value: string) => {
+    setHexDrafts((current) => ({ ...current, [id]: value.toUpperCase() }));
+  };
+
+  const commitHexChange = (id: string) => {
+    const current = colors.find((color) => color.id === id);
+    if (!current) return;
+
+    const nextHex = normalizeHexDraft(hexDrafts[id] ?? current.hex);
+    if (!nextHex) {
+      setHexDrafts((drafts) => ({ ...drafts, [id]: current.hex.toUpperCase() }));
+      return;
+    }
+
+    if (nextHex === current.hex) {
+      setHexDrafts((drafts) => ({ ...drafts, [id]: current.hex.toUpperCase() }));
+      return;
+    }
+
+    const nextColor = createColorFromHex(nextHex, generateColorName(hexToOklch(nextHex)));
+    nextColor.id = current.id;
+    nextColor.role = current.role;
+    nextColor.locked = current.locked;
+
+    const nextColors = colors.map((color) => (color.id === id ? nextColor : color));
+    setLocalHsv(rgbToHsv(nextColor.rgb));
+    updateColorsAndPushHistory(nextColors);
+  };
+
   const handleRoleChange = (id: string, newRole: ColorRole) => {
     const nextColors = colors.map((color) => (color.id === id ? { ...color, role: newRole } : color));
     updateColorsAndPushHistory(nextColors);
@@ -477,11 +523,11 @@ export default function QuietFutureStudio() {
 
   const handleExportCss = () => {
     const cssContent = [
-      `/* Quiet Future Color Studio - ${paletteName} variables */`,
+      `/* Craneo Color Studio - ${paletteName} variables */`,
       ':root {',
       ...colors.map((color) => {
         const varName = color.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        return `  --qf-${varName}: ${color.hex}; /* ${color.role}, OKLCH ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)} */`;
+        return `  --craneo-${varName}: ${color.hex}; /* ${color.role}, OKLCH ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)} */`;
       }),
       '}',
       '',
@@ -569,7 +615,7 @@ export default function QuietFutureStudio() {
 
       <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px' }}>
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <h1 className="logo-main">QUIET FUTURE COLOR STUDIO</h1>
+          <h1 className="logo-main">CRANEO COLOR STUDIO</h1>
           <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
         </div>
 
@@ -1066,10 +1112,28 @@ export default function QuietFutureStudio() {
                           onChange={(event) => handleRenameColor(color.id, event.target.value)} 
                           onBlur={() => pushHistory(colors)}
                         />
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: '2px' }}>
-                          <span className="swatch-hex" style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)' }}>
-                            {color.hex.toUpperCase()}
-                          </span>
+                        <div className="swatch-hex-row">
+                          <input
+                            className={`swatch-hex-input ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
+                            value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
+                            spellCheck={false}
+                            draggable={false}
+                            aria-label={`Edit HEX value for ${color.displayName}`}
+                            onDragStart={(event) => event.stopPropagation()}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => handleHexDraftChange(color.id, event.target.value)}
+                            onBlur={() => commitHexChange(color.id)}
+                            onKeyDown={(event) => {
+                              event.stopPropagation();
+                              if (event.key === 'Enter') {
+                                event.currentTarget.blur();
+                              }
+                              if (event.key === 'Escape') {
+                                setHexDrafts((drafts) => ({ ...drafts, [color.id]: color.hex.toUpperCase() }));
+                                event.currentTarget.blur();
+                              }
+                            }}
+                          />
                           <button
                             className="swatch-copy-btn"
                             onClick={(event) => {
