@@ -27,7 +27,7 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.1';
+const APP_VERSION_LABEL = 'v0.1.2';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
@@ -959,7 +959,7 @@ export default function Cran3oColorStudio() {
                       <p className="section-description">Manage and assign roles to your active oklch color tokens.</p>
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "'Orbitron', sans-serif", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
+                      <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "var(--font-sans)", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
                         {paletteName.toUpperCase()}
                       </span>
                     </div>
@@ -1474,7 +1474,7 @@ export default function Cran3oColorStudio() {
                 {helpOpen && (
                   <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                     <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Blinker', sans-serif" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
                       <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <li>
                           <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
@@ -1505,7 +1505,7 @@ export default function Cran3oColorStudio() {
                     </div>
 
                     <div>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>PRACTICAL WORKFLOW TIPS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Blinker', sans-serif" }}>PRACTICAL WORKFLOW TIPS</h4>
                       <p style={{ margin: 0, lineHeight: 1.4 }}>
                         1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
                         <br />
