@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ColorData, ColorRole, DesignMode } from '../types';
 import { createColorFromHex } from '../lib/color-spaces';
 import { checkApca, getWcagContrast } from '../lib/accessibility';
@@ -225,7 +225,11 @@ function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors): Assessme
 export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
 
-  const resolved = resolveColorRoles(colors);
+  useEffect(() => {
+    setActiveSubtype(getDefaultSubtype(mode));
+  }, [mode]);
+
+  const resolved = useMemo(() => resolveColorRoles(colors), [colors]);
   const applicationMap = useMemo(() => getApplicationMap(mode, resolved), [mode, resolved]);
   const assessment = useMemo(() => getAssessment(mode, resolved), [mode, resolved]);
 

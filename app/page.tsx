@@ -92,7 +92,12 @@ export default function Cran3oColorStudio() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register(`${APP_BASE_PATH}/sw.js`).catch(() => undefined);
+      const swPath = window.location.pathname.endsWith('/') 
+        ? window.location.pathname + 'sw.js'
+        : window.location.pathname + '/sw.js';
+      // Normalize double slashes
+      const normalizedPath = swPath.replace(/\/+/g, '/');
+      navigator.serviceWorker.register(normalizedPath).catch(() => undefined);
     }
 
     const savedIdentity = localStorage.getItem(STORAGE_KEYS.identity);
