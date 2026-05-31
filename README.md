@@ -69,3 +69,13 @@ We have built a dedicated test suite verifying the color engine, contrast ratios
 ```bash
 npm test
 ```
+
+## Static Web Release
+
+This project is configured for a static export with Next.js. A production build creates the public web files in `out/`, so the app can run on free static hosting without a backend server.
+
+```bash
+npm run build
+```
+
+Version control uses Git. The included GitHub Actions workflow publishes the static export to GitHub Pages on every push to `master`.
