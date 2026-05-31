@@ -21,14 +21,10 @@ import MaterialIcon from '../components/MaterialIcon';
 import MockupViewer from '../components/MockupViewer';
 
 const DEFAULT_IDENTITY: UserIdentity = {
-  neutralExpressive: 20,
-  coolWarm: 40,
-  mutedSaturated: 30,
+  temperature: 40,
+  chroma: 30,
   contrast: 50,
   experimentality: 30,
-  discipline: 20,
-  tactileGlossy: 10,
-  futurism: 20,
 };
 
 const STORAGE_KEYS = {
@@ -321,7 +317,7 @@ export default function Cran3oColorStudio() {
     const active = getActiveColor();
     if (!active) return;
 
-    const generatedOklchs = generateHarmony(active.oklch, activeHarmonyId, identity.neutralExpressive / 50);
+    const generatedOklchs = generateHarmony(active.oklch, activeHarmonyId, identity.chroma / 50);
     const nextColors = colors.map((color, index) => {
       if (color.locked) return color;
       const oklch = generatedOklchs[index % generatedOklchs.length];
@@ -347,8 +343,9 @@ export default function Cran3oColorStudio() {
     updateColorsAndPushHistory(nextColors);
   };
 
-  const handleGenerateFromIdentity = () => {
-    const generated = generateFromIdentity(identity, paletteSize);
+  const handleIdentitySliderChange = (newIdentity: UserIdentity) => {
+    setIdentity(newIdentity);
+    const generated = generateFromIdentity(newIdentity, paletteSize);
     setPaletteName('Identity Preset');
     const nextColors = colors.map((color, index) => {
       if (color.locked) return color;
@@ -359,7 +356,11 @@ export default function Cran3oColorStudio() {
       return nextColor;
     });
     setSliders(NEUTRAL_SLIDERS);
-    updateColorsAndPushHistory(nextColors);
+    setColors(nextColors);
+  };
+
+  const handleIdentityInteractionEnd = () => {
+    pushHistory(colors);
   };
 
   const handleColorWheelChange = (newOklch: OklchColor) => {
@@ -1212,7 +1213,7 @@ export default function Cran3oColorStudio() {
             <button className="identity-collapsible-trigger" onClick={() => setIdentityOpen(!identityOpen)}>
               <span className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <MaterialIcon name="settings" size={16} />
-                MY COLOR IDENTITY
+                COLOR IDENTITY
               </span>
               <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
                 <MaterialIcon name="keyboard_arrow_right" size={16} />
@@ -1220,7 +1221,11 @@ export default function Cran3oColorStudio() {
             </button>
             {identityOpen && (
               <div style={{ marginTop: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-                <IdentityPanel identity={identity} onIdentityChange={setIdentity} onGenerateFromIdentity={handleGenerateFromIdentity} />
+                <IdentityPanel 
+                  identity={identity} 
+                  onIdentityChange={handleIdentitySliderChange} 
+                  onInteractionEnd={handleIdentityInteractionEnd} 
+                />
               </div>
             )}
           </section>

@@ -189,90 +189,94 @@ export function mutateColor(color: ColorData, strength: MutationStrength): Color
 export function generateFromIdentity(identity: UserIdentity, count: number = 8): ColorData[] {
   const result: ColorData[] = [];
   
-  // Calculate weights based on identity sliders
-  const isNeutral = identity.neutralExpressive < 40;
-  const isExpressive = identity.neutralExpressive > 70;
+  const temp = identity.temperature; // 0 (cool) to 100 (warm)
+  const saturation = identity.chroma; // 0 (muted) to 100 (saturated)
+  const contrast = identity.contrast; // 0 (soft) to 100 (strong)
+  const exp = identity.experimentality; // 0 (classic) to 100 (experimental)
   
-  const targetWarmth = identity.coolWarm; // 0 is cool, 100 is warm
-  const saturationFactor = identity.mutedSaturated / 100; // 0 to 1
-  const contrastFactor = identity.contrast / 100; // 0 to 1
-  const futurismFactor = identity.futurism / 100; // 0 to 1
-  
-  // Select a primary seed hue
-  let primaryHue = 220; // Default cool blue
-  if (targetWarmth > 60) {
-    primaryHue = 45; // Default warm sand/copper
-  } else if (targetWarmth > 40 && targetWarmth <= 60) {
-    primaryHue = Math.random() > 0.5 ? 135 : 30; // Sage or Terracotta
+  // 1. Interpolate Primary Hue: 0 (cool blue: 220) to 100 (warm copper: 35)
+  let primaryHue = 220;
+  if (temp <= 50) {
+    // Interpolate 220 down to 135 (sage green)
+    primaryHue = 220 - (temp / 50) * 85;
   } else {
-    primaryHue = Math.random() > 0.5 ? 200 : 250; // Cyan or Blue
+    // Interpolate 135 down to 35 (warm terracotta)
+    primaryHue = 135 - ((temp - 50) / 50) * 100;
   }
-
-  // Add random offset based on experimentality
-  const hueRandomness = (identity.experimentality / 100) * 80; // up to 80 degrees variance
-  primaryHue = (primaryHue + (Math.random() - 0.5) * hueRandomness + 360) % 360;
-
-  // Distribute lightnesses based on contrast profile
-  // High contrast: spread wide. Low contrast: compress in mid-to-high or mid-to-low ranges
+  
+  // 2. Generate Lightness steps deterministically based on Contrast
   let stepsL: number[] = [];
-  if (contrastFactor > 0.7) {
-    // High contrast: very light to very dark
-    stepsL = [0.97, 0.88, 0.74, 0.58, 0.42, 0.28, 0.18, 0.11];
-  } else if (contrastFactor < 0.3) {
-    // Soft contrast: compressed mid-lights or mid-darks
-    if (identity.discipline < 50) {
-      // Architectural: soft lights
-      stepsL = [0.96, 0.92, 0.86, 0.82, 0.76, 0.70, 0.64, 0.55];
-    } else {
-      // Graphic/glossy: soft darks/mids
-      stepsL = [0.65, 0.58, 0.50, 0.44, 0.38, 0.32, 0.26, 0.18];
-    }
-  } else {
-    // Balanced contrast
-    stepsL = [0.94, 0.84, 0.72, 0.56, 0.42, 0.30, 0.20, 0.13];
+  const cFactor = contrast / 100;
+  
+  for (let i = 0; i < count; i++) {
+    const t = i / (count - 1);
+    
+    // Lightness at high contrast (bold spread)
+    const lBold = 0.97 - t * 0.85; // range [0.97, 0.12]
+    
+    // Lightness at low contrast (soft compressed lights)
+    const lSoft = 0.82 - t * 0.35; // range [0.82, 0.47]
+    
+    // Linearly interpolate between bold and soft
+    const l = lSoft * (1 - cFactor) + lBold * cFactor;
+    stepsL.push(l);
   }
-
+  
+  // 3. Generate colors
   for (let i = 0; i < count; i++) {
     const l = stepsL[i];
     
-    // Calculate chroma in OKLCH
-    let maxC = 0.07;
-    if (isNeutral) maxC = 0.025;
-    else if (isExpressive) maxC = 0.15;
+    // Base chroma limit in OKLCH:
+    // Muted (0): 0.005
+    // Saturated (100): 0.13
+    const satFactor = saturation / 100;
+    let baseChroma = 0.005 + satFactor * 0.125;
     
-    // Scale chroma by user's saturation preference
-    let c = maxC * saturationFactor;
-    
-    // Make ends of the palette (extreme light and dark) have lower chroma
-    if (i === 0 || i === count - 1) {
-      c = c * 0.3;
-    } else if (i === 1 || i === count - 2) {
+    // Extreme values (ends of the palette: light background and dark text) should have lower chroma
+    const isExtreme = i === 0 || i === count - 1;
+    const isNearExtreme = i === 1 || i === count - 2;
+    let c = baseChroma;
+    if (isExtreme) {
+      c = c * 0.25;
+    } else if (isNearExtreme) {
       c = c * 0.6;
     }
-
-    // Determine hue shifts
+    
+    c = clamp(c, 0, 0.15);
+    
+    // Hue distribution based on Experimentality (exp)
     let h = primaryHue;
     if (i > 0) {
-      // Analogous / split shifts based on user profile
-      const shiftType = i % 3;
-      if (shiftType === 1) {
-        h = (primaryHue + 30 + (Math.random() - 0.5) * 10) % 360;
-      } else if (shiftType === 2) {
-        h = (primaryHue - 30 - (Math.random() - 0.5) * 10) % 360;
-      }
+      const expFactor = exp / 100;
+      const offsetMultiplier = i % 2 === 0 ? 1 : -1;
+      const stepIndex = Math.ceil(i / 2);
+      
+      let maxSpread = 35;
+      if (stepIndex === 2) maxSpread = 110;
+      if (stepIndex >= 3) maxSpread = 180;
+      
+      h = (primaryHue + offsetMultiplier * maxSpread * expFactor + 360) % 360;
     }
-
-    // Apply futurism factor: inject some precise cyan/teal or signal copper
-    if (futurismFactor > 0.4 && (i === 4 || i === 6)) {
-      h = Math.random() > 0.5 ? 185 : 40; // Teal or Orange
-      c = clamp(c * 1.5, 0.05, 0.14); // boost chroma
-    }
-
+    
     const oklchColor: OklchColor = { l, c, h };
     const name = generateColorName(oklchColor);
     const color = createColorFromOklch(oklchColor, name);
+    
+    // Assign index-based semantic roles dynamically
+    if (i === 0) color.role = 'background';
+    else if (i === 1) color.role = 'surface';
+    else if (i === count - 1) color.role = 'text';
+    else if (i === count - 2) color.role = 'muted';
+    else if (i === 2) color.role = 'primary';
+    else if (i === 3) color.role = 'secondary';
+    else if (i === 4) color.role = 'accent';
+    else color.role = 'border';
+    
+    color.id = `ident-${i}-${Date.now()}`;
+    color.locked = false;
+    
     result.push(color);
   }
-
+  
   return result;
 }

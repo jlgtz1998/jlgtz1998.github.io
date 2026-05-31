@@ -56,14 +56,10 @@ export interface Preset {
 }
 
 export interface UserIdentity {
-  neutralExpressive: number; // 0 (neutral) to 100 (expressive)
-  coolWarm: number; // 0 (cool) to 100 (warm)
-  mutedSaturated: number; // 0 (muted) to 100 (saturated)
+  temperature: number; // 0 (cool) to 100 (warm)
+  chroma: number; // 0 (muted) to 100 (saturated)
   contrast: number; // 0 (soft) to 100 (strong)
-  experimentality: number; // 0 (timeless) to 100 (experimental)
-  discipline: number; // 0 (architectural) to 100 (graphic)
-  tactileGlossy: number; // 0 (tactile) to 100 (glossy)
-  futurism: number; // 0 (understated) to 100 (visible)
+  experimentality: number; // 0 (classic) to 100 (experimental)
 }
 
 export interface SlidersState {
