@@ -1180,6 +1180,43 @@ input[type='range']::-moz-range-track {
 /* ==========================================================================
    MOCKUP PREVIEW TABS - SEGMENT CONTROL
    ========================================================================== */
+.mockup-viewer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.mockup-panel-header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.mockup-panel-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mockup-mode-tabs {
+  margin: 0;
+}
+
+.mockup-mode-tabs .mode-btn {
+  font-size: 0.68rem;
+  min-height: 30px;
+  padding: 6px 10px;
+}
+
+.mockup-panel-actions .calculator-action {
+  min-height: 30px;
+  padding: 6px 8px;
+}
+
 .mockup-tabs-group {
   display: flex;
   border: 1px solid var(--border-medium);
@@ -1190,17 +1227,23 @@ input[type='range']::-moz-range-track {
 }
 
 .mockup-tab-btn {
+  align-items: center;
   flex: 1;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
   background: transparent;
   border: 0;
   border-right: 1px solid var(--border-light);
   color: var(--text-secondary);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  padding: 6px 4px;
+  min-height: 34px;
+  padding: 7px 6px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   transition: var(--transition-fast);
+  white-space: nowrap;
 }
 
 .mockup-tab-btn:last-child {
@@ -1217,6 +1260,171 @@ input[type='range']::-moz-range-track {
   color: var(--bg-object);
   border-color: var(--button-dark);
   font-weight: 700;
+}
+
+.mockup-canvas-wrapper {
+  background: var(--bg-panel-deep);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  height: auto;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.application-map {
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.application-map-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.application-map-header span,
+.application-map-header b {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.application-map-header b {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.application-stack {
+  background: var(--bg-panel-deep);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  display: flex;
+  height: 28px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.application-stack i {
+  border-right: 1px solid rgba(255, 255, 255, 0.28);
+  display: block;
+  min-width: 4px;
+}
+
+.application-stack i:last-child {
+  border-right: 0;
+}
+
+.application-map-list {
+  display: grid;
+  gap: 7px;
+}
+
+.application-map-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 14px minmax(72px, 0.75fr) 42px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.application-map-row i {
+  border: 1px solid var(--border-medium);
+  border-radius: 2px;
+  display: block;
+  height: 14px;
+  width: 14px;
+}
+
+.application-map-row span,
+.application-map-row b,
+.application-map-row em {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.application-map-row span {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.application-map-row b {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.application-map-row em {
+  color: var(--text-muted);
+  font-style: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assessment-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.assessment-card {
+  background: var(--bg-panel-deep);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--border-accent);
+  border-radius: 3px;
+  padding: 9px 10px;
+}
+
+.assessment-card.pass {
+  border-left-color: var(--button-green);
+}
+
+.assessment-card.warn {
+  border-left-color: var(--button-amber);
+}
+
+.assessment-card.fail {
+  border-left-color: var(--button-red);
+}
+
+.assessment-topline {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.assessment-topline span,
+.assessment-topline b {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.assessment-topline span {
+  color: var(--text-primary);
+}
+
+.assessment-topline b {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.assessment-card p {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  margin-top: 6px;
 }
 
 /* ==========================================================================
@@ -1254,6 +1462,31 @@ input[type='range']::-moz-range-track {
 @media (max-width: 600px) {
   .mutation-controls-inline {
     flex-wrap: wrap;
+  }
+
+  .mockup-panel-actions,
+  .mockup-mode-tabs {
+    width: 100%;
+  }
+
+  .mockup-panel-actions {
+    align-items: stretch;
+  }
+
+  .mockup-mode-tabs .mode-btn {
+    flex: 1;
+  }
+
+  .application-map-row {
+    grid-template-columns: 14px minmax(0, 1fr) 38px;
+  }
+
+  .application-map-row em {
+    grid-column: 2 / -1;
+  }
+
+  .assessment-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ColorData, DesignMode } from '../types';
+import React, { useMemo, useState } from 'react';
+import { ColorData, ColorRole, DesignMode } from '../types';
+import { createColorFromHex } from '../lib/color-spaces';
+import { checkApca, getWcagContrast } from '../lib/accessibility';
 import MaterialIcon from './MaterialIcon';
 
 function splitName(name: string): string[] {
@@ -32,6 +34,30 @@ interface MockupViewerProps {
   paletteName?: string;
 }
 
+type ResolvedRoleColors = {
+  bg: ColorData;
+  wall: ColorData;
+  floor: ColorData;
+  details: ColorData;
+  shadow: ColorData;
+  accent1: ColorData;
+  accent2: ColorData;
+  accentTeal: ColorData;
+};
+
+type AssessmentItem = {
+  label: string;
+  value: string;
+  status: 'pass' | 'warn' | 'fail';
+  detail: string;
+};
+
+function makeDefaultColor(hex: string, displayName: string, role: ColorRole): ColorData {
+  const color = createColorFromHex(hex, displayName);
+  color.role = role;
+  return color;
+}
+
 function getDefaultSubtype(mode: DesignMode): string {
   if (mode === 'architecture') return 'day';
   if (mode === 'industrial') return 'speaker';
@@ -39,16 +65,16 @@ function getDefaultSubtype(mode: DesignMode): string {
   return 'poster';
 }
 
-function resolveColorRoles(colors: ColorData[]) {
+function resolveColorRoles(colors: ColorData[]): ResolvedRoleColors {
   const defaultColors = {
-    bg: { hex: '#FAF8F5', displayName: 'Default Base' } as ColorData,
-    wall: { hex: '#EBE7DF', displayName: 'Default Surface' } as ColorData,
-    floor: { hex: '#D3CFC6', displayName: 'Default Floor' } as ColorData,
-    details: { hex: '#8C9499', displayName: 'Default Details' } as ColorData,
-    shadow: { hex: '#27292C', displayName: 'Default Shadow' } as ColorData,
-    accent1: { hex: '#BE6C54', displayName: 'Default Accent 1' } as ColorData,
-    accent2: { hex: '#A48E9E', displayName: 'Default Accent 2' } as ColorData,
-    accentTeal: { hex: '#5E7871', displayName: 'Default Teal' } as ColorData
+    bg: makeDefaultColor('#FAF8F5', 'Default Base', 'background'),
+    wall: makeDefaultColor('#EBE7DF', 'Default Surface', 'surface'),
+    floor: makeDefaultColor('#D3CFC6', 'Default Floor', 'border'),
+    details: makeDefaultColor('#8C9499', 'Default Details', 'muted'),
+    shadow: makeDefaultColor('#27292C', 'Default Shadow', 'text'),
+    accent1: makeDefaultColor('#BE6C54', 'Default Accent 1', 'accent'),
+    accent2: makeDefaultColor('#A48E9E', 'Default Accent 2', 'secondary'),
+    accentTeal: makeDefaultColor('#5E7871', 'Default Teal', 'primary')
   };
 
   if (!colors || colors.length === 0) return defaultColors;
@@ -87,15 +113,121 @@ function resolveColorRoles(colors: ColorData[]) {
   return { bg, wall, floor, shadow, details, accent1, accent2, accentTeal };
 }
 
+function getModeDescription(mode: DesignMode): string {
+  if (mode === 'architecture') return 'Validate spatial calm, material hierarchy, daylight behavior, and accent control.';
+  if (mode === 'industrial') return 'Validate CMF zones, interface contrast, product legibility, and accent discipline.';
+  if (mode === 'graphic') return 'Validate hierarchy, tokens, editorial contrast, and brand signal.';
+  return 'Document the palette as a studio-ready specification sheet.';
+}
+
+function getApplicationMap(mode: DesignMode, resolved: ResolvedRoleColors) {
+  if (mode === 'architecture') {
+    return [
+      { label: 'Main wall', share: 34, color: resolved.wall },
+      { label: 'Floor / base', share: 22, color: resolved.floor },
+      { label: 'Ceiling / light', share: 16, color: resolved.bg },
+      { label: 'Furniture', share: 14, color: resolved.details },
+      { label: 'Accent', share: 6, color: resolved.accent1 },
+      { label: 'Detail line', share: 4, color: resolved.shadow },
+      { label: 'Secondary', share: 4, color: resolved.accentTeal },
+    ];
+  }
+
+  if (mode === 'industrial') {
+    return [
+      { label: 'Body shell', share: 38, color: resolved.wall },
+      { label: 'Base material', share: 22, color: resolved.floor },
+      { label: 'Interface', share: 14, color: resolved.shadow },
+      { label: 'Functional part', share: 10, color: resolved.details },
+      { label: 'Brand accent', share: 8, color: resolved.accent1 },
+      { label: 'Status signal', share: 8, color: resolved.accentTeal },
+    ];
+  }
+
+  if (mode === 'graphic') {
+    return [
+      { label: 'Background', share: 34, color: resolved.bg },
+      { label: 'Surface', share: 20, color: resolved.wall },
+      { label: 'Primary block', share: 16, color: resolved.accent1 },
+      { label: 'Text', share: 12, color: resolved.shadow },
+      { label: 'Muted layer', share: 10, color: resolved.details },
+      { label: 'Signal', share: 8, color: resolved.accentTeal },
+    ];
+  }
+
+  return [
+    { label: 'Swatches', share: 50, color: resolved.wall },
+    { label: 'Metadata', share: 20, color: resolved.shadow },
+    { label: 'Background', share: 20, color: resolved.bg },
+    { label: 'Accent notes', share: 10, color: resolved.accent1 },
+  ];
+}
+
+function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors): AssessmentItem[] {
+  const wallFloorDelta = Math.abs(resolved.wall.oklch.l - resolved.floor.oklch.l);
+  const wallDetailContrast = getWcagContrast(resolved.shadow.rgb, resolved.wall.rgb);
+  const accentDelta = Math.abs(resolved.accent1.oklch.l - resolved.wall.oklch.l);
+  const surfaceChroma = Math.max(resolved.bg.oklch.c, resolved.wall.oklch.c, resolved.floor.oklch.c);
+  const accentChroma = Math.max(resolved.accent1.oklch.c, resolved.accentTeal.oklch.c);
+  const apca = checkApca(resolved.shadow.rgb, resolved.wall.rgb);
+
+  if (mode === 'architecture') {
+    return [
+      {
+        label: 'Wall / floor separation',
+        value: `${Math.round(wallFloorDelta * 100)} L`,
+        status: wallFloorDelta >= 0.16 ? 'pass' : wallFloorDelta >= 0.09 ? 'warn' : 'fail',
+        detail: wallFloorDelta >= 0.16 ? 'Planes read clearly.' : 'Spatial planes may collapse.',
+      },
+      {
+        label: 'Large-surface chroma',
+        value: surfaceChroma.toFixed(3),
+        status: surfaceChroma <= 0.08 ? 'pass' : surfaceChroma <= 0.12 ? 'warn' : 'fail',
+        detail: surfaceChroma <= 0.08 ? 'Calm enough for broad architectural surfaces.' : 'Surfaces may feel too graphic.',
+      },
+      {
+        label: 'Accent discipline',
+        value: accentChroma.toFixed(3),
+        status: accentChroma <= 0.12 && accentDelta >= 0.12 ? 'pass' : accentChroma <= 0.16 ? 'warn' : 'fail',
+        detail: accentChroma <= 0.12 ? 'Accent can remain controlled.' : 'Accent may dominate the room.',
+      },
+      {
+        label: 'Detail readability',
+        value: `${wallDetailContrast.toFixed(1)}:1`,
+        status: apca.largeText ? 'pass' : apca.nonText ? 'warn' : 'fail',
+        detail: apca.largeText ? 'Frames and edge details should remain legible.' : 'Linework needs stronger contrast.',
+      },
+    ];
+  }
+
+  return [
+    {
+      label: 'Primary contrast',
+      value: `${wallDetailContrast.toFixed(1)}:1`,
+      status: wallDetailContrast >= 4.5 ? 'pass' : wallDetailContrast >= 3 ? 'warn' : 'fail',
+      detail: wallDetailContrast >= 4.5 ? 'Core information can read cleanly.' : 'Core labels may need stronger contrast.',
+    },
+    {
+      label: 'Accent signal',
+      value: accentChroma.toFixed(3),
+      status: accentChroma >= 0.06 ? 'pass' : 'warn',
+      detail: accentChroma >= 0.06 ? 'Accent is distinct enough to guide attention.' : 'Accent may be too quiet.',
+    },
+    {
+      label: 'System restraint',
+      value: surfaceChroma.toFixed(3),
+      status: surfaceChroma <= 0.1 ? 'pass' : surfaceChroma <= 0.14 ? 'warn' : 'fail',
+      detail: surfaceChroma <= 0.1 ? 'Neutral structure stays disciplined.' : 'Base system may feel saturated.',
+    },
+  ];
+}
+
 export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
 
   const resolved = resolveColorRoles(colors);
-
-  const baseColor = resolved.bg;
-  const surfaceColor = resolved.wall;
-  const primaryAccentColor = resolved.accent1;
-  const accentTealColor = resolved.accentTeal;
+  const applicationMap = useMemo(() => getApplicationMap(mode, resolved), [mode, resolved]);
+  const assessment = useMemo(() => getAssessment(mode, resolved), [mode, resolved]);
 
   const bg = resolved.bg.hex;
   const wall = resolved.wall.hex;
@@ -112,51 +244,75 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const renderArchDay = () => (
     <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
       <defs>
-        <linearGradient id="arch-day-main-wall" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={bg} />
-          <stop offset="100%" stopColor={wall} />
+        <linearGradient id="arch-day-main-wall" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={wall} stopOpacity="0.98" />
+          <stop offset="100%" stopColor={bg} stopOpacity="0.9" />
         </linearGradient>
         <linearGradient id="arch-day-floor" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={floor} />
-          <stop offset="100%" stopColor={details} stopOpacity="0.7" />
+          <stop offset="100%" stopColor={details} stopOpacity="0.82" />
         </linearGradient>
-        <linearGradient id="arch-day-window" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.15" />
+        <linearGradient id="arch-day-side-wall" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={wall} stopOpacity="0.72" />
+          <stop offset="100%" stopColor={shadow} stopOpacity="0.16" />
         </linearGradient>
+        <linearGradient id="arch-day-ceiling" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={bg} stopOpacity="0.94" />
+          <stop offset="100%" stopColor={wall} stopOpacity="0.32" />
+        </linearGradient>
+        <linearGradient id="arch-day-light" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.76" />
+          <stop offset="55%" stopColor="#ffffff" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id="arch-day-window-glow" cx="24%" cy="22%" r="64%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
         <filter id="arch-day-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="12" stdDeviation="9" floodColor="#000" floodOpacity="0.16" />
+          <feDropShadow dx="0" dy="13" stdDeviation="10" floodColor="#000" floodOpacity="0.18" />
         </filter>
       </defs>
 
       <rect width="500" height="320" fill={bg} />
-      <polygon points="38,34 330,34 330,224 38,224" fill="url(#arch-day-main-wall)" />
-      <polygon points="330,34 462,58 462,224 330,224" fill={wall} opacity="0.72" />
-      <polygon points="38,224 462,224 500,320 0,320" fill="url(#arch-day-floor)" />
-      <polygon points="38,34 330,34 462,58 168,58" fill={bg} opacity="0.84" />
+      <rect width="500" height="320" fill="url(#arch-day-window-glow)" />
+      <polygon points="42,36 344,36 344,220 42,220" fill="url(#arch-day-main-wall)" />
+      <polygon points="344,36 466,60 466,222 344,220" fill="url(#arch-day-side-wall)" />
+      <polygon points="42,36 344,36 466,60 156,60" fill="url(#arch-day-ceiling)" />
+      <polygon points="42,220 466,222 500,320 0,320" fill="url(#arch-day-floor)" />
 
-      <rect x="68" y="62" width="64" height="124" fill="#fff" opacity="0.58" />
-      <rect x="82" y="76" width="36" height="96" fill={bg} opacity="0.84" />
-      <polygon points="132,176 314,224 226,318 30,248" fill="url(#arch-day-window)" />
-      <line x1="330" y1="34" x2="330" y2="224" stroke={shadow} strokeOpacity="0.12" />
+      <line x1="344" y1="36" x2="344" y2="220" stroke={shadow} strokeOpacity="0.16" />
+      <line x1="42" y1="220" x2="466" y2="222" stroke={shadow} strokeOpacity="0.2" />
 
-      <rect x="38" y="220" width="424" height="6" fill={shadow} opacity="0.2" />
+      <rect x="72" y="58" width="78" height="132" fill="#ffffff" opacity="0.68" />
+      <rect x="86" y="72" width="50" height="104" fill={bg} opacity="0.86" />
+      <line x1="111" y1="58" x2="111" y2="190" stroke={shadow} strokeOpacity="0.12" />
+      <line x1="72" y1="124" x2="150" y2="124" stroke={shadow} strokeOpacity="0.1" />
+      <polygon points="150,176 362,224 256,318 26,252" fill="url(#arch-day-light)" />
+
+      <rect x="42" y="217" width="424" height="8" fill={shadow} opacity="0.14" />
+      <rect x="42" y="217" width="424" height="3" fill={bg} opacity="0.44" />
       <g filter="url(#arch-day-shadow)">
-        <rect x="188" y="190" width="148" height="36" fill={details} rx="3" />
-        <rect x="202" y="226" width="8" height="32" fill={shadow} opacity="0.48" />
-        <rect x="314" y="226" width="8" height="32" fill={shadow} opacity="0.48" />
+        <rect x="184" y="184" width="166" height="42" fill={details} rx="4" />
+        <rect x="198" y="226" width="8" height="34" fill={shadow} opacity="0.5" />
+        <rect x="328" y="226" width="8" height="34" fill={shadow} opacity="0.5" />
+        <rect x="202" y="194" width="38" height="10" fill={bg} opacity="0.28" />
       </g>
 
       <g filter="url(#arch-day-shadow)">
-        <rect x="184" y="68" width="84" height="96" fill={shadow} opacity="0.82" rx="2" />
-        <rect x="190" y="74" width="72" height="84" fill={bg} />
-        <rect x="202" y="88" width="48" height="46" fill={accentTeal} opacity="0.72" />
-        <circle cx="226" cy="112" r="14" fill={accent1} opacity="0.82" />
+        <rect x="204" y="72" width="88" height="102" fill={shadow} opacity="0.78" rx="2" />
+        <rect x="211" y="79" width="74" height="88" fill={bg} />
+        <rect x="222" y="92" width="52" height="48" fill={accentTeal} opacity="0.7" />
+        <circle cx="248" cy="116" r="14" fill={accent1} opacity="0.84" />
       </g>
 
-      <path d="M382 98 C396 126 394 158 378 186" fill="none" stroke={accent2} strokeWidth="9" strokeLinecap="round" opacity="0.85" />
-      <ellipse cx="382" cy="202" rx="30" ry="8" fill={shadow} opacity="0.18" />
-      <path d="M78 250 C96 226 132 224 154 246 C168 260 170 282 158 294 L68 294 C56 276 62 260 78 250Z" fill={accent1} opacity="0.9" />
+      <g>
+        <path d="M392 92 C408 124 404 162 382 192" fill="none" stroke={accent2} strokeWidth="8" strokeLinecap="round" opacity="0.76" />
+        <circle cx="392" cy="92" r="5" fill={accent2} opacity="0.92" />
+        <ellipse cx="382" cy="204" rx="34" ry="8" fill={shadow} opacity="0.16" />
+      </g>
+      <path d="M82 250 C104 226 144 226 166 248 C182 264 180 288 166 302 L64 302 C50 282 60 262 82 250Z" fill={accent1} opacity="0.84" />
+      <path d="M66 302 H168" stroke={shadow} strokeOpacity="0.2" />
 
       <text x="38" y="304" fill={shadow} opacity="0.42" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">INTERIOR / DAYLIGHT SURFACE TEST</text>
     </svg>
@@ -168,15 +324,15 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const renderArchNight = () => (
     <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#0e1011', borderRadius: '4px' }}>
       <defs>
-        <radialGradient id="lamp-glow" cx="50%" cy="50%" r="50%">
+        <radialGradient id="lamp-glow" cx="58%" cy="42%" r="58%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="30%" stopColor={accent1} stopOpacity="1" />
-          <stop offset="70%" stopColor={accentTeal} stopOpacity="0.4" />
+          <stop offset="22%" stopColor={accent1} stopOpacity="0.86" />
+          <stop offset="70%" stopColor={accentTeal} stopOpacity="0.24" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="wall-night-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1a1c1e" />
-          <stop offset="100%" stopColor="#08090a" />
+        <linearGradient id="wall-night-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={wall} stopOpacity="0.36" />
+          <stop offset="100%" stopColor="#08090a" stopOpacity="0.96" />
         </linearGradient>
         <filter id="soft-shadow-night" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000" floodOpacity="0.6" />
@@ -184,28 +340,29 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
       </defs>
 
       <rect width="500" height="320" fill="#0b0d0e" />
-      <polygon points="38,34 330,34 330,224 38,224" fill="url(#wall-night-grad)" />
-      <polygon points="330,34 462,58 462,224 330,224" fill="#111416" />
-      <polygon points="38,224 462,224 500,320 0,320" fill="#070808" />
-      <rect x="68" y="62" width="64" height="124" fill="#020303" />
-      <rect x="38" y="220" width="424" height="6" fill="#000" opacity="0.54" />
+      <polygon points="42,36 344,36 344,220 42,220" fill="url(#wall-night-grad)" />
+      <polygon points="344,36 466,60 466,222 344,220" fill={shadow} opacity="0.34" />
+      <polygon points="42,36 344,36 466,60 156,60" fill={bg} opacity="0.08" />
+      <polygon points="42,220 466,222 500,320 0,320" fill={floor} opacity="0.16" />
+      <rect x="72" y="58" width="78" height="132" fill="#020303" opacity="0.86" />
+      <rect x="42" y="217" width="424" height="8" fill="#000" opacity="0.48" />
 
-      <line x1="286" y1="34" x2="286" y2="106" stroke="#000" strokeWidth="2" opacity="0.7" />
-      <path d="M264 106 L308 106 L296 126 L276 126 Z" fill={details} />
-      <circle cx="286" cy="130" r="12" fill="#fff" />
-      <circle cx="286" cy="130" r="70" fill="url(#lamp-glow)" opacity="0.6" />
-      <polygon points="286,132 168,302 430,302" fill={accent1} opacity="0.12" />
+      <line x1="306" y1="36" x2="306" y2="104" stroke="#000" strokeWidth="2" opacity="0.7" />
+      <path d="M282 104 L330 104 L316 126 L296 126 Z" fill={details} />
+      <circle cx="306" cy="130" r="11" fill="#fff" />
+      <circle cx="306" cy="130" r="92" fill="url(#lamp-glow)" opacity="0.62" />
+      <polygon points="306,132 158,308 452,308" fill={accent1} opacity="0.1" />
 
       <g filter="url(#soft-shadow-night)">
-        <rect x="188" y="190" width="148" height="36" fill={floor} rx="3" opacity="0.7" />
-        <rect x="202" y="226" width="8" height="32" fill="#000" opacity="0.5" />
-        <rect x="314" y="226" width="8" height="32" fill="#000" opacity="0.5" />
+        <rect x="184" y="184" width="166" height="42" fill={details} rx="4" opacity="0.46" />
+        <rect x="198" y="226" width="8" height="34" fill="#000" opacity="0.52" />
+        <rect x="328" y="226" width="8" height="34" fill="#000" opacity="0.52" />
       </g>
-      <rect x="184" y="68" width="84" height="96" fill="#000" opacity="0.54" rx="2" />
-      <rect x="190" y="74" width="72" height="84" fill={shadow} opacity="0.64" />
-      <rect x="202" y="88" width="48" height="46" fill={accentTeal} opacity="0.36" />
-      <path d="M382 98 C396 126 394 158 378 186" fill="none" stroke={accent2} strokeWidth="9" strokeLinecap="round" opacity="0.42" />
-      <path d="M78 250 C96 226 132 224 154 246 C168 260 170 282 158 294 L68 294 C56 276 62 260 78 250Z" fill={accent1} opacity="0.36" />
+      <rect x="204" y="72" width="88" height="102" fill="#000" opacity="0.52" rx="2" />
+      <rect x="211" y="79" width="74" height="88" fill={shadow} opacity="0.44" />
+      <rect x="222" y="92" width="52" height="48" fill={accentTeal} opacity="0.32" />
+      <path d="M392 92 C408 124 404 162 382 192" fill="none" stroke={accent2} strokeWidth="8" strokeLinecap="round" opacity="0.34" />
+      <path d="M82 250 C104 226 144 226 166 248 C182 264 180 288 166 302 L64 302 C50 282 60 262 82 250Z" fill={accent1} opacity="0.28" />
 
       <text x="38" y="304" fill="#fff" opacity="0.28" fontSize="8" fontWeight="700" fontFamily="'Inter', -apple-system, sans-serif" letterSpacing="1">INTERIOR / NIGHTLIGHT CONTRAST TEST</text>
     </svg>
@@ -218,26 +375,27 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#131517', borderRadius: '4px' }}>
       <rect width="500" height="320" fill="#111314" />
       
-      <rect x="30" y="45" width="128" height="230" fill={bg} rx="2" />
-      <path d="M42 72 H146 M42 98 H146 M42 124 H146 M42 150 H146 M42 176 H146" stroke={wall} strokeOpacity="0.32" />
-      <text x="42" y="260" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">PLASTER / CEILING</text>
+      <rect x="28" y="42" width="126" height="232" fill={bg} rx="3" />
+      <path d="M44 74 H138 M44 102 H138 M44 130 H138 M44 158 H138 M44 186 H138" stroke={wall} strokeOpacity="0.32" />
+      <text x="42" y="255" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">PLASTER / CEILING</text>
 
-      <rect x="178" y="45" width="132" height="105" fill={wall} rx="2" />
-      <path d="M190 58 H298 M190 82 H298 M190 106 H298 M190 130 H298" stroke={bg} strokeOpacity="0.22" />
-      <text x="190" y="135" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">MAIN WALL</text>
+      <rect x="176" y="42" width="132" height="110" fill={wall} rx="3" />
+      <path d="M190 58 H294 M190 86 H294 M190 114 H294" stroke={bg} strokeOpacity="0.24" />
+      <text x="190" y="137" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">MAIN WALL</text>
 
-      <rect x="178" y="170" width="132" height="105" fill={floor} rx="2" />
-      <path d="M178 194 H310 M178 220 H310 M178 246 H310" stroke={shadow} strokeOpacity="0.12" />
-      <text x="190" y="260" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">STONE / FLOOR</text>
+      <rect x="176" y="170" width="132" height="104" fill={floor} rx="3" />
+      <path d="M176 194 H308 M176 220 H308 M176 246 H308" stroke={shadow} strokeOpacity="0.14" />
+      <text x="190" y="258" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">STONE / FLOOR</text>
 
-      <rect x="330" y="45" width="140" height="72" fill={details} rx="2" />
-      <text x="342" y="101" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">SOFA TEXTILE</text>
-      <rect x="330" y="133" width="140" height="64" fill={accent1} rx="2" />
-      <text x="342" y="181" fill="#fff" fontSize="9" fontWeight="700" fontFamily="monospace">CONTROLLED ACCENT</text>
-      <circle cx="372" cy="240" r="26" fill={accentTeal} />
-      <rect x="410" y="218" width="46" height="46" fill={accent2} rx="3" />
+      <rect x="330" y="42" width="140" height="68" fill={details} rx="3" />
+      <path d="M342 58 H456 M342 74 H456 M342 90 H456" stroke={shadow} strokeOpacity="0.14" />
+      <text x="342" y="96" fill={shadow} fontSize="9" fontWeight="700" fontFamily="monospace">TEXTILE / LARGE</text>
+      <rect x="330" y="130" width="140" height="62" fill={accent1} rx="3" />
+      <text x="342" y="177" fill="#fff" fontSize="9" fontWeight="700" fontFamily="monospace">CONTROLLED ACCENT</text>
+      <rect x="330" y="212" width="58" height="58" fill={accentTeal} rx="29" />
+      <rect x="408" y="212" width="62" height="58" fill={accent2} rx="4" />
 
-      <text x="30" y="298" fill="#fff" opacity="0.3" fontSize="8" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">ARCHITECTURAL MATERIAL BOARD / ROLES</text>
+      <text x="28" y="298" fill="#fff" opacity="0.34" fontSize="8" fontWeight="600" fontFamily="'Inter', -apple-system, sans-serif">ARCHITECTURAL MATERIAL BOARD / PLASTER · STONE · TEXTILE · ACCENT</text>
     </svg>
   );
 
@@ -871,44 +1029,44 @@ const handleDownloadJpg = () => {
   const getSubtypes = () => {
     if (mode === 'architecture') {
       return [
-        { id: 'day', label: 'Daylight', icon: <MaterialIcon name="wb_sunny" size={12} /> },
-        { id: 'night', label: 'Nightlight', icon: <MaterialIcon name="dark_mode" size={12} /> },
-        { id: 'moodboard', label: 'Materials', icon: <MaterialIcon name="layers" size={12} /> },
+        { id: 'day', label: 'Space', icon: <MaterialIcon name="wb_sunny" size={14} /> },
+        { id: 'night', label: 'Night', icon: <MaterialIcon name="dark_mode" size={14} /> },
+        { id: 'moodboard', label: 'Materials', icon: <MaterialIcon name="layers" size={14} /> },
       ];
     } else if (mode === 'industrial') {
       return [
-        { id: 'speaker', label: 'Audio Speaker', icon: <MaterialIcon name="speaker" size={12} /> },
-        { id: 'chair', label: 'Minimal Chair', icon: <MaterialIcon name="chair" size={12} /> },
-        { id: 'tool', label: 'Caliper Tool', icon: <MaterialIcon name="straighten" size={12} /> },
-        { id: 'appliance', label: 'Appliance', icon: <MaterialIcon name="coffee_maker" size={12} /> },
+        { id: 'speaker', label: 'Speaker', icon: <MaterialIcon name="speaker" size={14} /> },
+        { id: 'chair', label: 'Chair', icon: <MaterialIcon name="chair" size={14} /> },
+        { id: 'tool', label: 'Tool', icon: <MaterialIcon name="straighten" size={14} /> },
+        { id: 'appliance', label: 'Appliance', icon: <MaterialIcon name="coffee_maker" size={14} /> },
       ];
     } else if (mode === 'spec') {
       return [
-        { id: 'list', label: 'Spec List', icon: <MaterialIcon name="article" size={12} /> },
-        { id: 'columns', label: 'Spec Columns', icon: <MaterialIcon name="dashboard" size={12} /> },
+        { id: 'list', label: 'List', icon: <MaterialIcon name="article" size={14} /> },
+        { id: 'columns', label: 'Columns', icon: <MaterialIcon name="dashboard" size={14} /> },
       ];
     } else {
       return [
-        { id: 'poster', label: 'Editorial Poster', icon: <MaterialIcon name="article" size={12} /> },
-        { id: 'dashboard', label: 'UI Dashboard', icon: <MaterialIcon name="dashboard" size={12} /> },
-        { id: 'landing', label: 'Landing Hero', icon: <MaterialIcon name="web" size={12} /> },
-        { id: 'packaging', label: 'Product Sleeve', icon: <MaterialIcon name="inventory_2" size={12} /> },
+        { id: 'poster', label: 'Poster', icon: <MaterialIcon name="article" size={14} /> },
+        { id: 'dashboard', label: 'UI', icon: <MaterialIcon name="dashboard" size={14} /> },
+        { id: 'landing', label: 'Hero', icon: <MaterialIcon name="web" size={14} /> },
+        { id: 'packaging', label: 'Sleeve', icon: <MaterialIcon name="inventory_2" size={14} /> },
       ];
     }
   };
 
   return (
     <div className="mockup-viewer-panel">
-      <div className="panel-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+      <div className="mockup-panel-header">
         <div>
-          <h3 className="section-title">APPLICATION PREVIEW</h3>
-          <p className="section-description">Review the palette in space, CMF, and editorial systems.</p>
+          <h3 className="section-title">APPLIED COLOR LAB</h3>
+          <p className="section-description">{getModeDescription(mode)}</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div className="mode-toggle-group" aria-label="Design mode" style={{ margin: 0 }}>
+        <div className="mockup-panel-actions">
+          <div className="mode-toggle-group mockup-mode-tabs" aria-label="Design mode">
             {(['architecture', 'industrial', 'graphic', 'spec'] as DesignMode[]).map((item) => (
-              <button key={item} onClick={() => onModeChange(item)} className={`mode-btn ${mode === item ? 'active' : ''}`} style={{ fontSize: '0.68rem', padding: '6px 10px' }}>
-                {item === 'architecture' ? 'ARCHITECTURE' : item === 'industrial' ? 'INDUSTRIAL' : item === 'graphic' ? 'GRAPHIC' : 'SPEC SHEET'}
+              <button key={item} onClick={() => onModeChange(item)} className={`mode-btn ${mode === item ? 'active' : ''}`}>
+                {item === 'architecture' ? 'ARCH' : item === 'industrial' ? 'CMF' : item === 'graphic' ? 'GRAPHIC' : 'SPEC'}
               </button>
             ))}
           </div>
@@ -916,21 +1074,18 @@ const handleDownloadJpg = () => {
             onClick={handleDownloadJpg} 
             className="calculator-action"
             title="Download JPG (Square)"
-            style={{ minHeight: 'auto', padding: '6px 8px' }}
           >
             <MaterialIcon name="download" size={14} />
           </button>
         </div>
       </div>
 
-      {/* Subtypes tab switcher - Unified Segment Group */}
-      <div className="mockup-tabs-group" style={{ marginBottom: '16px' }}>
+      <div className="mockup-tabs-group">
         {getSubtypes().map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveSubtype(tab.id)}
             className={`mockup-tab-btn ${activeSubtype === tab.id ? 'active' : ''}`}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', whiteSpace: 'nowrap' }}
           >
             {tab.icon}
             <span>{tab.label.toUpperCase()}</span>
@@ -938,41 +1093,46 @@ const handleDownloadJpg = () => {
         ))}
       </div>
 
-      {/* SVG Canvas wrapper */}
-      <div className="mockup-canvas-wrapper" style={{ position: 'relative', width: '100%', height: 'auto', aspectRatio: mode === 'spec' ? '1 / 1' : '500 / 320', overflow: 'hidden', border: '1px solid var(--border-light)', borderRadius: '4px', background: 'var(--bg-panel-deep)' }}>
+      <div className="mockup-canvas-wrapper" style={{ aspectRatio: mode === 'spec' ? '1 / 1' : '500 / 320' }}>
         {renderActiveMockup()}
       </div>
 
-      {/* Legend mapping details */}
-      <div className="mockup-legend-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginTop: '16px' }}>
-        <div className="legend-item" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div className="legend-swatch" style={{ backgroundColor: bg, width: '24px', height: '24px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.1)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="legend-label" style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{baseColor?.role ? baseColor.role.toUpperCase() : 'BASE'} (BG)</div>
-            <div className="legend-name" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{baseColor?.displayName || 'DEDUCED BASE'}</div>
-          </div>
+      <div className="application-map">
+        <div className="application-map-header">
+          <span>APPLICATION MAP</span>
+          <b>{mode === 'architecture' ? 'SPATIAL USE' : mode === 'industrial' ? 'CMF USE' : mode === 'graphic' ? 'SYSTEM USE' : 'SHEET USE'}</b>
         </div>
-        <div className="legend-item" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div className="legend-swatch" style={{ backgroundColor: wall, width: '24px', height: '24px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.1)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="legend-label" style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{surfaceColor?.role ? surfaceColor.role.toUpperCase() : 'SURFACE'}</div>
-            <div className="legend-name" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{surfaceColor?.displayName || 'DEDUCED SURFACE'}</div>
-          </div>
+        <div className="application-stack" aria-label="Applied color proportions">
+          {applicationMap.map((item) => (
+            <i
+              key={item.label}
+              title={`${item.label}: ${item.color.displayName} (${item.share}%)`}
+              style={{ backgroundColor: item.color.hex, flexGrow: item.share }}
+            />
+          ))}
         </div>
-        <div className="legend-item" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div className="legend-swatch" style={{ backgroundColor: accent1, width: '24px', height: '24px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.1)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="legend-label" style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{primaryAccentColor?.role ? primaryAccentColor.role.toUpperCase() : 'PRIMARY ACCENT'}</div>
-            <div className="legend-name" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{primaryAccentColor?.displayName || 'DEDUCED ACCENT'}</div>
-          </div>
+        <div className="application-map-list">
+          {applicationMap.map((item) => (
+            <div key={item.label} className="application-map-row">
+              <i style={{ backgroundColor: item.color.hex }} />
+              <span>{item.label}</span>
+              <b>{item.share}%</b>
+              <em>{item.color.displayName}</em>
+            </div>
+          ))}
         </div>
-        <div className="legend-item" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div className="legend-swatch" style={{ backgroundColor: accentTeal, width: '24px', height: '24px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.1)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="legend-label" style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{accentTealColor?.role ? accentTealColor.role.toUpperCase() : 'SECONDARY ACCENT'}</div>
-            <div className="legend-name" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{accentTealColor?.displayName || 'DEDUCED SECONDARY'}</div>
+      </div>
+
+      <div className="assessment-grid">
+        {assessment.map((item) => (
+          <div key={item.label} className={`assessment-card ${item.status}`}>
+            <div className="assessment-topline">
+              <span>{item.label}</span>
+              <b>{item.value}</b>
+            </div>
+            <p>{item.detail}</p>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
