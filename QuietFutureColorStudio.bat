@@ -15,7 +15,7 @@ echo ===================================================
 echo.
 
 :: Wait 3 seconds in the background and open the web page
-start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:3000"
+start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:3000/CRAN3O_Color_Studio"
 
 :: Start the Next.js development server
 npm run dev
