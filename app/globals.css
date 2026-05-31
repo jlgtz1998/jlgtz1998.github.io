@@ -1842,3 +1842,302 @@ button:disabled,
   cursor: not-allowed !important;
   pointer-events: none !important;
 }
+
+/* ==========================================
+   ADOBE WORKSPACE LAYOUT & PANEL STYLES
+   ========================================== */
+
+.workspace-toggle-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-panel-deep);
+  border: 1px solid var(--border-medium);
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.workspace-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all var(--transition-fast) ease;
+}
+
+.workspace-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.workspace-tab-btn.active {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.adobe-layout-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.adobe-harmony-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adobe-center-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+
+.adobe-wheel-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+}
+
+.adobe-swatches-container {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.adobe-swatch-strip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+  min-width: 90px;
+}
+
+.adobe-swatch-strip.active {
+  border-color: var(--button-dark);
+  box-shadow: 0 0 0 1px var(--button-dark);
+}
+
+.adobe-strip-fill {
+  height: 100px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  transition: background-color var(--transition-slow) ease;
+  cursor: pointer;
+}
+
+.adobe-strip-badge {
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xxs);
+  padding: 2px 4px;
+  border-radius: 2px;
+  align-self: flex-start;
+  font-weight: 700;
+}
+
+.adobe-strip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.adobe-strip-btn {
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast) ease;
+}
+
+.adobe-strip-btn:hover {
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.adobe-strip-btn.active-base {
+  background: var(--button-dark);
+  color: var(--bg-object);
+}
+
+.adobe-strip-info {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-light);
+}
+
+.adobe-strip-name {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-align: center;
+  padding: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adobe-strip-name:focus {
+  border-bottom-color: var(--border-medium);
+  outline: none;
+}
+
+.adobe-strip-hex {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.adobe-strip-hex.invalid {
+  border-color: var(--button-amber);
+  color: var(--button-amber);
+}
+
+.adobe-strip-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.adobe-mini-slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.adobe-mini-slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xxs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.adobe-mini-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-medium);
+  outline: none;
+  margin: 2px 0;
+}
+
+.adobe-mini-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  border: 1.5px solid var(--bg-panel);
+}
+
+.adobe-mini-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  border: 1.5px solid var(--bg-panel);
+}
+
+.adobe-harmony-rule-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  font-size: var(--font-size-xs);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all var(--transition-fast) ease;
+}
+
+.adobe-harmony-rule-btn:hover {
+  background: var(--bg-panel-deep);
+  color: var(--text-primary);
+}
+
+.adobe-harmony-rule-btn.active {
+  background: var(--bg-panel-deep);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.adobe-harmony-rule-name {
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.adobe-harmony-rule-desc {
+  font-size: var(--font-size-xxs);
+  opacity: 0.6;
+}
+
+@media (max-width: 1300px) {
+  .adobe-layout-grid {
+    grid-template-columns: 240px 1fr;
+  }
+  .adobe-layout-grid .right-column {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .adobe-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .adobe-layout-grid .left-column,
+  .adobe-layout-grid .right-column {
+    grid-column: span 1;
+  }
+}
+

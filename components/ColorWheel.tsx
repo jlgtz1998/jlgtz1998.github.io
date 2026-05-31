@@ -14,6 +14,9 @@ interface ColorWheelProps {
   onHoverColor?: (id: string | null) => void;
   onInteractionEnd?: () => void;
   pickerShape?: 'plane_lc' | 'plane_hc';
+  drawHarmonyLines?: boolean;
+  harmonyRule?: string;
+  harmonyBaseColorId?: string | null;
 }
 
 const MAX_CHROMA = 0.4;
@@ -72,6 +75,9 @@ export default function ColorWheel({
   onHoverColor,
   onInteractionEnd,
   pickerShape = 'plane_lc',
+  drawHarmonyLines = false,
+  harmonyRule,
+  harmonyBaseColorId = null,
 }: ColorWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -298,6 +304,8 @@ export default function ColorWheel({
     };
   }, [isDragging, onInteractionEnd]);
 
+  const baseColor = colors.find(c => c.id === harmonyBaseColorId) || activeColor || colors[0];
+
   return (
     <div className="color-wheel-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: size }}>
       <div 
@@ -342,6 +350,77 @@ export default function ColorWheel({
           border: '1px solid rgba(255, 255, 255, 0.1)',
           pointerEvents: 'none',
         }} />
+
+        {/* Harmony Connection Lines SVG */}
+        {drawHarmonyLines && (
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: size,
+              height: size,
+              pointerEvents: 'none',
+              zIndex: 5,
+            }}
+          >
+            {/* Center radial lines (only in polar HC shape) */}
+            {pickerShape === 'plane_hc' && colors.map((c) => {
+              const coords = getCoordinates(c.oklch);
+              return (
+                <line
+                  key={`center-line-${c.id}`}
+                  x1={radius}
+                  y1={radius}
+                  x2={coords.x}
+                  y2={coords.y}
+                  stroke="rgba(255, 255, 255, 0.15)"
+                  strokeWidth={1}
+                  strokeDasharray="2,2"
+                />
+              );
+            })}
+
+            {/* Hull/loop connecting colors sorted by hue */}
+            {(() => {
+              if (colors.length < 3) return null;
+              const sorted = [...colors].sort((a, b) => a.oklch.h - b.oklch.h);
+              const pointsStr = sorted
+                .map((c) => {
+                  const coords = getCoordinates(c.oklch);
+                  return `${coords.x},${coords.y}`;
+                })
+                .join(' ');
+              return (
+                <polygon
+                  points={pointsStr}
+                  fill="rgba(255, 255, 255, 0.02)"
+                  stroke="rgba(255, 255, 255, 0.1)"
+                  strokeWidth={1}
+                />
+              );
+            })()}
+
+            {/* Direct links to harmony base anchor color */}
+            {baseColor && colors.map((c) => {
+              if (c.id === baseColor.id) return null;
+              const coords = getCoordinates(c.oklch);
+              const baseCoords = getCoordinates(baseColor.oklch);
+              return (
+                <line
+                  key={`base-link-${c.id}`}
+                  x1={baseCoords.x}
+                  y1={baseCoords.y}
+                  x2={coords.x}
+                  y2={coords.y}
+                  stroke="rgba(255, 255, 255, 0.25)"
+                  strokeWidth={1.2}
+                  strokeDasharray={c.locked ? "none" : "3,3"}
+                />
+              );
+            })}
+          </svg>
+        )}
 
         {/* Palette node points */}
         {colors.map((color) => {

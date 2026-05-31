@@ -33,6 +33,7 @@ const STORAGE_KEYS = {
   paletteSize: 'cran3o_palette_size',
   customPresets: 'cran3o_custom_presets',
   pickerShape: 'cran3o_picker_shape',
+  viewMode: 'cran3o_view_mode',
 } as const;
 
 
@@ -83,6 +84,8 @@ export default function Cran3oColorStudio() {
   const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'instrument' | 'adobe'>('instrument');
+  const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -135,12 +138,18 @@ export default function Cran3oColorStudio() {
       setPickerShape(savedShape);
     }
 
+    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'adobe' | null;
+    if (savedViewMode === 'instrument' || savedViewMode === 'adobe') {
+      setViewMode(savedViewMode);
+    }
+
     const defaultPreset = PRESETS[0];
     const initialColors = createPaletteFromPreset(defaultPreset, initialSize, initialMode);
     setColors(initialColors);
     setHistory([initialColors]);
     setHistoryIndex(0);
     setActiveColorId(initialColors[Math.min(4, initialColors.length - 1)]?.id ?? null);
+    setHarmonyBaseColorId(initialColors[0]?.id ?? null);
     setMounted(true);
   }, []);
 
@@ -158,6 +167,11 @@ export default function Cran3oColorStudio() {
     if (!mounted) return;
     localStorage.setItem(STORAGE_KEYS.pickerShape, pickerShape);
   }, [pickerShape, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem(STORAGE_KEYS.viewMode, viewMode);
+  }, [viewMode, mounted]);
 
   const activeColor = useMemo(
     () => colors.find((color) => color.id === activeColorId) || colors[0] || null,
@@ -331,6 +345,9 @@ export default function Cran3oColorStudio() {
     const nextColors = colors.filter((color) => color.id !== id);
     setPaletteSize(nextColors.length);
     setColorsKeepingActive(nextColors);
+    if (harmonyBaseColorId === id) {
+      setHarmonyBaseColorId(nextColors[0]?.id ?? null);
+    }
     pushHistory(nextColors);
   };
 
@@ -350,10 +367,10 @@ export default function Cran3oColorStudio() {
   };
 
   const handleGenerateHarmony = () => {
-    const active = getActiveColor();
-    if (!active) return;
+    const seedColor = colors.find((c) => c.id === harmonyBaseColorId) || getActiveColor() || colors[0];
+    if (!seedColor) return;
 
-    const generatedOklchs = generateHarmony(active.oklch, activeHarmonyId, identity.chroma / 50);
+    const generatedOklchs = generateHarmony(seedColor.oklch, activeHarmonyId, identity.chroma / 50);
     const nextColors = colors.map((color, index) => {
       if (color.locked) return color;
       const oklch = generatedOklchs[index % generatedOklchs.length];
@@ -369,10 +386,10 @@ export default function Cran3oColorStudio() {
 
   const handleHarmonyChange = (harmonyId: string) => {
     setActiveHarmonyId(harmonyId);
-    const active = getActiveColor();
-    if (!active) return;
+    const seedColor = colors.find((c) => c.id === harmonyBaseColorId) || getActiveColor() || colors[0];
+    if (!seedColor) return;
 
-    const generatedOklchs = generateHarmony(active.oklch, harmonyId, identity.chroma / 50);
+    const generatedOklchs = generateHarmony(seedColor.oklch, harmonyId, identity.chroma / 50);
     const nextColors = colors.map((color, index) => {
       if (color.locked) return color;
       const oklch = generatedOklchs[index % generatedOklchs.length];
@@ -428,7 +445,50 @@ export default function Cran3oColorStudio() {
     nextColor.id = active.id;
     nextColor.role = active.role;
     nextColor.locked = active.locked;
-    setColors(colors.map((color) => (color.id === active.id ? nextColor : color)));
+
+    if (viewMode === 'adobe' && active.id === harmonyBaseColorId) {
+      const generatedOklchs = generateHarmony(newOklch, activeHarmonyId, identity.chroma / 50);
+      const nextColors = colors.map((color, index) => {
+        if (color.id === active.id) return nextColor;
+        if (color.locked) return color;
+        const oklch = generatedOklchs[index % generatedOklchs.length];
+        const updatedColor = createColorFromOklch(oklch, generateColorName(oklch));
+        updatedColor.id = color.id;
+        updatedColor.role = color.role;
+        updatedColor.locked = false;
+        return updatedColor;
+      });
+      setColors(nextColors);
+    } else {
+      setColors(colors.map((color) => (color.id === active.id ? nextColor : color)));
+    }
+  };
+
+  const handleIndividualColorOklchChange = (id: string, newOklch: OklchColor) => {
+    const current = colors.find((c) => c.id === id);
+    if (!current) return;
+
+    const nextColor = createColorFromOklch(newOklch, generateColorName(newOklch));
+    nextColor.id = current.id;
+    nextColor.role = current.role;
+    nextColor.locked = current.locked;
+
+    if (viewMode === 'adobe' && id === harmonyBaseColorId) {
+      const generatedOklchs = generateHarmony(newOklch, activeHarmonyId, identity.chroma / 50);
+      const nextColors = colors.map((color, index) => {
+        if (color.id === id) return nextColor;
+        if (color.locked) return color;
+        const oklch = generatedOklchs[index % generatedOklchs.length];
+        const updatedColor = createColorFromOklch(oklch, generateColorName(oklch));
+        updatedColor.id = color.id;
+        updatedColor.role = color.role;
+        updatedColor.locked = false;
+        return updatedColor;
+      });
+      setColors(nextColors);
+    } else {
+      setColors(colors.map((color) => (color.id === id ? nextColor : color)));
+    }
   };
 
   const handleSliderChange = (key: keyof SlidersState, value: number) => {
@@ -445,6 +505,7 @@ export default function Cran3oColorStudio() {
     setSliders(NEUTRAL_SLIDERS);
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
+    setHarmonyBaseColorId(nextColors[0]?.id ?? null);
   };
 
   const handleSaveCurrentAsPreset = () => {
@@ -660,10 +721,25 @@ export default function Cran3oColorStudio() {
         </defs>
       </svg>
 
-      <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px' }}>
+      <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px', flexWrap: 'wrap' }}>
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <h1 className="logo-main">CRAN3O COLOR STUDIO</h1>
           <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
+        </div>
+
+        <div className="workspace-toggle-bar">
+          <button 
+            className={`workspace-tab-btn ${viewMode === 'instrument' ? 'active' : ''}`}
+            onClick={() => setViewMode('instrument')}
+          >
+            STUDIO INSTRUMENT
+          </button>
+          <button 
+            className={`workspace-tab-btn ${viewMode === 'adobe' ? 'active' : ''}`}
+            onClick={() => setViewMode('adobe')}
+          >
+            ADOBE WORKSPACE
+          </button>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -802,648 +878,969 @@ export default function Cran3oColorStudio() {
         </div>
       </header>
 
-      <div className="studio-grid" style={{ filter: blindnessSim !== 'normal' ? `url(#${blindnessSim})` : 'none' }}>
-        
-        {/* LEFT COLUMN: Controls, Swatches, Sliders */}
-        <div className="left-column stack">
-          
-          {/* Row 2: Wheel & Swatches Side-by-Side Row */}
-          <div className="wheel-and-swatches-row">
-            
-            {/* Left: OKLCH Color Space Instrument */}
-            <section className="studio-panel calculator-face color-space-instrument">
-              <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <h3 className="section-title" style={{ margin: 0 }}>COLOR INSTRUMENT</h3>
-                  <p className="section-description" style={{ margin: '4px 0 0' }}>Edit coordinates on L-C/H-C planes and apply harmonies.</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PLANE</span>
-                  <div className="button-strip">
-                    {(['plane_lc', 'plane_hc'] as const).map((shape) => (
-                      <button
-                        key={shape}
-                        className={pickerShape === shape ? 'active' : ''}
-                        onClick={() => setPickerShape(shape)}
-                        style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
-                        title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
-                      >
-                        {shape === 'plane_lc' ? 'L-C' : 'H-C'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+      <div 
+        className={viewMode === 'instrument' ? "studio-grid" : "adobe-layout-grid"} 
+        style={{ filter: blindnessSim !== 'normal' ? `url(#${blindnessSim})` : 'none' }}
+      >
+        {viewMode === 'instrument' ? (
+          <>
+            {/* LEFT COLUMN: Controls, Swatches, Sliders */}
+            <div className="left-column stack">
               
-              <div className="instrument-vertical-stack">
-                <div className="instrument-wheel-wrapper">
-                  <ColorWheel 
-                    activeColor={activeColor} 
-                    colors={colors} 
-                    onColorChange={handleColorWheelChange} 
-                    onSelectColor={(color) => setActiveColorId(color.id)} 
-                    size={260}
-                    hoveredColorId={hoveredColorId}
-                    onHoverColor={setHoveredColorId}
-                    onInteractionEnd={() => pushHistory(colors)}
-                    pickerShape={pickerShape}
-                  />
-                </div>
-
-                <div className="harmony-controls-block">
-                  <span className="control-label-mini">HARMONY</span>
-                  <div className="harmony-action-row">
-                    <select className="select-control" value={activeHarmonyId} onChange={(event) => handleHarmonyChange(event.target.value)}>
-                      {HARMONIES.map((harmony) => <option key={harmony.id} value={harmony.id}>{harmony.name}</option>)}
-                    </select>
-                    <button onClick={handleGenerateHarmony} className="calculator-action primary" title="Re-apply active harmony to non-locked colors">
-                      <MaterialIcon name="sync" size={12} />
-                      RE-APPLY
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Right: Swatches Panel */}
-            <section className="studio-panel calculator-face swatches-panel">
-              <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
-                <div>
-                  <h3 className="section-title">PALETTE SYSTEM MATRIX</h3>
-                  <p className="section-description">Manage and assign roles to your active oklch color tokens.</p>
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "'Orbitron', sans-serif", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
-                    {paletteName.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="panel-toolbar swatches-toolbar" style={{ position: 'relative' }}>
-                <div className="swatches-toolbar-primary">
-                  {/* SYSTEM PRESETS */}
-                  <div className="settings-wrap" style={{ position: 'relative' }}>
-                    <button 
-                      className="calculator-action secondary" 
-                      style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
-                      onClick={() => { setPresetsOpen(!presetsOpen); setMyPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
-                    >
-                      <span>PRESETS</span>
-                      <MaterialIcon name="arrow_drop_down" size={14} />
-                    </button>
-                    {presetsOpen && (
-                      <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '400px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
-                        <div className="settings-menu-title">STUDIO PRESETS</div>
-                        {[
-                          { label: 'UNIVERSAL', items: PRESETS.filter(p => !p.mode) },
-                          { label: 'ARCHITECTURE', items: PRESETS.filter(p => p.mode === 'architecture') },
-                          { label: 'INDUSTRIAL', items: PRESETS.filter(p => p.mode === 'industrial') },
-                          { label: 'GRAPHIC DESIGN', items: PRESETS.filter(p => p.mode === 'graphic') },
-                        ].map((group) => (
-                          <div key={group.label} style={{ marginBottom: '8px' }}>
-                            <div className="preset-group-header" style={{ fontSize: '0.62rem', fontWeight: 700, opacity: 0.6, letterSpacing: '0.08em', padding: '4px 8px', borderBottom: '1px solid var(--border-light)', textTransform: 'uppercase' }}>
-                              {group.label}
-                            </div>
-                            {group.items.map((preset) => (
-                              <button 
-                                key={preset.id} 
-                                onClick={() => { handlePresetSelect(preset); setPresetsOpen(false); }} 
-                                className="settings-menu-row" 
-                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '6px 8px', background: 'transparent', border: 0 }}
-                              >
-                                <span style={{ fontWeight: 500, fontSize: '0.72rem' }}>{preset.name}</span>
-                                <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
-                                  {preset.colors.slice(0, 4).map((color, idx) => (
-                                    <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
-                                  ))}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
+              {/* Row 2: Wheel & Swatches Side-by-Side Row */}
+              <div className="wheel-and-swatches-row">
+                
+                {/* Left: OKLCH Color Space Instrument */}
+                <section className="studio-panel calculator-face color-space-instrument">
+                  <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3 className="section-title" style={{ margin: 0 }}>COLOR INSTRUMENT</h3>
+                      <p className="section-description" style={{ margin: '4px 0 0' }}>Edit coordinates on L-C/H-C planes and apply harmonies.</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PLANE</span>
+                      <div className="button-strip">
+                        {(['plane_lc', 'plane_hc'] as const).map((shape) => (
+                          <button
+                            key={shape}
+                            className={pickerShape === shape ? 'active' : ''}
+                            onClick={() => setPickerShape(shape)}
+                            style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
+                            title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
+                          >
+                            {shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                          </button>
                         ))}
                       </div>
-                    )}
+                    </div>
+                  </div>
+                  
+                  <div className="instrument-vertical-stack">
+                    <div className="instrument-wheel-wrapper">
+                      <ColorWheel 
+                        activeColor={activeColor} 
+                        colors={colors} 
+                        onColorChange={handleColorWheelChange} 
+                        onSelectColor={(color) => setActiveColorId(color.id)} 
+                        size={260}
+                        hoveredColorId={hoveredColorId}
+                        onHoverColor={setHoveredColorId}
+                        onInteractionEnd={() => pushHistory(colors)}
+                        pickerShape={pickerShape}
+                      />
+                    </div>
+
+                    <div className="harmony-controls-block">
+                      <span className="control-label-mini">HARMONY</span>
+                      <div className="harmony-action-row">
+                        <select className="select-control" value={activeHarmonyId} onChange={(event) => handleHarmonyChange(event.target.value)}>
+                          {HARMONIES.map((harmony) => <option key={harmony.id} value={harmony.id}>{harmony.name}</option>)}
+                        </select>
+                        <button onClick={handleGenerateHarmony} className="calculator-action primary" title="Re-apply active harmony to non-locked colors">
+                          <MaterialIcon name="sync" size={12} />
+                          RE-APPLY
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Right: Swatches Panel */}
+                <section className="studio-panel calculator-face swatches-panel">
+                  <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
+                    <div>
+                      <h3 className="section-title">PALETTE SYSTEM MATRIX</h3>
+                      <p className="section-description">Manage and assign roles to your active oklch color tokens.</p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "'Orbitron', sans-serif", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
+                        {paletteName.toUpperCase()}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* MY PRESETS */}
-                  <div className="settings-wrap" style={{ position: 'relative' }}>
-                    <button 
-                      className="calculator-action secondary" 
-                      style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
-                      onClick={() => { setMyPresetsOpen(!myPresetsOpen); setPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
-                    >
-                      <span>MY PRESETS</span>
-                      <MaterialIcon name="arrow_drop_down" size={14} />
-                    </button>
-                    {myPresetsOpen && (
-                      <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '420px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
-                        <div className="settings-menu-title">MY CUSTOM PRESETS</div>
-                        
-                        {/* New Preset Creation Row */}
-                        <div style={{ padding: '8px', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: '6px', background: 'var(--bg-panel-deep)' }}>
-                          <input 
-                            type="text" 
-                            placeholder="SAVE CURRENT AS PRESET..." 
-                            value={newPresetName}
-                            onChange={(e) => setNewPresetName(e.target.value)}
-                            className="select-control"
-                            style={{ flex: 1, height: '28px', padding: '0 8px', fontSize: '0.72rem' }}
-                            onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.stopPropagation();
-                                handleSaveCurrentAsPreset();
-                              }
-                            }}
-                          />
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleSaveCurrentAsPreset(); }}
-                            className="calculator-action primary"
-                            style={{ minHeight: '28px', height: '28px', fontSize: '0.68rem', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            disabled={!newPresetName.trim()}
-                          >
-                            SAVE
-                          </button>
-                        </div>
-
-                        {/* Custom Presets Group */}
-                        {customPresets.length > 0 ? (
-                          <div style={{ marginBottom: '8px' }}>
-                            {customPresets.map((preset) => (
-                              <div 
-                                key={preset.id} 
-                                onClick={() => { handlePresetSelect(preset); setMyPresetsOpen(false); }} 
-                                className="settings-menu-row" 
-                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '6px 8px', cursor: 'pointer' }}
-                              >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, marginRight: '8px', overflow: 'hidden' }}>
-                                  <span style={{ fontWeight: 600, fontSize: '0.72rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.name}>{preset.name}</span>
-                                  {preset.description && (
-                                    <span style={{ fontSize: '0.58rem', opacity: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.description}>{preset.description}</span>
-                                  )}
+                  <div className="panel-toolbar swatches-toolbar" style={{ position: 'relative' }}>
+                    <div className="swatches-toolbar-primary">
+                      {/* SYSTEM PRESETS */}
+                      <div className="settings-wrap" style={{ position: 'relative' }}>
+                        <button 
+                          className="calculator-action secondary" 
+                          style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
+                          onClick={() => { setPresetsOpen(!presetsOpen); setMyPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
+                        >
+                          <span>PRESETS</span>
+                          <MaterialIcon name="arrow_drop_down" size={14} />
+                        </button>
+                        {presetsOpen && (
+                          <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '400px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
+                            <div className="settings-menu-title">STUDIO PRESETS</div>
+                            {[
+                              { label: 'UNIVERSAL', items: PRESETS.filter(p => !p.mode) },
+                              { label: 'ARCHITECTURE', items: PRESETS.filter(p => p.mode === 'architecture') },
+                              { label: 'INDUSTRIAL', items: PRESETS.filter(p => p.mode === 'industrial') },
+                              { label: 'GRAPHIC DESIGN', items: PRESETS.filter(p => p.mode === 'graphic') },
+                            ].map((group) => (
+                              <div key={group.label} style={{ marginBottom: '8px' }}>
+                                <div className="preset-group-header" style={{ fontSize: '0.62rem', fontWeight: 700, opacity: 0.6, letterSpacing: '0.08em', padding: '4px 8px', borderBottom: '1px solid var(--border-light)', textTransform: 'uppercase' }}>
+                                  {group.label}
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
-                                    {preset.colors.slice(0, 4).map((color, idx) => (
-                                      <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
-                                    ))}
-                                  </span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
-                                    className="delete-preset-btn"
-                                    title="Delete Preset"
+                                {group.items.map((preset) => (
+                                  <button 
+                                    key={preset.id} 
+                                    onClick={() => { handlePresetSelect(preset); setPresetsOpen(false); }} 
+                                    className="settings-menu-row" 
+                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '6px 8px', background: 'transparent', border: 0 }}
                                   >
-                                    <MaterialIcon name="delete" size={13} />
+                                    <span style={{ fontWeight: 500, fontSize: '0.72rem' }}>{preset.name}</span>
+                                    <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
+                                      {preset.colors.slice(0, 4).map((color, idx) => (
+                                        <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
+                                      ))}
+                                    </span>
                                   </button>
-                                </div>
+                                ))}
                               </div>
                             ))}
                           </div>
-                        ) : (
-                          <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.68rem', opacity: 0.5 }}>
-                            NO CUSTOM PRESETS SAVED.
+                        )}
+                      </div>
+
+                      {/* MY PRESETS */}
+                      <div className="settings-wrap" style={{ position: 'relative' }}>
+                        <button 
+                          className="calculator-action secondary" 
+                          style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
+                          onClick={() => { setMyPresetsOpen(!myPresetsOpen); setPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
+                        >
+                          <span>MY PRESETS</span>
+                          <MaterialIcon name="arrow_drop_down" size={14} />
+                        </button>
+                        {myPresetsOpen && (
+                          <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '420px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
+                            <div className="settings-menu-title">MY CUSTOM PRESETS</div>
+                            
+                            {/* New Preset Creation Row */}
+                            <div style={{ padding: '8px', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: '6px', background: 'var(--bg-panel-deep)' }}>
+                              <input 
+                                type="text" 
+                                placeholder="SAVE CURRENT AS PRESET..." 
+                                value={newPresetName}
+                                onChange={(e) => setNewPresetName(e.target.value)}
+                                className="select-control"
+                                style={{ flex: 1, height: '28px', padding: '0 8px', fontSize: '0.72rem' }}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.stopPropagation();
+                                    handleSaveCurrentAsPreset();
+                                  }
+                                }}
+                              />
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleSaveCurrentAsPreset(); }}
+                                className="calculator-action primary"
+                                style={{ minHeight: '28px', height: '28px', fontSize: '0.68rem', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                disabled={!newPresetName.trim()}
+                              >
+                                SAVE
+                              </button>
+                            </div>
+
+                            {/* Custom Presets Group */}
+                            {customPresets.length > 0 ? (
+                              <div style={{ marginBottom: '8px' }}>
+                                {customPresets.map((preset) => (
+                                  <div 
+                                    key={preset.id} 
+                                    onClick={() => { handlePresetSelect(preset); setMyPresetsOpen(false); }} 
+                                    className="settings-menu-row" 
+                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '6px 8px', cursor: 'pointer' }}
+                                  >
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, marginRight: '8px', overflow: 'hidden' }}>
+                                      <span style={{ fontWeight: 600, fontSize: '0.72rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.name}>{preset.name}</span>
+                                      {preset.description && (
+                                        <span style={{ fontSize: '0.58rem', opacity: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.description}>{preset.description}</span>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
+                                        {preset.colors.slice(0, 4).map((color, idx) => (
+                                          <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
+                                        ))}
+                                      </span>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
+                                        className="delete-preset-btn"
+                                        title="Delete Preset"
+                                      >
+                                        <MaterialIcon name="delete" size={13} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.68rem', opacity: 0.5 }}>
+                                NO CUSTOM PRESETS SAVED.
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
+
+
+                    </div>
+                    <label className="palette-size-control" title="Palette size">
+                      <span>SIZE</span>
+                      <input
+                        type="range"
+                        min={MIN_PALETTE_SIZE}
+                        max={MAX_PALETTE_SIZE}
+                        step="1"
+                        value={paletteSize}
+                        onChange={(event) => handlePaletteSizeChange(Number(event.target.value))}
+                      />
+                      <strong>{paletteSize}</strong>
+                    </label>
                   </div>
 
+                  <div className="swatches-grid">
+                    {colors.map((color, index) => {
+                      const isActive = color.id === activeColorId;
+                      const isDragging = draggingId === color.id;
+                      const isHovered = hoveredColorId === color.id;
+                      return (
+                        <article
+                          key={color.id}
+                          className={`swatch-card floating-card ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''}`}
+                          onClick={() => {
+                            setActiveColorId(color.id);
+                          }}
+                          draggable
+                          onDragStart={(event) => {
+                            setDraggingId(color.id);
+                            setDragStartColors(colors);
+                            event.dataTransfer.effectAllowed = 'move';
+                            event.dataTransfer.setData('text/plain', color.id);
+                          }}
+                          onDragOver={(event) => {
+                            event.preventDefault();
+                            handlePreviewMoveColor(color.id);
+                          }}
+                          onDragEnd={finishDragReorder}
+                          onDrop={finishDragReorder}
+                          onMouseEnter={() => setHoveredColorId(color.id)}
+                          onMouseLeave={() => setHoveredColorId(null)}
+                        >
+                          <div className="swatch-fill" style={{ backgroundColor: color.hex }}>
+                            <div
+                              className="drag-handle"
+                              title="Drag to reorder"
+                            >
+                              <MaterialIcon name="drag_indicator" size={14} />
+                            </div>
+                            <button 
+                              className={`swatch-lock-indicator-fill ${color.locked ? 'locked-state' : ''}`} 
+                              onClick={(event) => { event.stopPropagation(); handleToggleLock(color.id); }} 
+                              title={color.locked ? 'Unlock color' : 'Lock color'}
+                            >
+                              <MaterialIcon name={color.locked ? 'lock' : 'lock_open'} size={13} />
+                            </button>
+                            {colors.length > MIN_PALETTE_SIZE && (
+                              <button
+                                className="swatch-delete-btn"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteColor(color.id);
+                                }}
+                                title="Delete color"
+                              >
+                                <MaterialIcon name="close" size={12} />
+                              </button>
+                            )}
+                          </div>
 
-                </div>
-                <label className="palette-size-control" title="Palette size">
-                  <span>SIZE</span>
-                  <input
-                    type="range"
-                    min={MIN_PALETTE_SIZE}
-                    max={MAX_PALETTE_SIZE}
-                    step="1"
-                    value={paletteSize}
-                    onChange={(event) => handlePaletteSizeChange(Number(event.target.value))}
-                  />
-                  <strong>{paletteSize}</strong>
-                </label>
+                          <div className="swatch-info">
+                            <input 
+                              className="swatch-name" 
+                              value={color.displayName} 
+                              draggable={false}
+                              onDragStart={(e) => e.stopPropagation()}
+                              onClick={(event) => event.stopPropagation()} 
+                              onChange={(event) => handleRenameColor(color.id, event.target.value)} 
+                              onBlur={() => pushHistory(colors)}
+                            />
+                            <div className="swatch-hex-row">
+                              <input
+                                className={`swatch-hex-input ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
+                                value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
+                                spellCheck={false}
+                                draggable={false}
+                                aria-label={`Edit HEX value for ${color.displayName}`}
+                                onDragStart={(event) => event.stopPropagation()}
+                                onClick={(event) => event.stopPropagation()}
+                                onChange={(event) => handleHexDraftChange(color.id, event.target.value)}
+                                onBlur={() => commitHexChange(color.id)}
+                                onKeyDown={(event) => {
+                                  event.stopPropagation();
+                                  if (event.key === 'Enter') {
+                                    event.currentTarget.blur();
+                                  }
+                                  if (event.key === 'Escape') {
+                                    setHexDrafts((drafts) => ({ ...drafts, [color.id]: color.hex.toUpperCase() }));
+                                    event.currentTarget.blur();
+                                  }
+                                }}
+                              />
+                              {!isColorInGamut(color.oklch) && (
+                                <span 
+                                  style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: '2px', 
+                                    color: 'var(--button-amber)', 
+                                    fontSize: '0.58rem', 
+                                    fontWeight: 700, 
+                                    marginRight: '2px',
+                                    fontFamily: 'var(--font-mono)' 
+                                  }}
+                                  title="Out of sRGB Gamut (Color will be clamped by browsers)"
+                                >
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--button-amber)' }}>
+                                    <MaterialIcon name="warning" size={10} />
+                                  </span>
+                                  <span>OUT</span>
+                                </span>
+                              )}
+                              <button
+                                className="swatch-copy-btn"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  navigator.clipboard.writeText(color.hex.toUpperCase()).then(() => {
+                                    setCopiedColorId(color.id);
+                                    setTimeout(() => setCopiedColorId(null), 1500);
+                                  });
+                                }}
+                                title="Copy HEX"
+                              >
+                                <MaterialIcon name={copiedColorId === color.id ? 'check' : 'content_copy'} size={12} />
+                              </button>
+                            </div>
+                            <div className="swatch-oklch-info" style={{ 
+                              display: 'flex', 
+                              gap: '6px', 
+                              fontSize: '0.58rem', 
+                              opacity: 0.7, 
+                              fontFamily: 'var(--font-mono)', 
+                              background: 'var(--bg-input)', 
+                              padding: '3px 6px', 
+                              borderRadius: '2px', 
+                              justifyContent: 'space-between',
+                              marginTop: '4px',
+                              marginBottom: '4px'
+                            }}>
+                              <span>L:{(color.oklch.l).toFixed(2)}</span>
+                              <span>C:{(color.oklch.c).toFixed(2)}</span>
+                              <span>H:{Math.round(color.oklch.h)}°</span>
+                            </div>
+                            <select 
+                              className="role-select" 
+                              value={color.role} 
+                              draggable={false}
+                              onDragStart={(e) => e.stopPropagation()}
+                              onClick={(event) => event.stopPropagation()} 
+                              onChange={(event) => handleRoleChange(color.id, event.target.value as ColorRole)}
+                            >
+                              {(['none', 'primary', 'secondary', 'accent', 'background', 'surface', 'text', 'muted', 'border', 'success', 'warning', 'error'] as ColorRole[]).map((role) => (
+                                <option key={role} value={role}>{role.toUpperCase()}</option>
+                              ))}
+                            </select>
+                            <div className="swatch-reorder-row">
+                              <button
+                                className="mini-move"
+                                disabled={index === 0}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleMoveColor(index, index - 1);
+                                }}
+                                title="Move left"
+                              >
+                                <MaterialIcon name="keyboard_arrow_left" size={13} />
+                              </button>
+                              <button
+                                className="mini-move"
+                                disabled={index === colors.length - 1}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleMoveColor(index, index + 1);
+                                }}
+                                title="Move right"
+                              >
+                                <MaterialIcon name="keyboard_arrow_right" size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                    {colors.length < MAX_PALETTE_SIZE && (
+                      <button 
+                        className="swatch-add-card" 
+                        onClick={handleAddColor}
+                        title="Add new color"
+                      >
+                        <MaterialIcon name="add" size={24} />
+                        <span>Add Color</span>
+                      </button>
+                    )}
+                  </div>
+                </section>
               </div>
 
-              <div className="swatches-grid">
+              {/* Unified Variation & Mutation Engine Panel */}
+              <section className="studio-panel calculator-face variation-panel">
+                <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
+                  <div>
+                    <h3 className="section-title" style={{ margin: 0 }}>VARIATION & MUTATION ENGINE</h3>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Fine tune temperature, muting, contrast, and material feel inside OKLCH.</p>
+                  </div>
+                  
+                  <div className="mutation-controls-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      onClick={() => setSlidersOpen(!slidersOpen)} 
+                      className={`icon-button ${slidersOpen ? 'active' : ''}`}
+                      style={{ padding: '4px', minHeight: '28px', minWidth: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Toggle Settings & Sliders"
+                    >
+                      <MaterialIcon name="tune" size={16} />
+                    </button>
+                    <button onClick={handleRefinePalette} className="calculator-action secondary">REFINE</button>
+                    <button onClick={handleMutatePalette} className="calculator-action amber">
+                      <MaterialIcon name="auto_awesome" size={12} />
+                      MUTATE
+                    </button>
+                  </div>
+                </div>
+
+                {slidersOpen && (
+                  <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
+                        <div className="button-strip">
+                          {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
+                            <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer' }}>
+                              {strength.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="control-label-mini" style={{ margin: 0 }}>MUTATION TARGET</span>
+                        <div className="button-strip">
+                          {(['all', 'selected'] as const).map((tgt) => (
+                            <button key={tgt} className={slidersTarget === tgt ? 'active' : ''} onClick={() => setSlidersTarget(tgt)} style={{ cursor: 'pointer' }}>
+                              {tgt === 'all' ? 'ALL COLORS' : 'ACTIVE COLOR'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="sliders-grid">
+                      {[
+                        ['temperature', 'TEMPERATURE', sliders.temperature > 50 ? `WARM ${sliders.temperature}` : sliders.temperature < 50 ? `COOL ${sliders.temperature}` : 'NEUTRAL', 'Ajusta hacia tonos fríos (pizarra/zinc) o cálidos (terracota/madera).'],
+                        ['muting', 'MUTING', `${sliders.muting}%`, 'Muteado: Reduce la pureza cromática hacia tonos yeso/hormigón neutros y minerales.'],
+                        ['contrast', 'CONTRAST', `${sliders.contrast}%`, 'Contraste: Incrementa la diferencia de luz (LRV) entre paredes, suelos y carpintería.'],
+                        ['luminosity', 'LUMINOSITY', `${sliders.luminosity}%`, 'Luminosidad: Sube o baja la reflectancia general de la paleta (sol de mediodía vs crepúsculo).'],
+                        ['cinematicFog', 'CINEMATIC FOG', `${sliders.cinematicFog}%`, 'Niebla Cinemática: Aplica un velo mate y atmosférico (efecto arenado o difuso).'],
+                        ['materialFeel', 'MATERIAL FEEL', `${sliders.materialFeel}%`, 'Sensación de Material: Ajusta los valores para simular texturas orgánicas rugosas y mate.'],
+                        ['warmAccent', 'WARM ACCENT', `${sliders.warmAccent}%`, 'Acento Cálido: Resalta detalles metálicos o maderas (como cobre, bronce o roble).'],
+                        ['futurism', 'VISIBLE FUTURISM', `${sliders.futurism}%`, 'Futurismo Visible: Desvía matices hacia tonos sofisticados y silenciosos de la arquitectura premium.'],
+                      ].map(([key, label, value, tooltip]) => (
+                        <div key={key} className="blender-slider-wrapper" title={tooltip} style={{ cursor: 'help' }}>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={sliders[key as keyof SlidersState]} 
+                            onChange={(event) => handleSliderChange(key as keyof SlidersState, Number(event.target.value))} 
+                             onMouseUp={() => pushHistory(colors)}
+                             onTouchEnd={() => pushHistory(colors)}
+                            className="blender-slider"
+                            style={{ '--value-percent': `${sliders[key as keyof SlidersState]}%` } as React.CSSProperties}
+                          />
+                          <div className="blender-slider-overlay">
+                            <span className="blender-slider-label">{label}</span>
+                            <span className="blender-slider-value">{value}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Row 6: Collapsible Color Identity Settings */}
+              <section className="studio-panel calculator-face">
+                <button 
+                  className="identity-collapsible-trigger" 
+                  onClick={() => setIdentityOpen(!identityOpen)}
+                  style={{
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    background: 'transparent',
+                    border: 0,
+                    width: '100%',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    paddingBottom: identityOpen ? '14px' : '4px',
+                    borderBottom: identityOpen ? '1px solid var(--border-light)' : 'none',
+                    marginBottom: identityOpen ? '16px' : '0px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div>
+                    <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                      <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
+                        <MaterialIcon name="settings" size={14} />
+                      </span>
+                      COLOR IDENTITY
+                    </h3>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>
+                      Define your core aesthetic profile. Active palettes morph smoothly as you adjust the axes.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                    <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                      <MaterialIcon name="keyboard_arrow_right" size={18} />
+                    </span>
+                  </div>
+                </button>
+                {identityOpen && (
+                  <div className="collapsible-content">
+                    <IdentityPanel 
+                      identity={identity} 
+                      onIdentityChange={handleIdentitySliderChange} 
+                      onInteractionEnd={handleIdentityInteractionEnd} 
+                    />
+                  </div>
+                )}
+              </section>
+
+              {/* Row 7: Collapsible Architectural Blueprint Guide */}
+              <section className="studio-panel calculator-face">
+                <button 
+                  className="identity-collapsible-trigger" 
+                  onClick={() => setHelpOpen(!helpOpen)}
+                  style={{
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    background: 'transparent',
+                    border: 0,
+                    width: '100%',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    paddingBottom: helpOpen ? '14px' : '4px',
+                    borderBottom: helpOpen ? '1px solid var(--border-light)' : 'none',
+                    marginBottom: helpOpen ? '16px' : '0px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div>
+                    <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                      <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
+                        <MaterialIcon name="menu_book" size={14} />
+                      </span>
+                      ARCHITECTURAL CMF GUIDE
+                    </h3>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>
+                      Learn how OKLCH parameters translate to physical materials (travertine, slate, concrete, plaster).
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
+                    <span style={{ transform: helpOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                      <MaterialIcon name="keyboard_arrow_right" size={18} />
+                    </span>
+                  </div>
+                </button>
+                {helpOpen && (
+                  <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                    <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
+                      <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <li>
+                          <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.95: Plaster / Chalk</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.55: Concrete / Stone</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.20: Steel / Graphite</span>
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Chroma (C) / Purity:</strong> Determines color cleanliness. Low chroma ensures spatial serenity.
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.00-0.03: Concrete, Slate, Nickel</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.04-0.08: Travertine, Oak, Limestone</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C &gt; 0.10: Synthetic Accents</span>
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Hue (H) / Temperature:</strong> Angle of tint (0° - 360°).
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~35°: Terracotta / Clay</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~75°: Warm Travertine / Oak</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~135°: Lichen / Moss Green</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~220°: Slate Blue / Zinc Grey</span>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>PRACTICAL WORKFLOW TIPS</h4>
+                      <p style={{ margin: 0, lineHeight: 1.4 }}>
+                        1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
+                        <br />
+                        2. <strong>Structure vs Details:</strong> Use low chroma (C &lt; 0.05) for ceilings, floors, and main walls. Keep accents (C ~ 0.08) reserved for secondary highlights or furniture elements.
+                        <br />
+                        3. <strong>Locking Colors:</strong> Click the lock icon on a color card to keep it fixed while generating harmony relationships.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+            </div>
+
+            {/* RIGHT COLUMN: Previews, accessibility, exports (STICKY SIDEBAR) */}
+            <aside className="right-column sticky-sidebar stack">
+              
+              {/* Live Mockup Preview */}
+              <section className="studio-panel calculator-face">
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} />
+              </section>
+
+            </aside>
+          </>
+        ) : (
+          <>
+            {/* COLUMN 1: Adobe Harmony Sidebar (Left) */}
+            <div className="left-column stack adobe-harmony-sidebar">
+              <section className="studio-panel calculator-face">
+                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '16px' }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>HARMONY RULES</h3>
+                  <p className="section-description" style={{ margin: '4px 0 0' }}>Select geometric harmony constraint inside OKLCH space.</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {HARMONIES.map((harmony) => {
+                    const isActive = activeHarmonyId === harmony.id;
+                    return (
+                      <button
+                        key={harmony.id}
+                        className={`adobe-harmony-rule-btn ${isActive ? 'active' : ''}`}
+                        onClick={() => handleHarmonyChange(harmony.id)}
+                      >
+                        <span className="adobe-harmony-rule-name">{harmony.name}</span>
+                        <span className="adobe-harmony-rule-desc">{harmony.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Collapsible Architectural Guide */}
+              <section className="studio-panel calculator-face">
+                <button 
+                  className="identity-collapsible-trigger" 
+                  onClick={() => setHelpOpen(!helpOpen)}
+                  style={{
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    background: 'transparent',
+                    border: 0,
+                    width: '100%',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    paddingBottom: helpOpen ? '10px' : '0px',
+                    borderBottom: helpOpen ? '1px solid var(--border-light)' : 'none',
+                    marginBottom: helpOpen ? '12px' : '0px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    <MaterialIcon name="menu_book" size={14} />
+                    CMF GUIDE
+                  </h3>
+                  <span style={{ transform: helpOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                    <MaterialIcon name="keyboard_arrow_right" size={18} />
+                  </span>
+                </button>
+                {helpOpen && (
+                  <div style={{ fontSize: 'var(--font-size-xxs)', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div>
+                      <strong>LRV (Lightness):</strong>
+                      <div style={{ opacity: 0.8 }}>L ~0.95: Plaster | L ~0.55: Concrete | L ~0.20: Steel</div>
+                    </div>
+                    <div>
+                      <strong>Chroma (Purity):</strong>
+                      <div style={{ opacity: 0.8 }}>C 0.0-0.03: Slate | C 0.04-0.08: Travertine/Wood</div>
+                    </div>
+                    <div>
+                      <strong>Hue (Temperature):</strong>
+                      <div style={{ opacity: 0.8 }}>H ~35°: Clay | H ~75°: Oak | H ~135°: Lichen</div>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+
+            {/* COLUMN 2: Adobe Center Workspace */}
+            <div className="adobe-center-workspace">
+              {/* Polar Color Wheel Section */}
+              <section className="studio-panel calculator-face adobe-wheel-panel" style={{ background: 'var(--bg-panel-deep)' }}>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div>
+                    <h3 className="section-title" style={{ margin: 0 }}>GEOMETRIC HARMONY</h3>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Drag points to morph colors while maintaining the rule.</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="control-label-mini" style={{ margin: 0 }}>PLANE</span>
+                    <div className="button-strip">
+                      {(['plane_lc', 'plane_hc'] as const).map((shape) => (
+                        <button
+                          key={shape}
+                          className={pickerShape === shape ? 'active' : ''}
+                          onClick={() => setPickerShape(shape)}
+                          style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
+                        >
+                          {shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <ColorWheel 
+                  activeColor={activeColor} 
+                  colors={colors} 
+                  onColorChange={handleColorWheelChange} 
+                  onSelectColor={(color) => setActiveColorId(color.id)} 
+                  size={260}
+                  hoveredColorId={hoveredColorId}
+                  onHoverColor={setHoveredColorId}
+                  onInteractionEnd={() => pushHistory(colors)}
+                  pickerShape={pickerShape}
+                  drawHarmonyLines={true}
+                  harmonyRule={activeHarmonyId}
+                  harmonyBaseColorId={harmonyBaseColorId}
+                />
+              </section>
+
+              {/* Swatches strip container */}
+              <div className="adobe-swatches-container">
                 {colors.map((color, index) => {
                   const isActive = color.id === activeColorId;
-                  const isDragging = draggingId === color.id;
-                  const isHovered = hoveredColorId === color.id;
+                  const isBase = color.id === harmonyBaseColorId;
                   return (
-                    <article
-                      key={color.id}
-                      className={`swatch-card floating-card ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''}`}
-                      onClick={() => {
-                        setActiveColorId(color.id);
-                      }}
-                      draggable
-                      onDragStart={(event) => {
-                        setDraggingId(color.id);
-                        setDragStartColors(colors);
-                        event.dataTransfer.effectAllowed = 'move';
-                        event.dataTransfer.setData('text/plain', color.id);
-                      }}
-                      onDragOver={(event) => {
-                        event.preventDefault();
-                        handlePreviewMoveColor(color.id);
-                      }}
-                      onDragEnd={finishDragReorder}
-                      onDrop={finishDragReorder}
-                      onMouseEnter={() => setHoveredColorId(color.id)}
-                      onMouseLeave={() => setHoveredColorId(null)}
+                    <article 
+                      key={color.id} 
+                      className={`adobe-swatch-strip ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveColorId(color.id)}
                     >
-                      <div className="swatch-fill" style={{ backgroundColor: color.hex }}>
-                        <div
-                          className="drag-handle"
-                          title="Drag to reorder"
-                        >
-                          <MaterialIcon name="drag_indicator" size={14} />
-                        </div>
-                        <button 
-                          className={`swatch-lock-indicator-fill ${color.locked ? 'locked-state' : ''}`} 
-                          onClick={(event) => { event.stopPropagation(); handleToggleLock(color.id); }} 
-                          title={color.locked ? 'Unlock color' : 'Lock color'}
-                        >
-                          <MaterialIcon name={color.locked ? 'lock' : 'lock_open'} size={13} />
-                        </button>
-                        {colors.length > MIN_PALETTE_SIZE && (
-                          <button
-                            className="swatch-delete-btn"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleDeleteColor(color.id);
+                      {/* Color block header */}
+                      <div 
+                        className="adobe-strip-fill" 
+                        style={{ backgroundColor: color.hex }}
+                      >
+                        <span className="adobe-strip-badge">{index + 1}</span>
+                        <div className="adobe-strip-actions">
+                          <button 
+                            className={`adobe-strip-btn ${isBase ? 'active-base' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setHarmonyBaseColorId(color.id);
+                              // Recalculate harmony using this color as base
+                              const generatedOklchs = generateHarmony(color.oklch, activeHarmonyId, identity.chroma / 50);
+                              const nextColors = colors.map((col, idx) => {
+                                if (col.id === color.id) return col;
+                                if (col.locked) return col;
+                                const oklch = generatedOklchs[idx % generatedOklchs.length];
+                                const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
+                                nextColor.id = col.id;
+                                nextColor.role = col.role;
+                                nextColor.locked = false;
+                                return nextColor;
+                              });
+                              updateColorsAndPushHistory(nextColors);
                             }}
-                            title="Delete color"
+                            title={isBase ? "Harmony Anchor Base Color" : "Set as Harmony Anchor"}
                           >
-                            <MaterialIcon name="close" size={12} />
+                            <MaterialIcon name={isBase ? "anchor" : "pin_drop"} size={11} />
                           </button>
-                        )}
+                          <button 
+                            className="adobe-strip-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleLock(color.id);
+                            }}
+                            title={color.locked ? "Unlock Color" : "Lock Color"}
+                            style={{ color: color.locked ? "var(--button-amber)" : "rgba(255,255,255,0.85)" }}
+                          >
+                            <MaterialIcon name={color.locked ? "lock" : "lock_open"} size={11} />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="swatch-info">
+                      {/* Swatch Info & Mini sliders */}
+                      <div className="adobe-strip-info">
                         <input 
-                          className="swatch-name" 
-                          value={color.displayName} 
-                          draggable={false}
-                          onDragStart={(e) => e.stopPropagation()}
-                          onClick={(event) => event.stopPropagation()} 
-                          onChange={(event) => handleRenameColor(color.id, event.target.value)} 
+                          className="adobe-strip-name" 
+                          value={color.displayName}
+                          onChange={(e) => handleRenameColor(color.id, e.target.value)}
                           onBlur={() => pushHistory(colors)}
+                          onClick={(e) => e.stopPropagation()}
                         />
-                        <div className="swatch-hex-row">
-                          <input
-                            className={`swatch-hex-input ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
-                            value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
-                            spellCheck={false}
-                            draggable={false}
-                            aria-label={`Edit HEX value for ${color.displayName}`}
-                            onDragStart={(event) => event.stopPropagation()}
-                            onClick={(event) => event.stopPropagation()}
-                            onChange={(event) => handleHexDraftChange(color.id, event.target.value)}
-                            onBlur={() => commitHexChange(color.id)}
-                            onKeyDown={(event) => {
-                              event.stopPropagation();
-                              if (event.key === 'Enter') {
-                                event.currentTarget.blur();
-                              }
-                              if (event.key === 'Escape') {
-                                setHexDrafts((drafts) => ({ ...drafts, [color.id]: color.hex.toUpperCase() }));
-                                event.currentTarget.blur();
-                              }
-                            }}
-                          />
-                          {!isColorInGamut(color.oklch) && (
-                            <span 
-                              style={{ 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                gap: '2px', 
-                                color: 'var(--button-amber)', 
-                                fontSize: '0.58rem', 
-                                fontWeight: 700, 
-                                marginRight: '2px',
-                                fontFamily: 'var(--font-mono)' 
+
+                        <input 
+                          className={`adobe-strip-hex ${normalizeHexDraft(hexDrafts[color.id] ?? color.hex) ? '' : 'invalid'}`}
+                          value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
+                          onChange={(e) => handleHexDraftChange(color.id, e.target.value)}
+                          onBlur={() => commitHexChange(color.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.currentTarget.blur();
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          spellCheck={false}
+                        />
+
+                        {/* Individual Sliders */}
+                        <div className="adobe-strip-sliders">
+                          <div className="adobe-mini-slider-wrapper">
+                            <div className="adobe-mini-slider-header">
+                              <span>L</span>
+                              <span>{color.oklch.l.toFixed(2)}</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="0" 
+                              max="1" 
+                              step="0.01" 
+                              value={color.oklch.l} 
+                              className="adobe-mini-slider"
+                              onChange={(e) => {
+                                handleIndividualColorOklchChange(color.id, {
+                                  ...color.oklch,
+                                  l: parseFloat(e.target.value)
+                                });
                               }}
-                              title="Out of sRGB Gamut (Color will be clamped by browsers)"
-                            >
-                              <span style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--button-amber)' }}>
-                                <MaterialIcon name="warning" size={10} />
-                              </span>
-                              <span>OUT</span>
-                            </span>
-                          )}
-                          <button
-                            className="swatch-copy-btn"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              navigator.clipboard.writeText(color.hex.toUpperCase()).then(() => {
-                                setCopiedColorId(color.id);
-                                setTimeout(() => setCopiedColorId(null), 1500);
-                              });
-                            }}
-                            title="Copy HEX"
-                          >
-                            <MaterialIcon name={copiedColorId === color.id ? 'check' : 'content_copy'} size={12} />
-                          </button>
+                              onMouseUp={() => pushHistory(colors)}
+                              onTouchEnd={() => pushHistory(colors)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+
+                          <div className="adobe-mini-slider-wrapper">
+                            <div className="adobe-mini-slider-header">
+                              <span>C</span>
+                              <span>{color.oklch.c.toFixed(2)}</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="0" 
+                              max="0.4" 
+                              step="0.01" 
+                              value={color.oklch.c} 
+                              className="adobe-mini-slider"
+                              onChange={(e) => {
+                                handleIndividualColorOklchChange(color.id, {
+                                  ...color.oklch,
+                                  c: parseFloat(e.target.value)
+                                });
+                              }}
+                              onMouseUp={() => pushHistory(colors)}
+                              onTouchEnd={() => pushHistory(colors)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+
+                          <div className="adobe-mini-slider-wrapper">
+                            <div className="adobe-mini-slider-header">
+                              <span>H</span>
+                              <span>{Math.round(color.oklch.h)}°</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="0" 
+                              max="360" 
+                              step="1" 
+                              value={color.oklch.h} 
+                              className="adobe-mini-slider"
+                              onChange={(e) => {
+                                handleIndividualColorOklchChange(color.id, {
+                                  ...color.oklch,
+                                  h: parseFloat(e.target.value)
+                                });
+                              }}
+                              onMouseUp={() => pushHistory(colors)}
+                              onTouchEnd={() => pushHistory(colors)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
                         </div>
-                        <div className="swatch-oklch-info" style={{ 
-                          display: 'flex', 
-                          gap: '6px', 
-                          fontSize: '0.58rem', 
-                          opacity: 0.7, 
-                          fontFamily: 'var(--font-mono)', 
-                          background: 'var(--bg-input)', 
-                          padding: '3px 6px', 
-                          borderRadius: '2px', 
-                          justifyContent: 'space-between',
-                          marginTop: '4px',
-                          marginBottom: '4px'
-                        }}>
-                          <span>L:{(color.oklch.l).toFixed(2)}</span>
-                          <span>C:{(color.oklch.c).toFixed(2)}</span>
-                          <span>H:{Math.round(color.oklch.h)}°</span>
-                        </div>
+
+                        {/* Role Select */}
                         <select 
                           className="role-select" 
-                          value={color.role} 
-                          draggable={false}
-                          onDragStart={(e) => e.stopPropagation()}
-                          onClick={(event) => event.stopPropagation()} 
-                          onChange={(event) => handleRoleChange(color.id, event.target.value as ColorRole)}
+                          value={color.role}
+                          onChange={(e) => handleRoleChange(color.id, e.target.value as ColorRole)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ fontSize: '0.58rem', padding: '2px', width: '100%', height: '20px' }}
                         >
-                          {(['none', 'primary', 'secondary', 'accent', 'background', 'surface', 'text', 'muted', 'border', 'success', 'warning', 'error'] as ColorRole[]).map((role) => (
-                            <option key={role} value={role}>{role.toUpperCase()}</option>
+                          {['none', 'primary', 'secondary', 'accent', 'background', 'surface', 'text', 'muted', 'border', 'success', 'warning', 'error'].map((r) => (
+                            <option key={r} value={r}>{r.toUpperCase()}</option>
                           ))}
                         </select>
-                        <div className="swatch-reorder-row">
-                          <button
-                            className="mini-move"
-                            disabled={index === 0}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleMoveColor(index, index - 1);
-                            }}
-                            title="Move left"
-                          >
-                            <MaterialIcon name="keyboard_arrow_left" size={13} />
-                          </button>
-                          <button
-                            className="mini-move"
-                            disabled={index === colors.length - 1}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleMoveColor(index, index + 1);
-                            }}
-                            title="Move right"
-                          >
-                            <MaterialIcon name="keyboard_arrow_right" size={13} />
-                          </button>
-                        </div>
                       </div>
                     </article>
                   );
                 })}
-                {colors.length < MAX_PALETTE_SIZE && (
-                  <button 
-                    className="swatch-add-card" 
-                    onClick={handleAddColor}
-                    title="Add new color"
-                  >
-                    <MaterialIcon name="add" size={24} />
-                    <span>Add Color</span>
-                  </button>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* Unified Variation & Mutation Engine Panel */}
-          <section className="studio-panel calculator-face variation-panel">
-            <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
-              <div>
-                <h3 className="section-title" style={{ margin: 0 }}>VARIATION & MUTATION ENGINE</h3>
-                <p className="section-description" style={{ margin: '4px 0 0' }}>Fine tune temperature, muting, contrast, and material feel inside OKLCH.</p>
-              </div>
-              
-              <div className="mutation-controls-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button 
-                  onClick={() => setSlidersOpen(!slidersOpen)} 
-                  className={`icon-button ${slidersOpen ? 'active' : ''}`}
-                  style={{ padding: '4px', minHeight: '28px', minWidth: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Toggle Settings & Sliders"
-                >
-                  <MaterialIcon name="tune" size={16} />
-                </button>
-                <button onClick={handleRefinePalette} className="calculator-action secondary">REFINE</button>
-                <button onClick={handleMutatePalette} className="calculator-action amber">
-                  <MaterialIcon name="auto_awesome" size={12} />
-                  MUTATE
-                </button>
               </div>
             </div>
 
-            {slidersOpen && (
-              <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
-                    <div className="button-strip">
-                      {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
-                        <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer' }}>
-                          {strength.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
+            {/* COLUMN 3: Sticky Previews & Metrology (Right) */}
+            <aside className="right-column sticky-sidebar stack">
+              <section className="studio-panel calculator-face">
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} />
+              </section>
+
+              <section className="studio-panel calculator-face">
+                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px' }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>METROLOGY & ENGINE</h3>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)' }}>
+                    <span>PALETTE SIZE</span>
+                    <strong>{colors.length}</strong>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="control-label-mini" style={{ margin: 0 }}>MUTATION TARGET</span>
-                    <div className="button-strip">
-                      {(['all', 'selected'] as const).map((tgt) => (
-                        <button key={tgt} className={slidersTarget === tgt ? 'active' : ''} onClick={() => setSlidersTarget(tgt)} style={{ cursor: 'pointer' }}>
-                          {tgt === 'all' ? 'ALL COLORS' : 'ACTIVE COLOR'}
-                        </button>
-                      ))}
-                    </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={handleRefinePalette} className="calculator-action secondary" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>REFINE</button>
+                    <button onClick={handleMutatePalette} className="calculator-action amber" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>MUTATE</button>
+                  </div>
+                  <div className="button-strip" style={{ width: '100%' }}>
+                    {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
+                      <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer', flex: 1, padding: '4px', fontSize: '0.65rem' }}>
+                        {strength.toUpperCase()}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="sliders-grid">
-                  {[
-                    ['temperature', 'TEMPERATURE', sliders.temperature > 50 ? `WARM ${sliders.temperature}` : sliders.temperature < 50 ? `COOL ${sliders.temperature}` : 'NEUTRAL', 'Ajusta hacia tonos fríos (pizarra/zinc) o cálidos (terracota/madera).'],
-                    ['muting', 'MUTING', `${sliders.muting}%`, 'Muteado: Reduce la pureza cromática hacia tonos yeso/hormigón neutros y minerales.'],
-                    ['contrast', 'CONTRAST', `${sliders.contrast}%`, 'Contraste: Incrementa la diferencia de luz (LRV) entre paredes, suelos y carpintería.'],
-                    ['luminosity', 'LUMINOSITY', `${sliders.luminosity}%`, 'Luminosidad: Sube o baja la reflectancia general de la paleta (sol de mediodía vs crepúsculo).'],
-                    ['cinematicFog', 'CINEMATIC FOG', `${sliders.cinematicFog}%`, 'Niebla Cinemática: Aplica un velo mate y atmosférico (efecto arenado o difuso).'],
-                    ['materialFeel', 'MATERIAL FEEL', `${sliders.materialFeel}%`, 'Sensación de Material: Ajusta los valores para simular texturas orgánicas rugosas y mate.'],
-                    ['warmAccent', 'WARM ACCENT', `${sliders.warmAccent}%`, 'Acento Cálido: Resalta detalles metálicos o maderas (como cobre, bronce o roble).'],
-                    ['futurism', 'VISIBLE FUTURISM', `${sliders.futurism}%`, 'Futurismo Visible: Desvía matices hacia tonos sofisticados y silenciosos de la arquitectura premium.'],
-                  ].map(([key, label, value, tooltip]) => (
-                    <div key={key} className="blender-slider-wrapper" title={tooltip} style={{ cursor: 'help' }}>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
-                        value={sliders[key as keyof SlidersState]} 
-                        onChange={(event) => handleSliderChange(key as keyof SlidersState, Number(event.target.value))} 
-                         onMouseUp={() => pushHistory(colors)}
-                         onTouchEnd={() => pushHistory(colors)}
-                        className="blender-slider"
-                        style={{ '--value-percent': `${sliders[key as keyof SlidersState]}%` } as React.CSSProperties}
-                      />
-                      <div className="blender-slider-overlay">
-                        <span className="blender-slider-label">{label}</span>
-                        <span className="blender-slider-value">{value}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* Row 6: Collapsible Color Identity Settings */}
-          <section className="studio-panel calculator-face">
-            <button 
-              className="identity-collapsible-trigger" 
-              onClick={() => setIdentityOpen(!identityOpen)}
-              style={{
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                background: 'transparent',
-                border: 0,
-                width: '100%',
-                cursor: 'pointer',
-                textAlign: 'left',
-                paddingBottom: identityOpen ? '14px' : '4px',
-                borderBottom: identityOpen ? '1px solid var(--border-light)' : 'none',
-                marginBottom: identityOpen ? '16px' : '0px',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <div>
-                <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
-                    <MaterialIcon name="settings" size={14} />
-                  </span>
-                  COLOR IDENTITY
-                </h3>
-                <p className="section-description" style={{ margin: '4px 0 0' }}>
-                  Define your core aesthetic profile. Active palettes morph smoothly as you adjust the axes.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-                <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
-                  <MaterialIcon name="keyboard_arrow_right" size={18} />
-                </span>
-              </div>
-            </button>
-            {identityOpen && (
-              <div className="collapsible-content">
-                <IdentityPanel 
-                  identity={identity} 
-                  onIdentityChange={handleIdentitySliderChange} 
-                  onInteractionEnd={handleIdentityInteractionEnd} 
-                />
-              </div>
-            )}
-          </section>
-
-          {/* Row 7: Collapsible Architectural Blueprint Guide */}
-          <section className="studio-panel calculator-face">
-            <button 
-              className="identity-collapsible-trigger" 
-              onClick={() => setHelpOpen(!helpOpen)}
-              style={{
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                background: 'transparent',
-                border: 0,
-                width: '100%',
-                cursor: 'pointer',
-                textAlign: 'left',
-                paddingBottom: helpOpen ? '14px' : '4px',
-                borderBottom: helpOpen ? '1px solid var(--border-light)' : 'none',
-                marginBottom: helpOpen ? '16px' : '0px',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <div>
-                <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
-                    <MaterialIcon name="menu_book" size={14} />
-                  </span>
-                  ARCHITECTURAL CMF GUIDE
-                </h3>
-                <p className="section-description" style={{ margin: '4px 0 0' }}>
-                  Learn how OKLCH parameters translate to physical materials (travertine, slate, concrete, plaster).
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-                <span style={{ transform: helpOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
-                  <MaterialIcon name="keyboard_arrow_right" size={18} />
-                </span>
-              </div>
-            </button>
-            {helpOpen && (
-              <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
-                  <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
-                  <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>
-                      <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.95: Plaster / Chalk</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.55: Concrete / Stone</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.20: Steel / Graphite</span>
-                      </div>
-                    </li>
-                    <li>
-                      <strong>Chroma (C) / Purity:</strong> Determines color cleanliness. Low chroma ensures spatial serenity.
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.00-0.03: Concrete, Slate, Nickel</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.04-0.08: Travertine, Oak, Limestone</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C &gt; 0.10: Synthetic Accents</span>
-                      </div>
-                    </li>
-                    <li>
-                      <strong>Hue (H) / Temperature:</strong> Angle of tint (0° - 360°).
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~35°: Terracotta / Clay</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~75°: Warm Travertine / Oak</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~135°: Lichen / Moss Green</span>
-                        <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~220°: Slate Blue / Zinc Grey</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "'Space Mono', monospace" }}>PRACTICAL WORKFLOW TIPS</h4>
-                  <p style={{ margin: 0, lineHeight: 1.4 }}>
-                    1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
-                    <br />
-                    2. <strong>Structure vs Details:</strong> Use low chroma (C &lt; 0.05) for ceilings, floors, and main walls. Keep accents (C ~ 0.08) reserved for secondary highlights or furniture elements.
-                    <br />
-                    3. <strong>Locking Colors:</strong> Click the lock icon on a color card to keep it fixed while generating harmony relationships.
-                  </p>
-                </div>
-              </div>
-            )}
-          </section>
-
-        </div>
-
-        {/* RIGHT COLUMN: Previews, accessibility, exports (STICKY SIDEBAR) */}
-        <aside className="right-column sticky-sidebar stack">
-          
-          {/* Live Mockup Preview */}
-          <section className="studio-panel calculator-face">
-            <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} />
-          </section>
-
-        </aside>
-
+              </section>
+            </aside>
+          </>
+        )}
       </div>
     </div>
   );
