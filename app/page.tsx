@@ -14,7 +14,7 @@ import { applySliders, NEUTRAL_SLIDERS, generateFromIdentity, mutateColor } from
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
-import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, MIN_PALETTE_SIZE, moveColor, roleForIndex } from '../lib/palette';
+import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, moveColor, roleForIndex } from '../lib/palette';
 import ColorWheel from '../components/ColorWheel';
 import IdentityPanel from '../components/IdentityPanel';
 import MaterialIcon from '../components/MaterialIcon';
@@ -83,7 +83,6 @@ export default function Cran3oColorStudio() {
   const [addColorInvalid, setAddColorInvalid] = useState(false);
   const [slidersOpen, setSlidersOpen] = useState(false);
   const [pickerShape, setPickerShape] = useState<PickerShape>('wheel');
-  const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
@@ -130,7 +129,7 @@ export default function Cran3oColorStudio() {
     const savedSizeRaw = localStorage.getItem(STORAGE_KEYS.paletteSize);
     const savedSize = savedSizeRaw ? Number(savedSizeRaw) : Number.NaN;
     const initialMode = savedMode || 'architecture';
-    const initialSize = Number.isFinite(savedSize) ? Math.max(MIN_PALETTE_SIZE, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
+    const initialSize = Number.isFinite(savedSize) ? Math.max(0, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
 
     const urlParams = new URLSearchParams(window.location.search);
     const urlLang = urlParams.get('lang') as 'en' | 'es' | null;
@@ -326,48 +325,7 @@ export default function Cran3oColorStudio() {
     setPresetsOpen(false);
   };
 
-  const handlePaletteSizeChange = (nextSize: number) => {
-    const clampedNext = Math.max(MIN_PALETTE_SIZE, Math.min(MAX_PALETTE_SIZE, nextSize));
-    let nextColors = [...colors];
-    
-    if (clampedNext < colors.length) {
-      // Downsizing: backup colors to memory bank
-      const discarded = colors.slice(clampedNext);
-      setColorMemoryBank(prev => ({
-        ...prev,
-        ...Object.fromEntries(discarded.map((c, i) => [clampedNext + i, c]))
-      }));
-      nextColors = colors.slice(0, clampedNext);
-    } else if (clampedNext > colors.length) {
-      // Upsizing: restore from memory bank or generate
-      while (nextColors.length < clampedNext) {
-        const idx = nextColors.length;
-        if (colorMemoryBank[idx]) {
-          nextColors.push(colorMemoryBank[idx]);
-        } else {
-          // Fallback to generation
-          const source = nextColors[nextColors.length - 1];
-          const generated = source
-            ? mutateColor(source, nextColors.length % 2 === 0 ? 'balanced' : 'subtle')
-            : createColorFromHex('#d6cec1', 'Bone Dust');
-          
-          nextColors.push({
-            ...generated,
-            id: `color-${Date.now()}-${idx}`,
-            locked: false,
-            role: roleForIndex(mode, idx),
-          });
-        }
-      }
-    }
-    
-    setPaletteSize(clampedNext);
-    setColorsKeepingActive(nextColors);
-    pushHistory(nextColors);
-  };
-
   const handleDeleteColor = (id: string) => {
-    if (colors.length <= MIN_PALETTE_SIZE) return;
     const nextColors = colors.filter((color) => color.id !== id);
     setPaletteSize(nextColors.length);
     setColorsKeepingActive(nextColors);
@@ -382,11 +340,12 @@ export default function Cran3oColorStudio() {
 
     const normalizedHex = hexOverride ? normalizeHexDraft(hexOverride) : null;
     const baseColor = activeColor || colors[colors.length - 1];
-    if (!baseColor && !normalizedHex) return;
 
     const newColor = normalizedHex
       ? createColorFromHex(normalizedHex, generateColorName(hexToOklch(normalizedHex)))
-      : mutateColor(baseColor, 'subtle');
+      : baseColor
+        ? mutateColor(baseColor, 'subtle')
+        : createColorFromHex('#d6cec1', 'Bone Dust');
     newColor.id = `color-${Date.now()}`;
     newColor.locked = false;
     newColor.role = roleForIndex(mode, colors.length);
@@ -932,6 +891,21 @@ export default function Cran3oColorStudio() {
             )}
           </div>
 
+          <button
+            className="icon-button"
+            onClick={() => {
+              setHelpOpen(true);
+              setExportOpen(false);
+              setSettingsOpen(false);
+              setContrastOpen(false);
+              setPresetsOpen(false);
+            }}
+            aria-label={lang === 'es' ? 'Abrir guia de uso' : 'Open usage guide'}
+            title={lang === 'es' ? 'Guia de uso' : 'Usage guide'}
+          >
+            <MaterialIcon name="info" size={20} />
+          </button>
+
           {/* Export Options */}
           <div className="settings-wrap" style={{ position: 'relative' }}>
             <button className="icon-button" onClick={() => { setExportOpen((open) => !open); setSettingsOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={exportOpen} aria-label="Export palette" title={t('exportSwatches')}>
@@ -1158,18 +1132,6 @@ export default function Cran3oColorStudio() {
                         )}
                       </div>
                     </div>
-                    <label className="palette-size-control" title={t('paletteSize')}>
-                      <span>{t('paletteSize').toUpperCase()}</span>
-                      <input
-                        type="range"
-                        min={MIN_PALETTE_SIZE}
-                        max={MAX_PALETTE_SIZE}
-                        step="1"
-                        value={paletteSize}
-                        onChange={(event) => handlePaletteSizeChange(Number(event.target.value))}
-                      />
-                      <strong>{paletteSize}</strong>
-                    </label>
                   </div>
 
                   <div className="swatches-grid">
@@ -1184,13 +1146,6 @@ export default function Cran3oColorStudio() {
                           onClick={() => {
                             setActiveColorId(color.id);
                           }}
-                          draggable
-                          onDragStart={(event) => {
-                            setDraggingId(color.id);
-                            setDragStartColors(colors);
-                            event.dataTransfer.effectAllowed = 'move';
-                            event.dataTransfer.setData('text/plain', color.id);
-                          }}
                           onDragOver={(event) => {
                             event.preventDefault();
                             handlePreviewMoveColor(color.id);
@@ -1202,7 +1157,25 @@ export default function Cran3oColorStudio() {
                           onContextMenu={(event) => handleCopySwatchCard(event, color, index)}
                           title={t('rightClickCopy')}
                         >
-                          <div className="swatch-fill" style={{ backgroundColor: color.hex }}>
+                          <div
+                            className="swatch-fill"
+                            draggable
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveColorId(color.id);
+                            }}
+                            onDragStart={(event) => {
+                              setDraggingId(color.id);
+                              setDragStartColors(colors);
+                              event.dataTransfer.effectAllowed = 'move';
+                              event.dataTransfer.setData('text/plain', color.id);
+                            }}
+                            onDragOver={(event) => {
+                              event.preventDefault();
+                              handlePreviewMoveColor(color.id);
+                            }}
+                            style={{ backgroundColor: color.hex }}
+                          >
                             <div
                               className="drag-handle"
                               title={t('dragToReorder')}
@@ -1216,25 +1189,24 @@ export default function Cran3oColorStudio() {
                             >
                               <MaterialIcon name={color.locked ? 'lock' : 'lock_open'} size={13} />
                             </button>
-                            {colors.length > MIN_PALETTE_SIZE && (
-                              <button
-                                className="swatch-delete-btn"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleDeleteColor(color.id);
-                                }}
-                                title={t('deleteColor')}
-                              >
-                                <MaterialIcon name="close" size={12} />
-                              </button>
-                            )}
+                            <button
+                              className="swatch-delete-btn"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDeleteColor(color.id);
+                              }}
+                              title={t('deleteColor')}
+                            >
+                              <MaterialIcon name="close" size={12} />
+                            </button>
                           </div>
 
-                          <div className="swatch-info">
+                          <div className="swatch-info" onMouseDown={(event) => event.stopPropagation()}>
                             <input 
                               className="swatch-name" 
                               value={color.displayName} 
                               draggable={false}
+                              onMouseDown={(event) => event.stopPropagation()}
                               onDragStart={(e) => e.stopPropagation()}
                               onClick={(event) => event.stopPropagation()} 
                               onChange={(event) => handleRenameColor(color.id, event.target.value)} 
@@ -1318,6 +1290,7 @@ export default function Cran3oColorStudio() {
                               className="role-select" 
                               value={color.role} 
                               draggable={false}
+                              onMouseDown={(event) => event.stopPropagation()}
                               onDragStart={(e) => e.stopPropagation()}
                               onClick={(event) => event.stopPropagation()} 
                               onChange={(event) => handleRoleChange(color.id, event.target.value as ColorRole)}
@@ -1573,7 +1546,7 @@ export default function Cran3oColorStudio() {
               </section>
 
               {/* Row 7: Collapsible Architectural Blueprint Guide */}
-              <section className="studio-panel calculator-face">
+              <section className="studio-panel calculator-face inline-cmf-guide-panel">
                 <button 
                   className="identity-collapsible-trigger" 
                   onClick={() => setHelpOpen(!helpOpen)}
@@ -1705,7 +1678,7 @@ export default function Cran3oColorStudio() {
               </section>
 
               {/* Collapsible Architectural Guide */}
-              <section className="studio-panel calculator-face">
+              <section className="studio-panel calculator-face inline-cmf-guide-panel">
                 <button 
                   className="identity-collapsible-trigger" 
                   onClick={() => setHelpOpen(!helpOpen)}
@@ -1802,17 +1775,6 @@ export default function Cran3oColorStudio() {
               </section>
 
               <div className="harmony-control-row">
-                <label className="palette-size-control harmony-size-control" title={t('paletteSize')}>
-                  <span>{t('paletteSize')}</span>
-                  <input
-                    type="range"
-                    min={MIN_PALETTE_SIZE}
-                    max={MAX_PALETTE_SIZE}
-                    value={paletteSize}
-                    onChange={(event) => handlePaletteSizeChange(Number(event.target.value))}
-                  />
-                  <strong>{paletteSize}</strong>
-                </label>
                 <span className="harmony-count-note">
                   {colors.length} {t('colorsActive')}
                 </span>
@@ -1870,16 +1832,28 @@ export default function Cran3oColorStudio() {
                           >
                             <MaterialIcon name={color.locked ? "lock" : "lock_open"} size={11} />
                           </button>
+                          <button
+                            className="harmony-strip-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteColor(color.id);
+                            }}
+                            title={t('deleteColor')}
+                          >
+                            <MaterialIcon name="close" size={11} />
+                          </button>
                         </div>
                       </div>
 
                       {/* Swatch Info & Mini sliders */}
-                      <div className="harmony-strip-info">
+                      <div className="harmony-strip-info" onMouseDown={(e) => e.stopPropagation()}>
                         <input 
                           className="harmony-strip-name" 
                           value={color.displayName}
                           onChange={(e) => handleRenameColor(color.id, e.target.value)}
                           onBlur={() => pushHistory(colors)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                         />
 
@@ -2035,6 +2009,47 @@ export default function Cran3oColorStudio() {
           </>
         )}
       </div>
+      {helpOpen && (
+        <div className="guide-overlay" role="dialog" aria-modal="true" aria-label={lang === 'es' ? 'Guia de uso' : 'Usage guide'} onMouseDown={() => setHelpOpen(false)}>
+          <section className="guide-drawer" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="guide-drawer-header">
+              <div>
+                <span className="guide-eyebrow">{lang === 'es' ? 'GUIA DE USO' : 'USAGE GUIDE'}</span>
+                <h2>{lang === 'es' ? 'Color Studio como instrumento CMF' : 'Color Studio as a CMF instrument'}</h2>
+              </div>
+              <button className="icon-button" onClick={() => setHelpOpen(false)} aria-label={lang === 'es' ? 'Cerrar guia' : 'Close guide'}>
+                <MaterialIcon name="close" size={18} />
+              </button>
+            </div>
+
+            <div className="guide-drawer-grid">
+              <article>
+                <h3>{lang === 'es' ? 'Coordenadas OKLCH' : 'OKLCH coordinates'}</h3>
+                <p><strong>L</strong> {t('lrvLightnessDesc')}</p>
+                <p><strong>C</strong> {t('chromaPurityDesc')}</p>
+                <p><strong>H</strong> {t('hueTempDesc')}</p>
+              </article>
+              <article>
+                <h3>{lang === 'es' ? 'Referencias materiales' : 'Material references'}</h3>
+                <div className="guide-token-row">
+                  <span>{lang === 'es' ? 'L 0.95 / yeso' : 'L 0.95 / plaster'}</span>
+                  <span>{lang === 'es' ? 'L 0.55 / hormigon' : 'L 0.55 / concrete'}</span>
+                  <span>{lang === 'es' ? 'L 0.20 / grafito' : 'L 0.20 / graphite'}</span>
+                  <span>{lang === 'es' ? 'C 0.04-0.08 / madera, travertino' : 'C 0.04-0.08 / wood, travertine'}</span>
+                  <span>{lang === 'es' ? 'H 35 / arcilla' : 'H 35 / clay'}</span>
+                  <span>{lang === 'es' ? 'H 135 / liquen' : 'H 135 / lichen'}</span>
+                </div>
+              </article>
+              <article>
+                <h3>{t('workflowTips')}</h3>
+                <p>{t('tip1')}</p>
+                <p>{t('tip2')}</p>
+                <p>{t('tip3')}</p>
+              </article>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
