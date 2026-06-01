@@ -128,6 +128,16 @@ export default function Cran3oColorStudio() {
       setViewMode(savedViewMode);
     }
 
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlLayout = params.get('layout');
+      if (urlLayout === 'instrument') {
+        setViewMode('instrument');
+      } else if (urlLayout === 'harmony' || urlLayout === 'adobe') {
+        setViewMode('harmony');
+      }
+    }
+
     const defaultPreset = PRESETS[0];
     const initialColors = createPaletteFromPreset(defaultPreset, initialSize, initialMode);
     setColors(initialColors);

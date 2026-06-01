@@ -87,6 +87,17 @@ input, button, select, textarea {
   font-size: inherit;
 }
 
+/* Hide number input spinners globally */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+
 /* ==========================================================================
    HEADER & LAYOUT SHELL
    ========================================================================== */
@@ -1963,6 +1974,7 @@ button:disabled,
   padding-bottom: 8px;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
+  flex-shrink: 0;
 }
 
 .harmony-swatches-container::-webkit-scrollbar {
@@ -2007,6 +2019,8 @@ button:disabled,
   transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
   min-width: 116px;
   scroll-snap-align: start;
+  height: 295px;
+  flex-shrink: 0;
 }
 
 .harmony-swatch-strip.active {

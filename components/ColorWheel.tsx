@@ -48,17 +48,17 @@ function NumberControl({ label, value, min, max, step, onChange }: NumberControl
   const tooltip = getTooltip(label);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }} title={tooltip}>
-      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em', cursor: tooltip ? 'help' : 'default' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border-medium)', borderRadius: '3px' }}>
-        <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7 }}>-</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }} title={tooltip}>
+      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em', cursor: tooltip ? 'help' : 'default', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', border: '1px solid var(--border-medium)', borderRadius: '3px', minWidth: 0 }}>
+        <button onClick={() => onChange(clampNumber(value - step, min, max))} style={{ padding: '4px 5px', minWidth: '20px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>-</button>
         <input 
           type="number" 
           value={Number(value).toFixed(step < 1 ? 2 : 0)} 
           onChange={(e) => onChange(clampNumber(parseFloat(e.target.value) || 0, min, max))}
-          style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text-primary)', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+          style={{ width: '100%', minWidth: '0', background: 'transparent', border: 'none', color: 'var(--text-primary)', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px', padding: '0 2px' }}
         />
-        <button onClick={() => onChange(clampNumber(value + step, min, max))} style={{ padding: '4px 8px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7 }}>+</button>
+        <button onClick={() => onChange(clampNumber(value + step, min, max))} style={{ padding: '4px 5px', minWidth: '20px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', opacity: 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
       </div>
     </div>
   );
