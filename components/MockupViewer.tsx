@@ -928,7 +928,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Space Mono', monospace"
+                    fontFamily="'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
                   >
                     {line}
                   </text>
@@ -965,7 +965,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Space Mono', monospace"
+                    fontFamily="'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
                   >
                     {line}
                   </text>
@@ -1000,7 +1000,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                     fill={textContrast} 
                     fontSize={nameSize} 
                     fontWeight="700" 
-                    fontFamily="'Space Mono', monospace"
+                    fontFamily="'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
                   >
                     {line}
                   </text>
@@ -1045,7 +1045,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
                 <line x1={x} y1="0" x2={x} y2="500" stroke={textContrast} strokeWidth="1" opacity="0.1" />
               )}
               <g transform={`translate(${x + w/2}, 485) rotate(-90)`}>
-                <text x="0" y="-10" fill={textContrast} fontSize="9.5" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="start">
+                <text x="0" y="-10" fill={textContrast} fontSize="9.5" fontWeight="700" fontFamily="'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" textAnchor="start">
                   {color.displayName}
                 </text>
                 <text x="0" y="1.5" fill={textContrast} opacity="0.5" fontSize="8.5" fontWeight="500" fontFamily="'Space Mono', monospace" textAnchor="start">

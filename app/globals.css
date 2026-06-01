@@ -547,8 +547,10 @@ input, button, select, textarea {
   background: transparent;
   border: 0;
   color: var(--text-primary);
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: var(--font-size-md);
+  letter-spacing: 0;
   line-height: 1.2;
   min-height: 1.2em;
   outline: none;
@@ -1395,6 +1397,9 @@ input[type='range']::-moz-range-track {
 
 .application-map-row em {
   color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0;
   font-style: normal;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1953,10 +1958,46 @@ button:disabled,
   width: 100%;
   gap: 10px;
   margin-top: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.harmony-swatches-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.harmony-swatches-container::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 999px;
+}
+
+.harmony-control-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.harmony-size-control {
+  max-width: 220px;
+  min-width: 188px;
+}
+
+.harmony-count-note {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .harmony-swatch-strip {
-  flex: 1;
+  flex: 0 0 clamp(116px, 8.4vw, 154px);
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);
@@ -1964,7 +2005,8 @@ button:disabled,
   border-radius: 4px;
   overflow: hidden;
   transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
-  min-width: 90px;
+  min-width: 116px;
+  scroll-snap-align: start;
 }
 
 .harmony-swatch-strip.active {
@@ -2039,8 +2081,10 @@ button:disabled,
   border: none;
   border-bottom: 1px dashed transparent;
   color: var(--text-primary);
+  font-family: var(--font-sans);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0;
   text-align: center;
   padding: 2px 0;
   overflow: hidden;
@@ -2124,6 +2168,7 @@ button:disabled,
 
 .harmony-rule-btn {
   width: 100%;
+  min-width: 0;
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
@@ -2153,11 +2198,15 @@ button:disabled,
   font-weight: 700;
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
+  min-width: 0;
 }
 
 .harmony-rule-desc {
   font-size: var(--font-size-xxs);
+  line-height: 1.35;
+  min-width: 0;
   opacity: 0.6;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 1300px) {

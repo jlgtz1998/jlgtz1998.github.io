@@ -84,9 +84,11 @@ console.log('✅ Exporter output passed.');
 // Test 6: Palette sizing
 console.log('Test 6: Verifying palette size controls...');
 const sizedThree = createPaletteFromPreset(PRESETS[0], 3, 'architecture');
+const sizedEight = createPaletteFromPreset(PRESETS[0], 8, 'architecture');
 const sizedTwelve = createPaletteFromPreset(PRESETS[0], 12, 'graphic');
 const presetSizeOverride = createPaletteFromPreset(PRESETS[1], 5, 'architecture');
 assert(sizedThree.length === 3, `Expected 3 colors, got ${sizedThree.length}`);
+assert(sizedEight.length === 8, `Expected 8 colors, got ${sizedEight.length}`);
 assert(sizedTwelve.length === 12, `Expected 12 colors, got ${sizedTwelve.length}`);
 assert(presetSizeOverride.length === 5, `Preset loading should respect requested palette size, got ${presetSizeOverride.length}`);
 assert(sizedTwelve.every((color) => color.displayName.length > 0), 'Generated extension colors should have names');

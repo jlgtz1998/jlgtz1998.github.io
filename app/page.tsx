@@ -27,7 +27,7 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.3';
+const APP_VERSION_LABEL = 'v0.1.4';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
@@ -289,7 +289,7 @@ export default function Cran3oColorStudio() {
   const setColorsKeepingActive = (nextColors: ColorData[]) => {
     setColors(nextColors);
     if (!nextColors.some((color) => color.id === activeColorId)) {
-      setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
+      setActiveColorId(nextColors[nextColors.length - 1]?.id ?? null);
     }
   };
 
@@ -1643,6 +1643,23 @@ export default function Cran3oColorStudio() {
                   harmonyBaseColorId={harmonyBaseColorId}
                 />
               </section>
+
+              <div className="harmony-control-row">
+                <label className="palette-size-control harmony-size-control" title="Palette size">
+                  <span>Size</span>
+                  <input
+                    type="range"
+                    min={MIN_PALETTE_SIZE}
+                    max={MAX_PALETTE_SIZE}
+                    value={paletteSize}
+                    onChange={(event) => handlePaletteSizeChange(Number(event.target.value))}
+                  />
+                  <strong>{paletteSize}</strong>
+                </label>
+                <span className="harmony-count-note">
+                  {colors.length} colors active
+                </span>
+              </div>
 
               {/* Swatches strip container */}
               <div className="harmony-swatches-container">
