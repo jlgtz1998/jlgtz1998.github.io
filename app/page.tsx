@@ -79,6 +79,8 @@ export default function Cran3oColorStudio() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [localOklch, setLocalOklch] = useState<OklchColor | null>(null);
   const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
+  const [addColorDraft, setAddColorDraft] = useState('');
+  const [addColorInvalid, setAddColorInvalid] = useState(false);
   const [slidersOpen, setSlidersOpen] = useState(false);
   const [pickerShape, setPickerShape] = useState<PickerShape>('wheel');
   const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
@@ -375,19 +377,57 @@ export default function Cran3oColorStudio() {
     pushHistory(nextColors);
   };
 
-  const handleAddColor = () => {
+  const handleAddColor = (hexOverride?: string) => {
     if (colors.length >= MAX_PALETTE_SIZE) return;
+
+    const normalizedHex = hexOverride ? normalizeHexDraft(hexOverride) : null;
     const baseColor = activeColor || colors[colors.length - 1];
-    if (!baseColor) return;
-    const newColor = mutateColor(baseColor, 'subtle');
+    if (!baseColor && !normalizedHex) return;
+
+    const newColor = normalizedHex
+      ? createColorFromHex(normalizedHex, generateColorName(hexToOklch(normalizedHex)))
+      : mutateColor(baseColor, 'subtle');
     newColor.id = `color-${Date.now()}`;
     newColor.locked = false;
+    newColor.role = roleForIndex(mode, colors.length);
 
     const nextColors = [...colors, newColor];
     setPaletteSize(nextColors.length);
     setColorsKeepingActive(nextColors);
     setActiveColorId(newColor.id);
+    setAddColorDraft('');
+    setAddColorInvalid(false);
     pushHistory(nextColors);
+  };
+
+  const commitAddColorDraft = () => {
+    if (!addColorDraft.trim()) {
+      setAddColorInvalid(false);
+      return;
+    }
+
+    const nextHex = normalizeHexDraft(addColorDraft);
+    if (!nextHex) {
+      setAddColorInvalid(true);
+      return;
+    }
+
+    handleAddColor(nextHex);
+  };
+
+  const handlePasteAddColor = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const nextHex = normalizeHexDraft(text);
+      if (!nextHex) {
+        setAddColorDraft(text.trim().toUpperCase());
+        setAddColorInvalid(true);
+        return;
+      }
+      handleAddColor(nextHex);
+    } catch {
+      setAddColorInvalid(true);
+    }
   };
 
   const handleGenerateHarmony = () => {
@@ -1207,6 +1247,7 @@ export default function Cran3oColorStudio() {
                                 spellCheck={false}
                                 draggable={false}
                                 aria-label={`${lang === 'es' ? 'Editar valor HEX para' : 'Edit HEX value for'} ${color.displayName}`}
+                                onMouseDown={(event) => event.stopPropagation()}
                                 onDragStart={(event) => event.stopPropagation()}
                                 onClick={(event) => event.stopPropagation()}
                                 onChange={(event) => handleHexDraftChange(color.id, event.target.value)}
@@ -1314,14 +1355,64 @@ export default function Cran3oColorStudio() {
                       );
                     })}
                     {colors.length < MAX_PALETTE_SIZE && (
-                      <button 
+                      <div
                         className="swatch-add-card" 
-                        onClick={handleAddColor}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          if (!addColorDraft.trim()) handleAddColor();
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' && event.currentTarget === event.target) {
+                            handleAddColor();
+                          }
+                        }}
                         title={t('addColor')}
                       >
-                        <MaterialIcon name="add" size={24} />
-                        <span>{t('addColor')}</span>
-                      </button>
+                        <div className="swatch-add-icon">
+                          <MaterialIcon name="add" size={26} />
+                        </div>
+                        <div className="swatch-add-controls">
+                          <input
+                            className={`swatch-add-hex-input ${addColorInvalid ? 'invalid' : ''}`}
+                            value={addColorDraft}
+                            placeholder="#A9A7A1"
+                            spellCheck={false}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => {
+                              setAddColorDraft(event.target.value.toUpperCase());
+                              setAddColorInvalid(false);
+                            }}
+                            onBlur={commitAddColorDraft}
+                            onKeyDown={(event) => {
+                              event.stopPropagation();
+                              if (event.key === 'Enter') {
+                                commitAddColorDraft();
+                                event.currentTarget.blur();
+                              }
+                              if (event.key === 'Escape') {
+                                setAddColorDraft('');
+                                setAddColorInvalid(false);
+                                event.currentTarget.blur();
+                              }
+                            }}
+                            aria-label={lang === 'es' ? 'Agregar color por codigo HEX' : 'Add color by HEX code'}
+                          />
+                          <button
+                            className="swatch-add-paste-btn"
+                            type="button"
+                            title={lang === 'es' ? 'Pegar HEX del portapapeles' : 'Paste HEX from clipboard'}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handlePasteAddColor();
+                            }}
+                          >
+                            <MaterialIcon name="content_copy" size={12} />
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </section>
@@ -1798,8 +1889,14 @@ export default function Cran3oColorStudio() {
                           onChange={(e) => handleHexDraftChange(color.id, e.target.value)}
                           onBlur={() => commitHexChange(color.id)}
                           onKeyDown={(e) => {
+                            e.stopPropagation();
                             if (e.key === 'Enter') e.currentTarget.blur();
+                            if (e.key === 'Escape') {
+                              setHexDrafts((drafts) => ({ ...drafts, [color.id]: color.hex.toUpperCase() }));
+                              e.currentTarget.blur();
+                            }
                           }}
+                          onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           spellCheck={false}
                         />
