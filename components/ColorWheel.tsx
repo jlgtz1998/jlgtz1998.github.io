@@ -179,7 +179,8 @@ export default function ColorWheel({
               data[index] = dr;
               data[index + 1] = dg;
               data[index + 2] = db;
-              data[index + 3] = Math.round((inGamut ? 255 : 40) * edgeAlpha);
+              const gamutAlpha = pickerShape === 'wheel' ? 255 : (inGamut ? 255 : 40);
+              data[index + 3] = Math.round(gamutAlpha * edgeAlpha);
             }
           } else {
             data[index] = 0; data[index + 1] = 0; data[index + 2] = 0; data[index + 3] = 0;

@@ -26,7 +26,7 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.6';
+const APP_VERSION_LABEL = 'v0.1.7';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
@@ -619,6 +619,59 @@ export default function Cran3oColorStudio() {
     });
   };
 
+  const createSwatchCardBlob = (color: ColorData, index: number): Promise<Blob | null> => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 720;
+    canvas.height = 420;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return Promise.resolve(null);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#d9dde2';
+    ctx.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
+
+    ctx.fillStyle = color.hex;
+    ctx.fillRect(32, 32, 656, 218);
+    ctx.strokeStyle = 'rgba(12, 18, 28, 0.18)';
+    ctx.strokeRect(32.5, 32.5, 655, 217);
+
+    ctx.fillStyle = '#0f1725';
+    ctx.font = '700 30px Arial, sans-serif';
+    ctx.fillText(color.displayName, 32, 306);
+    ctx.font = '700 18px Arial, sans-serif';
+    ctx.fillText(color.hex.toUpperCase(), 32, 340);
+    ctx.fillStyle = '#697386';
+    ctx.font = '700 14px Arial, sans-serif';
+    ctx.fillText(`${index + 1} / ${color.role.toUpperCase()} / OKLCH ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)}`, 32, 374);
+
+    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), 'image/png', 1));
+  };
+
+  const handleCopySwatchCard = async (event: React.MouseEvent<HTMLElement>, color: ColorData, index: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const text = `${color.displayName}\n${color.hex.toUpperCase()}\nRole: ${color.role}\nOKLCH: ${color.oklch.l.toFixed(2)} ${color.oklch.c.toFixed(3)} ${Math.round(color.oklch.h)}`;
+    const blob = await createSwatchCardBlob(color, index);
+
+    try {
+      if (blob && 'ClipboardItem' in window && navigator.clipboard.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob,
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      setCopiedColorId(color.id);
+      setTimeout(() => setCopiedColorId(null), 1500);
+    } catch {
+      await navigator.clipboard.writeText(text);
+    }
+  };
+
   const handleExportPng = () => {
     const rowHeight = 82;
     const canvas = document.createElement('canvas');
@@ -1012,6 +1065,8 @@ export default function Cran3oColorStudio() {
                           onDrop={finishDragReorder}
                           onMouseEnter={() => setHoveredColorId(color.id)}
                           onMouseLeave={() => setHoveredColorId(null)}
+                          onContextMenu={(event) => handleCopySwatchCard(event, color, index)}
+                          title="Right-click to copy this color card as an image"
                         >
                           <div className="swatch-fill" style={{ backgroundColor: color.hex }}>
                             <div

@@ -392,13 +392,19 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   // Mode: ARCHITECTURE - Moodboard / CMF Board
   // -------------------------------------------------------------
   const renderArchMoodboard = () => {
-    const textContrast = getContrastColor(bg, resolved);
+    const boardBg = '#ffffff';
+    const textContrast = getContrastColor(boardBg, resolved);
+    const wallText = getContrastColor(wall, resolved);
+    const floorText = getContrastColor(floor, resolved);
+    const accent1Text = getContrastColor(accent1, resolved);
+    const accentTealText = getContrastColor(accentTeal, resolved);
+    const accent2Text = getContrastColor(accent2, resolved);
     return (
-      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
+      <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: boardBg, borderRadius: '4px' }}>
         <defs>
           <pattern id="moodboard-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <rect width="20" height="20" fill="none" />
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.04" />
+            <rect width="20" height="20" fill={boardBg} />
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke={textContrast} strokeWidth="0.5" strokeOpacity="0.05" />
           </pattern>
         </defs>
         <rect width="500" height="320" fill="url(#moodboard-grid)" />
@@ -407,7 +413,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         {/* Plaster sample */}
         <g transform="translate(25, 45)">
-          <rect x="0" y="0" width="135" height="235" fill={bg} rx="3" stroke={textContrast} strokeOpacity="0.15" />
+          <rect x="0" y="0" width="135" height="235" fill={boardBg} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="125" height="150" fill={wall} rx="2" />
           <path d="M15 170 H120 M15 185 H120 M15 200 H120" stroke={textContrast} strokeOpacity="0.08" />
           <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">PLASTER / TEXTURE</text>
@@ -418,34 +424,34 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <g transform="translate(175, 45)">
           <rect x="0" y="0" width="140" height="110" fill={wall} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={floor} rx="2" />
-          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SURFACE WALL</text>
-          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {floor.toUpperCase()}</text>
+          <text x="12" y="93" fill={wallText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SURFACE WALL</text>
+          <text x="12" y="102" fill={wallText} opacity="0.65" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {floor.toUpperCase()}</text>
         </g>
 
         {/* Floor stone sample */}
         <g transform="translate(175, 170)">
           <rect x="0" y="0" width="140" height="110" fill={floor} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={details} rx="2" />
-          <text x="12" y="93" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">STONE / CONCRETE</text>
-          <text x="12" y="102" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {details.toUpperCase()}</text>
+          <text x="12" y="93" fill={floorText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">STONE / CONCRETE</text>
+          <text x="12" y="102" fill={floorText} opacity="0.65" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {details.toUpperCase()}</text>
         </g>
 
         {/* Textile & Accent samples */}
         <g transform="translate(330, 45)">
           {/* Accent 1 */}
           <rect x="0" y="0" width="145" height="65" fill={accent1} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="45" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>ACCENT PRIMARY</text>
-          <text x="12" y="54" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accent1.toUpperCase()}</text>
+          <text x="12" y="45" fill={accent1Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ACCENT PRIMARY</text>
+          <text x="12" y="54" fill={accent1Text} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accent1.toUpperCase()}</text>
 
           {/* Accent Teal */}
           <rect x="0" y="75" width="145" height="65" fill={accentTeal} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="120" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>ACCENT SIGNAL</text>
-          <text x="12" y="129" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accentTeal.toUpperCase()}</text>
+          <text x="12" y="120" fill={accentTealText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ACCENT SIGNAL</text>
+          <text x="12" y="129" fill={accentTealText} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accentTeal.toUpperCase()}</text>
 
           {/* Accent 2 */}
           <rect x="0" y="150" width="145" height="85" fill={accent2} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="215" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>SECONDARY ACCENT</text>
-          <text x="12" y="224" fill="#ffffff" opacity="0.7" fontSize="7" fontFamily="'Space Mono', monospace" style={{ mixBlendMode: 'difference' }}>{accent2.toUpperCase()}</text>
+          <text x="12" y="215" fill={accent2Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SECONDARY ACCENT</text>
+          <text x="12" y="224" fill={accent2Text} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accent2.toUpperCase()}</text>
         </g>
 
         {/* Technical notes */}
@@ -1044,57 +1050,98 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     );
   };
 
-const handleDownloadJpg = () => {
-  const svgElement = document.querySelector('.mockup-canvas-wrapper svg') as SVGSVGElement | null;
-  if (!svgElement) return;
-
+const renderSvgToImageBlob = (svgElement: SVGSVGElement): Promise<Blob | null> => {
   const isNight = activeSubtype === 'night';
   const isSpec = mode === 'spec';
-  const bgColor = isSpec ? '#ffffff' : (isNight ? '#0b0d0e' : '#fcfbfa');
+  const bgColor = isSpec || activeSubtype === 'moodboard' ? '#ffffff' : (isNight ? '#0b0d0e' : '#fcfbfa');
 
   const svgString = new XMLSerializer().serializeToString(svgElement);
   const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
   const URL = window.URL || window.webkitURL || window;
   const blobURL = URL.createObjectURL(svgBlob);
 
-  const image = new Image();
-  image.onload = () => {
-    const canvas = document.createElement('canvas');
-    const size = 1000;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 1000;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(blobURL);
+        resolve(null);
+        return;
+      }
 
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, size, size);
 
-    const viewBox = svgElement.viewBox.baseVal;
-    const svgWidth = viewBox.width || 500;
-    const svgHeight = viewBox.height || 320;
-    const aspectRatio = svgWidth / svgHeight;
+      const viewBox = svgElement.viewBox.baseVal;
+      const svgWidth = viewBox.width || 500;
+      const svgHeight = viewBox.height || 320;
+      const aspectRatio = svgWidth / svgHeight;
 
-    let targetWidth = size;
-    let targetHeight = size / aspectRatio;
+      let targetWidth = size;
+      let targetHeight = size / aspectRatio;
 
-    if (targetHeight > size) {
-      targetHeight = size;
-      targetWidth = size * aspectRatio;
-    }
+      if (targetHeight > size) {
+        targetHeight = size;
+        targetWidth = size * aspectRatio;
+      }
 
-    const xOffset = (size - targetWidth) / 2;
-    const yOffset = (size - targetHeight) / 2;
+      const xOffset = (size - targetWidth) / 2;
+      const yOffset = (size - targetHeight) / 2;
 
-    ctx.drawImage(image, xOffset, yOffset, targetWidth, targetHeight);
+      ctx.drawImage(image, xOffset, yOffset, targetWidth, targetHeight);
+      URL.revokeObjectURL(blobURL);
+      canvas.toBlob((blob) => resolve(blob), 'image/png', 1);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(blobURL);
+      resolve(null);
+    };
+    image.src = blobURL;
+  });
+};
 
-    const jpgURL = canvas.toDataURL('image/jpeg', 0.95);
+const handleDownloadJpg = () => {
+  const svgElement = document.querySelector('.mockup-canvas-wrapper svg') as SVGSVGElement | null;
+  if (!svgElement) return;
+
+  renderSvgToImageBlob(svgElement).then((blob) => {
+    if (!blob) return;
+    const jpgURL = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
     downloadLink.href = jpgURL;
-    downloadLink.download = `${mode}-${activeSubtype}-mockup-square.jpg`;
+    downloadLink.download = `${mode}-${activeSubtype}-mockup-square.png`;
     downloadLink.click();
-    URL.revokeObjectURL(blobURL);
-  };
-  image.src = blobURL;
+    URL.revokeObjectURL(jpgURL);
+  });
+};
+
+const handleCopyMockupImage = async (event: React.MouseEvent<HTMLDivElement>) => {
+  event.preventDefault();
+  const svgElement = event.currentTarget.querySelector('svg') as SVGSVGElement | null;
+  if (!svgElement) return;
+
+  const blob = await renderSvgToImageBlob(svgElement);
+  const label = `${paletteName} / ${mode.toUpperCase()} / ${activeSubtype.toUpperCase()}`;
+  if (!blob) {
+    await navigator.clipboard.writeText(label);
+    return;
+  }
+
+  if ('ClipboardItem' in window && navigator.clipboard.write) {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': blob,
+        'text/plain': new Blob([label], { type: 'text/plain' }),
+      }),
+    ]);
+  } else {
+    await navigator.clipboard.writeText(label);
+  }
 };
 
   // -------------------------------------------------------------
@@ -1175,7 +1222,7 @@ const handleDownloadJpg = () => {
           <button 
             onClick={handleDownloadJpg} 
             className="calculator-action"
-            title="Download JPG (Square)"
+            title="Download PNG (Square)"
           >
             <MaterialIcon name="download" size={14} />
           </button>
@@ -1195,7 +1242,12 @@ const handleDownloadJpg = () => {
         ))}
       </div>
 
-      <div className="mockup-canvas-wrapper" style={{ aspectRatio: mode === 'spec' ? '1 / 1' : '500 / 320' }}>
+      <div
+        className="mockup-canvas-wrapper"
+        style={{ aspectRatio: mode === 'spec' ? '1 / 1' : '500 / 320' }}
+        onContextMenu={handleCopyMockupImage}
+        title="Right-click to copy this preview as an image"
+      >
         {renderActiveMockup()}
       </div>
 
