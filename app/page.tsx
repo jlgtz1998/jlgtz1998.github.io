@@ -5,7 +5,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ColorData, ColorRole, DesignMode, MutationStrength, OklchColor, SlidersState, UserIdentity, Preset } from '../types';
 import { PRESETS } from '../data/presets';
-import { CUSTOM_PRESETS_DEFAULTS } from '../data/custom-presets-defaults';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
@@ -27,14 +26,13 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.4';
+const APP_VERSION_LABEL = 'v0.1.5';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
   identity: 'cran3o_identity',
   mode: 'cran3o_mode',
   paletteSize: 'cran3o_palette_size',
-  customPresets: 'cran3o_custom_presets',
   pickerShape: 'cran3o_picker_shape',
   viewMode: 'cran3o_view_mode',
 } as const;
@@ -75,9 +73,6 @@ export default function Cran3oColorStudio() {
   const [dragStartColors, setDragStartColors] = useState<ColorData[] | null>(null);
   const [hoveredColorId, setHoveredColorId] = useState<string | null>(null);
   const [copiedColorId, setCopiedColorId] = useState<string | null>(null);
-  const [customPresets, setCustomPresets] = useState<Preset[]>([]);
-  const [newPresetName, setNewPresetName] = useState<string>('');
-  const [myPresetsOpen, setMyPresetsOpen] = useState(false);
   const [history, setHistory] = useState<ColorData[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [localOklch, setLocalOklch] = useState<OklchColor | null>(null);
@@ -117,20 +112,6 @@ export default function Cran3oColorStudio() {
       } catch {
         setIdentity(DEFAULT_IDENTITY);
       }
-    }
-
-    const savedCustom = localStorage.getItem(STORAGE_KEYS.customPresets);
-    if (savedCustom) {
-      try {
-        const parsed = JSON.parse(savedCustom) as Preset[];
-        setCustomPresets(parsed);
-      } catch {
-        setCustomPresets(CUSTOM_PRESETS_DEFAULTS);
-        localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
-      }
-    } else {
-      setCustomPresets(CUSTOM_PRESETS_DEFAULTS);
-      localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(CUSTOM_PRESETS_DEFAULTS));
     }
 
     setMode(initialMode);
@@ -300,7 +281,6 @@ export default function Cran3oColorStudio() {
     setExportOpen(false);
     setContrastOpen(false);
     setPresetsOpen(false);
-    setMyPresetsOpen(false);
   };
 
   const handlePaletteSizeChange = (nextSize: number) => {
@@ -509,27 +489,6 @@ export default function Cran3oColorStudio() {
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
     setHarmonyBaseColorId(nextColors[0]?.id ?? null);
-  };
-
-  const handleSaveCurrentAsPreset = () => {
-    if (!newPresetName.trim()) return;
-    const newPreset: Preset = {
-      id: `user-${Date.now()}`,
-      name: newPresetName.trim(),
-      description: `Custom preset created on ${new Date().toLocaleDateString()}`,
-      mode: mode,
-      colors: colors.map((color) => ({ hex: color.hex, name: color.displayName })),
-    };
-    const nextCustom = [newPreset, ...customPresets];
-    setCustomPresets(nextCustom);
-    localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(nextCustom));
-    setNewPresetName('');
-  };
-
-  const handleDeletePreset = (id: string) => {
-    const nextCustom = customPresets.filter((preset) => preset.id !== id);
-    setCustomPresets(nextCustom);
-    localStorage.setItem(STORAGE_KEYS.customPresets, JSON.stringify(nextCustom));
   };
 
   const handleToggleLock = (id: string) => {
@@ -775,7 +734,7 @@ export default function Cran3oColorStudio() {
           <div className="settings-wrap" style={{ position: 'relative' }}>
             <button 
               className="icon-button" 
-              onClick={() => { setContrastOpen((open) => !open); setExportOpen(false); setSettingsOpen(false); setPresetsOpen(false); setMyPresetsOpen(false); }} 
+              onClick={() => { setContrastOpen((open) => !open); setExportOpen(false); setSettingsOpen(false); setPresetsOpen(false); }} 
               aria-expanded={contrastOpen} 
               aria-label="Contrast matrix" 
               title="Contrast & Accessibility Matrix"
@@ -822,7 +781,7 @@ export default function Cran3oColorStudio() {
 
           {/* Export Options */}
           <div className="settings-wrap" style={{ position: 'relative' }}>
-            <button className="icon-button" onClick={() => { setExportOpen((open) => !open); setSettingsOpen(false); setContrastOpen(false); setPresetsOpen(false); setMyPresetsOpen(false); }} aria-expanded={exportOpen} aria-label="Export palette" title="Export options">
+            <button className="icon-button" onClick={() => { setExportOpen((open) => !open); setSettingsOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={exportOpen} aria-label="Export palette" title="Export options">
               <MaterialIcon name="download" size={20} />
             </button>
             {exportOpen && (
@@ -858,7 +817,7 @@ export default function Cran3oColorStudio() {
 
           {/* Settings */}
           <div className="settings-wrap" style={{ position: 'relative' }}>
-            <button className="icon-button" onClick={() => { setSettingsOpen((open) => !open); setExportOpen(false); setContrastOpen(false); setPresetsOpen(false); setMyPresetsOpen(false); }} aria-expanded={settingsOpen} aria-label="Open settings" title="Settings">
+            <button className="icon-button" onClick={() => { setSettingsOpen((open) => !open); setExportOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={settingsOpen} aria-label="Open settings" title="Settings">
               <MaterialIcon name="settings" size={20} />
             </button>
             {settingsOpen && (
@@ -972,7 +931,7 @@ export default function Cran3oColorStudio() {
                         <button 
                           className="calculator-action secondary" 
                           style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
-                          onClick={() => { setPresetsOpen(!presetsOpen); setMyPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
+                          onClick={() => { setPresetsOpen(!presetsOpen); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
                         >
                           <span>PRESETS</span>
                           <MaterialIcon name="arrow_drop_down" size={14} />
@@ -1010,91 +969,6 @@ export default function Cran3oColorStudio() {
                           </div>
                         )}
                       </div>
-
-                      {/* MY PRESETS */}
-                      <div className="settings-wrap" style={{ position: 'relative' }}>
-                        <button 
-                          className="calculator-action secondary" 
-                          style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
-                          onClick={() => { setMyPresetsOpen(!myPresetsOpen); setPresetsOpen(false); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
-                        >
-                          <span>MY PRESETS</span>
-                          <MaterialIcon name="arrow_drop_down" size={14} />
-                        </button>
-                        {myPresetsOpen && (
-                          <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '420px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
-                            <div className="settings-menu-title">MY CUSTOM PRESETS</div>
-                            
-                            {/* New Preset Creation Row */}
-                            <div style={{ padding: '8px', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: '6px', background: 'var(--bg-panel-deep)' }}>
-                              <input 
-                                type="text" 
-                                placeholder="SAVE CURRENT AS PRESET..." 
-                                value={newPresetName}
-                                onChange={(e) => setNewPresetName(e.target.value)}
-                                className="select-control"
-                                style={{ flex: 1, height: '28px', padding: '0 8px', fontSize: '0.72rem' }}
-                                onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.stopPropagation();
-                                    handleSaveCurrentAsPreset();
-                                  }
-                                }}
-                              />
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleSaveCurrentAsPreset(); }}
-                                className="calculator-action primary"
-                                style={{ minHeight: '28px', height: '28px', fontSize: '0.68rem', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                disabled={!newPresetName.trim()}
-                              >
-                                SAVE
-                              </button>
-                            </div>
-
-                            {/* Custom Presets Group */}
-                            {customPresets.length > 0 ? (
-                              <div style={{ marginBottom: '8px' }}>
-                                {customPresets.map((preset) => (
-                                  <div 
-                                    key={preset.id} 
-                                    onClick={() => { handlePresetSelect(preset); setMyPresetsOpen(false); }} 
-                                    className="settings-menu-row" 
-                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '6px 8px', cursor: 'pointer' }}
-                                  >
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, marginRight: '8px', overflow: 'hidden' }}>
-                                      <span style={{ fontWeight: 600, fontSize: '0.72rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.name}>{preset.name}</span>
-                                      {preset.description && (
-                                        <span style={{ fontSize: '0.58rem', opacity: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={preset.description}>{preset.description}</span>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                      <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
-                                        {preset.colors.slice(0, 4).map((color, idx) => (
-                                          <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
-                                        ))}
-                                      </span>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
-                                        className="delete-preset-btn"
-                                        title="Delete Preset"
-                                      >
-                                        <MaterialIcon name="delete" size={13} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.68rem', opacity: 0.5 }}>
-                                NO CUSTOM PRESETS SAVED.
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-
                     </div>
                     <label className="palette-size-control" title="Palette size">
                       <span>SIZE</span>

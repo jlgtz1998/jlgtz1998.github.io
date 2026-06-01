@@ -34,7 +34,7 @@ export const INFLUENCES: Record<DesignMode, ModeInfluence> = {
     chromaCap: 0.045, // Soft, non-intrusive chroma
     contrastTarget: 35,
     defaultHarmony: 'material',
-    recommendedPresets: ['quiet-future', 'curtain-stone', 'fabra-curtain-light', 'muted-warm-cool'],
+    recommendedPresets: ['quiet-future', 'curtain-stone', 'muted-warm-cool'],
     guidelines: [
       'Prioritize diffuse reflection: high-lightness surface shades (L > 0.85).',
       'Use zero-chroma anchors (concrete/charcoal) for foundational structures.',
@@ -86,7 +86,7 @@ export const INFLUENCES: Record<DesignMode, ModeInfluence> = {
     chromaCap: 0.14, // Higher saturation limits for branding
     contrastTarget: 75,
     defaultHarmony: 'analogous',
-    recommendedPresets: ['noir-deco-print', 'rams-neutral', 'blade-runner-noir', 'rapture-deco'],
+    recommendedPresets: ['noir-deco-print', 'quiet-future', 'muted-warm-cool'],
     guidelines: [
       'Maintain strict WCAG 2.1 AA (4.5:1) and APCA Lc 75 contrast for text.',
       'Structure colors by semantic roles: Background, Surface, Text, and Accent.',
