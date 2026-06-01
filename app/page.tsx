@@ -26,19 +26,20 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.5';
+const APP_VERSION_LABEL = 'v0.1.6';
 const APP_BUILD_LABEL = '2026.05.31';
 
 const STORAGE_KEYS = {
   identity: 'cran3o_identity',
   mode: 'cran3o_mode',
   paletteSize: 'cran3o_palette_size',
-  pickerShape: 'cran3o_picker_shape',
+  pickerShape: 'cran3o_picker_shape_v2',
   viewMode: 'cran3o_view_mode',
 } as const;
 
 
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
+type PickerShape = 'wheel' | 'plane_lc' | 'plane_hc';
 
 function sanitizeFileName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -78,7 +79,7 @@ export default function Cran3oColorStudio() {
   const [localOklch, setLocalOklch] = useState<OklchColor | null>(null);
   const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
   const [slidersOpen, setSlidersOpen] = useState(false);
-  const [pickerShape, setPickerShape] = useState<'plane_lc' | 'plane_hc'>('plane_lc');
+  const [pickerShape, setPickerShape] = useState<PickerShape>('wheel');
   const [colorMemoryBank, setColorMemoryBank] = useState<Record<number, ColorData>>({});
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
@@ -117,8 +118,8 @@ export default function Cran3oColorStudio() {
     setMode(initialMode);
     setPaletteSize(initialSize);
 
-    const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as 'plane_lc' | 'plane_hc' | null;
-    if (savedShape === 'plane_lc' || savedShape === 'plane_hc') {
+    const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as PickerShape | null;
+    if (savedShape === 'wheel' || savedShape === 'plane_lc' || savedShape === 'plane_hc') {
       setPickerShape(savedShape);
     }
 
@@ -863,17 +864,17 @@ export default function Cran3oColorStudio() {
                     <p className="section-description" style={{ margin: '4px 0 0' }}>Shape hue, lightness, and chroma with architectural restraint.</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PLANE</span>
+                      <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PICKER</span>
                       <div className="button-strip">
-                        {(['plane_lc', 'plane_hc'] as const).map((shape) => (
+                        {(['wheel', 'plane_lc', 'plane_hc'] as const).map((shape) => (
                           <button
                             key={shape}
                             className={pickerShape === shape ? 'active' : ''}
                             onClick={() => setPickerShape(shape)}
                             style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
-                            title={shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
+                            title={shape === 'wheel' ? 'CHROMATIC WHEEL' : shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
                           >
-                            {shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                            {shape === 'wheel' ? 'WHEEL' : shape === 'plane_lc' ? 'L-C' : 'H-C'}
                           </button>
                         ))}
                       </div>
@@ -1487,16 +1488,16 @@ export default function Cran3oColorStudio() {
                     <p className="section-description" style={{ margin: '4px 0 0' }}>Move the system points while preserving the selected harmony logic.</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="control-label-mini" style={{ margin: 0 }}>PLANE</span>
+                    <span className="control-label-mini" style={{ margin: 0 }}>PICKER</span>
                     <div className="button-strip">
-                      {(['plane_lc', 'plane_hc'] as const).map((shape) => (
+                      {(['wheel', 'plane_lc', 'plane_hc'] as const).map((shape) => (
                         <button
                           key={shape}
                           className={pickerShape === shape ? 'active' : ''}
                           onClick={() => setPickerShape(shape)}
                           style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
                         >
-                          {shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                          {shape === 'wheel' ? 'WHEEL' : shape === 'plane_lc' ? 'L-C' : 'H-C'}
                         </button>
                       ))}
                     </div>

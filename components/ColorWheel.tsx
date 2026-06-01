@@ -13,7 +13,7 @@ interface ColorWheelProps {
   hoveredColorId?: string | null;
   onHoverColor?: (id: string | null) => void;
   onInteractionEnd?: () => void;
-  pickerShape?: 'plane_lc' | 'plane_hc';
+  pickerShape?: 'wheel' | 'plane_lc' | 'plane_hc';
   drawHarmonyLines?: boolean;
   harmonyBaseColorId?: string | null;
 }
@@ -73,7 +73,7 @@ export default function ColorWheel({
   hoveredColorId = null,
   onHoverColor,
   onInteractionEnd,
-  pickerShape = 'plane_lc',
+  pickerShape = 'wheel',
   drawHarmonyLines = false,
   harmonyBaseColorId = null,
 }: ColorWheelProps) {
@@ -147,8 +147,8 @@ export default function ColorWheel({
         ctx.beginPath(); ctx.moveTo(0, gridPos); ctx.lineTo(size, gridPos); ctx.stroke();
       }
     } 
-    else if (pickerShape === 'plane_hc') {
-      // H-C Plane (Hue vs Chroma polar) for a fixed Lightness
+    else {
+      // Chromatic wheel / H-C Plane (Hue vs Chroma polar) for a fixed Lightness
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
           const dx = x - radius;
@@ -213,7 +213,7 @@ export default function ColorWheel({
       };
     } 
     else {
-      // plane_hc
+      // wheel / plane_hc
       const r_dist = (oklch.c / MAX_CHROMA) * radius;
       const angleRad = (oklch.h * Math.PI) / 180;
       return {
@@ -362,8 +362,8 @@ export default function ColorWheel({
               zIndex: 5,
             }}
           >
-            {/* Center radial lines (only in polar HC shape) */}
-            {pickerShape === 'plane_hc' && colors.map((c) => {
+            {/* Center radial lines in polar chromatic modes */}
+            {pickerShape !== 'plane_lc' && colors.map((c) => {
               const coords = getCoordinates(c.oklch);
               return (
                 <line

@@ -293,107 +293,97 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const accentTeal = resolved.accentTeal.hex;
 
   // -------------------------------------------------------------
-  // Mode: ARCHITECTURE - Day View (interior corner material study)
+  // Mode: ARCHITECTURE - Day View (technical interior elevation)
   // -------------------------------------------------------------
   const renderArchDay = () => {
     const textContrast = getContrastColor(bg, resolved);
+    const wallContrast = getContrastColor(wall, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <defs>
-          <linearGradient id="arch-day-floor" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={floor} stopOpacity="0.88" />
-            <stop offset="100%" stopColor={shadow} stopOpacity="0.18" />
-          </linearGradient>
-          <linearGradient id="arch-day-window" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
-            <stop offset="100%" stopColor={bg} stopOpacity="0.05" />
-          </linearGradient>
-        </defs>
+        <rect x="30" y="30" width="440" height="260" fill={wall} rx="2" />
 
-        <rect width="500" height="320" fill={bg} />
-        <polygon points="34,32 316,32 316,210 34,282" fill={wall} />
-        <polygon points="316,32 466,58 466,286 316,210" fill={details} opacity="0.42" />
-        <polygon points="34,282 316,210 466,286 118,306" fill="url(#arch-day-floor)" />
-        <polygon points="34,32 316,32 466,58 190,58" fill={bg} opacity="0.62" />
+        <line x1="170" y1="30" x2="170" y2="290" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
+        <line x1="310" y1="30" x2="310" y2="290" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
+        <line x1="30" y1="160" x2="310" y2="160" stroke={wallContrast} strokeOpacity="0.15" strokeDasharray="3,3" />
 
-        <rect x="70" y="60" width="82" height="112" fill={bg} stroke={textContrast} strokeOpacity="0.18" strokeWidth="1.2" />
-        <rect x="82" y="72" width="58" height="88" fill="#ffffff" opacity="0.78" />
-        <line x1="111" y1="72" x2="111" y2="160" stroke={textContrast} strokeOpacity="0.14" />
-        <line x1="82" y1="116" x2="140" y2="116" stroke={textContrast} strokeOpacity="0.14" />
-        <polygon points="140,160 304,206 250,226 82,164" fill="url(#arch-day-window)" opacity="0.75" />
-        <polygon points="152,72 310,42 316,52 152,92" fill="#ffffff" opacity="0.28" />
+        <rect x="30" y="280" width="440" height="10" fill={floor} />
+        <line x1="30" y1="280" x2="470" y2="280" stroke={wallContrast} strokeOpacity="0.2" />
 
-        <rect x="206" y="142" width="170" height="38" fill={floor} rx="3" stroke={textContrast} strokeOpacity="0.12" />
-        <rect x="224" y="178" width="8" height="48" fill={shadow} opacity="0.38" />
-        <rect x="348" y="178" width="8" height="52" fill={shadow} opacity="0.38" />
-        <rect x="238" y="118" width="92" height="30" fill={details} rx="2" opacity="0.86" />
-        <rect x="330" y="114" width="44" height="34" fill={accent1} rx="2" opacity="0.78" />
+        <rect x="350" y="80" width="90" height="200" fill={floor} stroke={wallContrast} strokeOpacity="0.3" />
+        <circle cx="362" cy="180" r="3.5" fill={accent1} />
 
-        <path d="M 132 242 C 146 206, 202 196, 230 227 C 244 244, 240 260, 220 266 L 142 270 C 124 267, 122 256, 132 242 Z" fill={details} opacity="0.9" />
-        <rect x="148" y="226" width="96" height="32" fill={details} rx="16" opacity="0.72" />
-        <circle cx="206" cy="190" r="18" fill={accentTeal} opacity="0.68" />
-        <rect x="403" y="90" width="28" height="88" fill={shadow} opacity="0.22" rx="14" />
-        <circle cx="417" cy="86" r="11" fill={accent2} opacity="0.76" />
+        <rect x="70" y="140" width="160" height="8" fill={details} rx="1" />
+        <rect x="90" y="105" width="12" height="35" fill={accent1} />
+        <rect x="104" y="100" width="14" height="40" fill={accentTeal} />
+        <rect x="120" y="112" width="10" height="28" fill={accent2} />
+        <rect x="132" y="115" width="15" height="25" fill={floor} transform="rotate(15, 132, 140)" />
 
-        <line x1="34" y1="282" x2="316" y2="210" stroke={textContrast} strokeOpacity="0.16" />
-        <line x1="316" y1="32" x2="316" y2="210" stroke={textContrast} strokeOpacity="0.16" />
-        <line x1="316" y1="210" x2="466" y2="286" stroke={textContrast} strokeOpacity="0.13" />
-        <text x="40" y="300" fill={textContrast} opacity="0.42" fontSize="7" fontWeight="700" fontFamily="'Space Mono', monospace">INTERIOR CORNER / DAYLIGHT MATERIAL TEST</text>
+        <polygon points="185,140 195,140 198,115 182,115" fill={shadow} />
+        <path d="M 190 115 C 190 95, 175 90, 172 80 C 178 92, 190 100, 190 115" fill="none" stroke={accentTeal} strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 190 115 C 195 95, 208 90, 212 80 C 205 92, 192 100, 190 115" fill="none" stroke={accent1} strokeWidth="2" strokeLinecap="round" />
+
+        <line x1="240" y1="30" x2="240" y2="70" stroke={shadow} strokeWidth="1.5" />
+        <path d="M 220 70 L 260 70 L 270 90 L 210 90 Z" fill={details} />
+        <polygon points="240,90 130,280 350,280" fill={accent1} opacity="0.12" />
+
+        <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <text x="250" y="13" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">5000 mm</text>
+
+        <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
+        <line x1="14" y1="30" x2="22" y2="30" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <line x1="14" y1="290" x2="22" y2="290" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
+        <text x="12" y="165" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+
+        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A / MATERIAL VALUE TEST</text>
       </svg>
     );
   };
 
   // -------------------------------------------------------------
-  // Mode: ARCHITECTURE - Night View (warm practical and edge contrast)
+  // Mode: ARCHITECTURE - Night View (technical light value test)
   // -------------------------------------------------------------
   const renderArchNight = () => {
     const textContrast = '#ffffff';
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: '#090a0f', borderRadius: '4px' }}>
         <defs>
-          <radialGradient id="night-lamp-glow" cx="72%" cy="36%" r="58%">
-            <stop offset="0%" stopColor={accent1} stopOpacity="0.96" />
-            <stop offset="32%" stopColor={accent1} stopOpacity="0.28" />
-            <stop offset="78%" stopColor="#090a0f" stopOpacity="0" />
+          <radialGradient id="night-lamp-glow" cx="50%" cy="30%" r="70%">
+            <stop offset="0%" stopColor={accent1} stopOpacity="1" />
+            <stop offset="25%" stopColor={accentTeal} stopOpacity="0.4" />
+            <stop offset="60%" stopColor="#090a0f" stopOpacity="0" />
           </radialGradient>
-          <linearGradient id="arch-night-floor" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={floor} stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#020304" stopOpacity="0.85" />
-          </linearGradient>
-          <linearGradient id="arch-night-window" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={accentTeal} stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#090a0f" stopOpacity="0" />
-          </linearGradient>
         </defs>
 
-        <rect width="500" height="320" fill="#090a0f" />
-        <polygon points="34,32 316,32 316,210 34,282" fill={shadow} opacity="0.84" />
-        <polygon points="316,32 466,58 466,286 316,210" fill={wall} opacity="0.22" />
-        <polygon points="34,282 316,210 466,286 118,306" fill="url(#arch-night-floor)" />
-        <circle cx="386" cy="100" r="155" fill="url(#night-lamp-glow)" opacity="0.85" />
+        <rect x="30" y="30" width="440" height="260" fill={shadow} rx="2" opacity="0.75" />
+        <circle cx="240" cy="90" r="140" fill="url(#night-lamp-glow)" opacity="0.65" />
+        <rect x="170" y="90" width="140" height="190" fill={wall} opacity="0.25" />
 
-        <rect x="70" y="60" width="82" height="112" fill="#05070a" stroke={textContrast} strokeOpacity="0.12" strokeWidth="1.2" />
-        <rect x="82" y="72" width="58" height="88" fill="url(#arch-night-window)" />
-        <line x1="111" y1="72" x2="111" y2="160" stroke={textContrast} strokeOpacity="0.08" />
-        <line x1="82" y1="116" x2="140" y2="116" stroke={textContrast} strokeOpacity="0.08" />
+        <rect x="30" y="280" width="440" height="10" fill="#030405" />
+        <rect x="200" y="280" width="80" height="10" fill={floor} opacity="0.4" />
+        <line x1="30" y1="280" x2="470" y2="280" stroke="#ffffff" strokeOpacity="0.1" />
 
-        <rect x="206" y="142" width="170" height="38" fill={wall} rx="3" opacity="0.38" />
-        <rect x="224" y="178" width="8" height="48" fill="#030405" opacity="0.8" />
-        <rect x="348" y="178" width="8" height="52" fill="#030405" opacity="0.8" />
-        <rect x="238" y="118" width="92" height="30" fill={details} rx="2" opacity="0.42" />
-        <rect x="330" y="114" width="44" height="34" fill={accent1} rx="2" opacity="0.86" />
+        <rect x="350" y="80" width="90" height="200" fill="#050607" stroke="#ffffff" strokeOpacity="0.1" />
+        <circle cx="362" cy="180" r="3.5" fill={accentTeal} opacity="0.6" />
 
-        <path d="M 132 242 C 146 206, 202 196, 230 227 C 244 244, 240 260, 220 266 L 142 270 C 124 267, 122 256, 132 242 Z" fill={details} opacity="0.46" />
-        <rect x="148" y="226" width="96" height="32" fill={details} rx="16" opacity="0.34" />
-        <line x1="388" y1="36" x2="388" y2="78" stroke={textContrast} strokeOpacity="0.28" strokeWidth="1.2" />
-        <path d="M 370 78 L 406 78 L 414 96 L 362 96 Z" fill={accent1} opacity="0.9" />
-        <circle cx="388" cy="98" r="5" fill="#fff4d8" opacity="0.92" />
-        <circle cx="206" cy="190" r="18" fill={accentTeal} opacity="0.3" />
+        <rect x="70" y="140" width="160" height="8" fill="#121418" rx="1" />
+        <rect x="90" y="105" width="12" height="35" fill={accent1} opacity="0.5" />
+        <rect x="104" y="100" width="14" height="40" fill={accentTeal} opacity="0.5" />
 
-        <line x1="34" y1="282" x2="316" y2="210" stroke={textContrast} strokeOpacity="0.08" />
-        <line x1="316" y1="32" x2="316" y2="210" stroke={textContrast} strokeOpacity="0.08" />
-        <line x1="316" y1="210" x2="466" y2="286" stroke={textContrast} strokeOpacity="0.08" />
-        <text x="40" y="300" fill={textContrast} opacity="0.34" fontSize="7" fontWeight="700" fontFamily="'Space Mono', monospace">INTERIOR CORNER / NIGHTLIGHT CONTRAST TEST</text>
+        <line x1="240" y1="30" x2="240" y2="70" stroke="#ffffff" strokeWidth="1.5" opacity="0.4" />
+        <path d="M 220 70 L 260 70 L 270 90 L 210 90 Z" fill={details} opacity="0.8" />
+        <circle cx="240" cy="90" r="8" fill="#ffffff" />
+
+        <line x1="30" y1="18" x2="470" y2="18" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <line x1="30" y1="14" x2="30" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <line x1="470" y1="14" x2="470" y2="22" stroke={textContrast} strokeOpacity="0.3" strokeWidth="0.8" />
+        <text x="250" y="13" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">5000 mm</text>
+
+        <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="12" y="165" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
+
+        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A (NIGHT) / LIGHT VALUE TEST</text>
       </svg>
     );
   };
