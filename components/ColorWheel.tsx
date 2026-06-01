@@ -16,6 +16,7 @@ interface ColorWheelProps {
   pickerShape?: 'wheel' | 'plane_lc' | 'plane_hc';
   drawHarmonyLines?: boolean;
   harmonyBaseColorId?: string | null;
+  lang?: 'en' | 'es';
 }
 
 const MAX_CHROMA = 0.4;
@@ -29,18 +30,26 @@ interface NumberControlProps {
   max: number;
   step: number;
   onChange: (value: number) => void;
+  lang?: 'en' | 'es';
 }
 
-function NumberControl({ label, value, min, max, step, onChange }: NumberControlProps) {
+function NumberControl({ label, value, min, max, step, onChange, lang = 'en' }: NumberControlProps) {
   const getTooltip = (lbl: string) => {
-    if (lbl.includes('LIGHTNESS')) {
-      return 'Reflectancia de Luz (LRV): 0.00 (Negro) a 1.00 (Blanco yeso). Determina la luminosidad del material.';
+    const isEs = lang === 'es';
+    if (lbl.includes('LIGHTNESS') || lbl.includes('LUMINOSIDAD')) {
+      return isEs
+        ? 'Reflectancia de Luz (LRV): 0.00 (Negro) a 1.00 (Blanco yeso). Determina la luminosidad del material.'
+        : 'Light Reflectance Value (LRV): 0.00 (Black) to 1.00 (Plaster white). Determines material lightness.';
     }
-    if (lbl.includes('CHROMA')) {
-      return 'Pureza Mineral (Saturación): 0.00 (Hormigón neutro) a 0.40 (Sintético puro). Travertino y maderas suelen estar en 0.04-0.08.';
+    if (lbl.includes('CHROMA') || lbl.includes('CROMA')) {
+      return isEs
+        ? 'Pureza Mineral (Saturación): 0.00 (Hormigón neutro) a 0.40 (Sintético puro). Travertino y maderas suelen estar en 0.04-0.08.'
+        : 'Mineral Purity (Saturation): 0.00 (Neutral concrete) to 0.40 (Pure synthetic). Travertine and wood are usually 0.04-0.08.';
     }
-    if (lbl.includes('HUE')) {
-      return 'Matiz / Temperatura (°): Ángulo de color en 360°. Cobre/Arcilla ~35°, Arena ~75°, Musgo ~135°, Pizarra ~220°.';
+    if (lbl.includes('HUE') || lbl.includes('TONO')) {
+      return isEs
+        ? 'Matiz / Temperatura (°): Ángulo de color en 360°. Cobre/Arcilla ~35°, Arena ~75°, Musgo ~135°, Pizarra ~220°.'
+        : 'Hue / Temperature (°): Color angle in 360°. Copper/Clay ~35°, Sand ~75°, Moss ~135°, Slate ~220°.';
     }
     return undefined;
   };
@@ -76,6 +85,7 @@ export default function ColorWheel({
   pickerShape = 'wheel',
   drawHarmonyLines = false,
   harmonyBaseColorId = null,
+  lang = 'en',
 }: ColorWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -507,22 +517,25 @@ export default function ColorWheel({
       {activeColor && (
         <div style={{ display: 'flex', gap: '8px', width: '100%', padding: '8px', background: 'var(--bg-panel-deep)', borderRadius: '3px', border: '1px solid var(--border-medium)' }}>
           <NumberControl 
-            label="LIGHTNESS (L)" 
+            label={lang === 'es' ? "LUMINOSIDAD (L)" : "LIGHTNESS (L)"} 
             value={currentL} 
             min={0} max={1} step={0.01} 
             onChange={(val: number) => { onColorChange({ l: val, c: currentC, h: currentH }); onInteractionEnd?.(); }} 
+            lang={lang}
           />
           <NumberControl 
-            label="CHROMA (C)" 
+            label={lang === 'es' ? "CROMA (C)" : "CHROMA (C)"} 
             value={currentC} 
             min={0} max={MAX_CHROMA} step={0.01} 
             onChange={(val: number) => { onColorChange({ l: currentL, c: val, h: currentH }); onInteractionEnd?.(); }} 
+            lang={lang}
           />
           <NumberControl 
-            label="HUE (H) °" 
+            label={lang === 'es' ? "TONO (H) °" : "HUE (H) °"} 
             value={currentH} 
             min={0} max={360} step={1} 
             onChange={(val: number) => { onColorChange({ l: currentL, c: currentC, h: val }); onInteractionEnd?.(); }} 
+            lang={lang}
           />
         </div>
       )}

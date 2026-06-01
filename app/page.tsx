@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ColorData, ColorRole, DesignMode, MutationStrength, OklchColor, SlidersState, UserIdentity, Preset } from '../types';
 import { PRESETS } from '../data/presets';
+import { TRANSLATIONS } from '../data/translations';
 import { INFLUENCES } from '../data/influences';
 import { HARMONIES, generateHarmony } from '../lib/harmony';
 import { generateColorName } from '../lib/naming';
@@ -91,6 +92,15 @@ export default function Cran3oColorStudio() {
   const [infoIdentityOpen, setInfoIdentityOpen] = useState(false);
   const [infoHarmonyRulesOpen, setInfoHarmonyRulesOpen] = useState(false);
   const [infoMetrologyOpen, setInfoMetrologyOpen] = useState(false);
+  const [lang, setLang] = useState<'en' | 'es'>('en');
+
+  const t = (key: keyof typeof TRANSLATIONS['en']) => {
+    return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
+  };
+
+  useEffect(() => {
+    localStorage.setItem('cran3o_color_studio_lang', lang);
+  }, [lang]);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -112,6 +122,13 @@ export default function Cran3oColorStudio() {
     const savedSize = savedSizeRaw ? Number(savedSizeRaw) : Number.NaN;
     const initialMode = savedMode || 'architecture';
     const initialSize = Number.isFinite(savedSize) ? Math.max(MIN_PALETTE_SIZE, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang') as 'en' | 'es' | null;
+    const savedLang = urlLang || (localStorage.getItem('cran3o_color_studio_lang') as 'en' | 'es' | null);
+    if (savedLang === 'en' || savedLang === 'es') {
+      setLang(savedLang);
+    }
 
     if (savedIdentity) {
       try {
@@ -756,7 +773,7 @@ export default function Cran3oColorStudio() {
       <header className="studio-header" style={{ padding: '0 0 12px', gap: '12px', flexWrap: 'wrap' }}>
         <div className="studio-logo" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <h1 className="logo-main">CRAN3O COLOR STUDIO</h1>
-          <span className="logo-sub">{'// ARCHITECTURE / INDUSTRIAL / GRAPHIC'}</span>
+          <span className="logo-sub">{t('logoSub')}</span>
           <span className="build-badge" title="Current deployed build">
             {APP_VERSION_LABEL} / {APP_BUILD_LABEL}
           </span>
@@ -767,13 +784,13 @@ export default function Cran3oColorStudio() {
             className={`workspace-tab-btn ${viewMode === 'instrument' ? 'active' : ''}`}
             onClick={() => setViewMode('instrument')}
           >
-            STUDIO INSTRUMENT
+            {t('workspaceInstrument')}
           </button>
           <button 
             className={`workspace-tab-btn ${viewMode === 'harmony' ? 'active' : ''}`}
             onClick={() => setViewMode('harmony')}
           >
-            HARMONY WORKSPACE
+            {t('workspaceHarmony')}
           </button>
         </div>
 
@@ -783,7 +800,7 @@ export default function Cran3oColorStudio() {
             className="icon-button" 
             onClick={handleUndo} 
             disabled={historyIndex <= 0} 
-            title="Undo (Ctrl+Z)"
+            title={t('undo')}
             style={{ opacity: historyIndex <= 0 ? 0.35 : 1 }}
           >
             <MaterialIcon name="undo" size={20} />
@@ -794,7 +811,7 @@ export default function Cran3oColorStudio() {
             className="icon-button" 
             onClick={handleRedo} 
             disabled={historyIndex >= history.length - 1} 
-            title="Redo (Ctrl+Y)"
+            title={t('redo')}
             style={{ opacity: historyIndex >= history.length - 1 ? 0.35 : 1 }}
           >
             <MaterialIcon name="redo" size={20} />
@@ -807,14 +824,14 @@ export default function Cran3oColorStudio() {
               onClick={() => { setContrastOpen((open) => !open); setExportOpen(false); setSettingsOpen(false); setPresetsOpen(false); }} 
               aria-expanded={contrastOpen} 
               aria-label="Contrast matrix" 
-              title="Contrast & Accessibility Matrix"
+              title={t('contrastMatrix')}
             >
               <MaterialIcon name="check" size={20} />
             </button>
             {contrastOpen && (
               <div className="settings-menu" style={{ minWidth: '380px', right: 0 }}>
-                <div className="settings-menu-title">CONTRAST MATRIX</div>
-                <p className="section-description" style={{ marginBottom: '8px', padding: '0 8px' }}>WCAG 2.1 and APCA contrast scores for the current palette.</p>
+                <div className="settings-menu-title">{t('contrastMatrix')}</div>
+                <p className="section-description" style={{ marginBottom: '8px', padding: '0 8px' }}>{t('contrastDesc')}</p>
                 <div className="contrast-wrap">
                   <table className="contrast-table">
                     <thead>
@@ -851,35 +868,35 @@ export default function Cran3oColorStudio() {
 
           {/* Export Options */}
           <div className="settings-wrap" style={{ position: 'relative' }}>
-            <button className="icon-button" onClick={() => { setExportOpen((open) => !open); setSettingsOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={exportOpen} aria-label="Export palette" title="Export options">
+            <button className="icon-button" onClick={() => { setExportOpen((open) => !open); setSettingsOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={exportOpen} aria-label="Export palette" title={t('exportSwatches')}>
               <MaterialIcon name="download" size={20} />
             </button>
             {exportOpen && (
               <div className="settings-menu">
-                <div className="settings-menu-title">EXPORT SWATCHES</div>
+                <div className="settings-menu-title">{t('exportSwatches')}</div>
                 <button className="settings-menu-row" onClick={() => { handlePrintPdf(); setExportOpen(false); }}>
                   <MaterialIcon name="picture_as_pdf" />
-                  PDF SHEET
+                  {t('pdfSheet')}
                 </button>
                 <button className="settings-menu-row" onClick={() => { handleExportSvg(); setExportOpen(false); }}>
                   <MaterialIcon name="download" />
-                  SVG VECTOR
+                  {t('svgVector')}
                 </button>
                 <button className="settings-menu-row" onClick={() => { handleExportPng(); setExportOpen(false); }}>
                   <MaterialIcon name="image" />
-                  RETINA PNG
+                  {t('retinaPng')}
                 </button>
                 <button className="settings-menu-row" onClick={() => { handleExportJson(); setExportOpen(false); }}>
                   <MaterialIcon name="data_object" />
-                  JSON SWATCHES
+                  {t('jsonSwatches')}
                 </button>
                 <button className="settings-menu-row" onClick={() => { handleExportCss(); setExportOpen(false); }}>
                   <MaterialIcon name="css" />
-                  CSS VARIABLES
+                  {t('cssVariables')}
                 </button>
                 <button className="settings-menu-row" onClick={() => { handleCopyClipboardList(); setExportOpen(false); }}>
                   <MaterialIcon name={copied ? 'check' : 'content_copy'} />
-                  {copied ? 'COPIED' : 'COPY COLOR LIST'}
+                  {copied ? t('copied') : t('copyColorList')}
                 </button>
               </div>
             )}
@@ -887,20 +904,20 @@ export default function Cran3oColorStudio() {
 
           {/* Settings */}
           <div className="settings-wrap" style={{ position: 'relative' }}>
-            <button className="icon-button" onClick={() => { setSettingsOpen((open) => !open); setExportOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={settingsOpen} aria-label="Open settings" title="Settings">
+            <button className="icon-button" onClick={() => { setSettingsOpen((open) => !open); setExportOpen(false); setContrastOpen(false); setPresetsOpen(false); }} aria-expanded={settingsOpen} aria-label="Open settings" title={t('settings')}>
               <MaterialIcon name="settings" size={20} />
             </button>
             {settingsOpen && (
               <div className="settings-menu">
-                <div className="settings-menu-title">SETTINGS</div>
+                <div className="settings-menu-title">{t('settings')}</div>
                 <button className="settings-menu-row" onClick={() => setIsDarkMode(!isDarkMode)}>
                   <MaterialIcon name={isDarkMode ? 'light_mode' : 'dark_mode'} />
-                  {isDarkMode ? 'LIGHT MODE' : 'DARK MODE'}
+                  {isDarkMode ? t('lightMode') : t('darkMode')}
                 </button>
                 <label className="settings-field">
-                  <span>VISION SIMULATOR</span>
+                  <span>{t('visionSimulator')}</span>
                   <select value={blindnessSim} onChange={(event) => setBlindnessSim(event.target.value as VisionMode)}>
-                    <option value="normal">NORMAL VIEW</option>
+                    <option value="normal">{t('normalView')}</option>
                     <option value="protanopia">PROTANOPIA</option>
                     <option value="deuteranopia">DEUTERANOPIA</option>
                     <option value="tritanopia">TRITANOPIA</option>
@@ -909,6 +926,24 @@ export default function Cran3oColorStudio() {
                 </label>
               </div>
             )}
+          </div>
+
+          {/* Language Selector */}
+          <div className="workspace-toggle-bar" style={{ height: '32px', display: 'flex', alignItems: 'center' }}>
+            <button 
+              className={`workspace-tab-btn ${lang === 'en' ? 'active' : ''}`}
+              onClick={() => setLang('en')}
+              style={{ height: '100%', display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.68rem' }}
+            >
+              EN
+            </button>
+            <button 
+              className={`workspace-tab-btn ${lang === 'es' ? 'active' : ''}`}
+              onClick={() => setLang('es')}
+              style={{ height: '100%', display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.68rem' }}
+            >
+              ES
+            </button>
           </div>
         </div>
       </header>
@@ -930,19 +965,19 @@ export default function Cran3oColorStudio() {
                   <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        COLOR INSTRUMENT
+                        {t('colorInstrument')}
                         <button
                           onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
                           style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                          title="Ayuda de la herramienta"
+                          title={t('toolHelp')}
                         >
                           <MaterialIcon name="info" size={14} />
                         </button>
                       </h3>
-                      <p className="section-description" style={{ margin: '4px 0 0' }}>Shape hue, lightness, and chroma with architectural restraint.</p>
+                      <p className="section-description" style={{ margin: '4px 0 0' }}>{t('colorInstrumentDesc')}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PICKER</span>
+                      <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>{t('picker')}</span>
                       <div className="button-strip">
                         {(['wheel', 'plane_lc', 'plane_hc'] as const).map((shape) => (
                           <button
@@ -950,9 +985,9 @@ export default function Cran3oColorStudio() {
                             className={pickerShape === shape ? 'active' : ''}
                             onClick={() => setPickerShape(shape)}
                             style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
-                            title={shape === 'wheel' ? 'CHROMATIC WHEEL' : shape === 'plane_lc' ? 'L-C PLANE (LIGHTNESS/CHROMA)' : 'H-C PLANE (HUE/CHROMA)'}
+                            title={shape === 'wheel' ? t('pickerWheelTooltip') : shape === 'plane_lc' ? t('pickerLcTooltip') : t('pickerHcTooltip')}
                           >
-                            {shape === 'wheel' ? 'WHEEL' : shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                            {shape === 'wheel' ? t('wheel') : shape === 'plane_lc' ? t('lc') : t('hc')}
                           </button>
                         ))}
                       </div>
@@ -971,9 +1006,9 @@ export default function Cran3oColorStudio() {
                       fontFamily: 'var(--font-mono)',
                       marginBottom: '14px'
                     }}>
-                      <strong>¿Qué es?</strong> Un selector visual que opera en el espacio de color OKLCH, el cual imita la percepción humana de brillo y color de forma natural.
+                      <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('colorInstrumentHelpWhat')}
                       <br />
-                      <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Arrastra los nodos en el círculo para cambiar tono (ángulo), croma (distancia al centro) y luminosidad (mediante las cajas numéricas inferiores). Usa los botones WHEEL, L-C o H-C para proyectar el espacio tridimensional en 2D.
+                      <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('colorInstrumentHelpHow')}
                     </div>
                   )}
                   
@@ -989,18 +1024,19 @@ export default function Cran3oColorStudio() {
                         onHoverColor={setHoveredColorId}
                         onInteractionEnd={() => pushHistory(colors)}
                         pickerShape={pickerShape}
+                        lang={lang}
                       />
                     </div>
 
                     <div className="harmony-controls-block">
-                      <span className="control-label-mini">HARMONY</span>
+                      <span className="control-label-mini">{lang === 'es' ? 'ARMONÍA' : 'HARMONY'}</span>
                       <div className="harmony-action-row">
                         <select className="select-control" value={activeHarmonyId} onChange={(event) => handleHarmonyChange(event.target.value)}>
-                          {HARMONIES.map((harmony) => <option key={harmony.id} value={harmony.id}>{harmony.name}</option>)}
+                          {HARMONIES.map((harmony) => <option key={harmony.id} value={harmony.id}>{t((harmony.id + 'Name') as keyof typeof TRANSLATIONS['en']) || harmony.name}</option>)}
                         </select>
-                        <button onClick={handleGenerateHarmony} className="calculator-action primary" title="Re-apply active harmony to non-locked colors">
+                        <button onClick={handleGenerateHarmony} className="calculator-action primary" title={t('reapplyTooltip')}>
                           <MaterialIcon name="sync" size={12} />
-                          RE-APPLY
+                          {t('reapply')}
                         </button>
                       </div>
                     </div>
@@ -1012,16 +1048,16 @@ export default function Cran3oColorStudio() {
                   <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
                     <div>
                       <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        PALETTE SYSTEM MATRIX
+                        {t('paletteSystemMatrix')}
                         <button
                           onClick={() => setInfoMatrixOpen(!infoMatrixOpen)}
                           style={{ background: 'none', border: 'none', color: infoMatrixOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                          title="Ayuda de la herramienta"
+                          title={t('toolHelp')}
                         >
                           <MaterialIcon name="info" size={14} />
                         </button>
                       </h3>
-                      <p className="section-description">Curate ordered color tokens for spatial, CMF, and graphic systems.</p>
+                      <p className="section-description">{t('paletteSystemMatrixDesc')}</p>
                     </div>
                     <div>
                       <span style={{ fontSize: '0.62rem', fontWeight: 700, fontFamily: "var(--font-sans)", background: 'var(--bg-input)', padding: '4px 8px', borderRadius: '3px', border: '1px solid var(--border-medium)', letterSpacing: '0.05em' }}>
@@ -1042,9 +1078,9 @@ export default function Cran3oColorStudio() {
                       fontFamily: 'var(--font-mono)',
                       marginBottom: '10px'
                     }}>
-                      <strong>¿Qué es?</strong> La matriz del sistema que gestiona tus fichas de color y sus propiedades de diseño.
+                      <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('paletteSystemMatrixHelpWhat')}
                       <br />
-                      <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Selecciona tarjetas para editarlas, arrástralas (o usa flechas) para ordenar, edita el HEX de forma directa y haz clic en el candado para congelar colores. Asigna roles funcionales (ej. background, accent) para mapear los colores en el simulador 3D/maqueta.
+                      <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('paletteSystemMatrixHelpHow')}
                     </div>
                   )}
 
@@ -1057,17 +1093,17 @@ export default function Cran3oColorStudio() {
                           style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }} 
                           onClick={() => { setPresetsOpen(!presetsOpen); setExportOpen(false); setSettingsOpen(false); setContrastOpen(false); }}
                         >
-                          <span>PRESETS</span>
+                          <span>{t('presets')}</span>
                           <MaterialIcon name="arrow_drop_down" size={14} />
                         </button>
                         {presetsOpen && (
                           <div className="settings-menu presets-menu" style={{ width: '280px', maxHeight: '400px', overflowY: 'auto', zIndex: 100, left: 0, right: 'auto' }}>
-                            <div className="settings-menu-title">STUDIO PRESETS</div>
+                            <div className="settings-menu-title">{t('studioPresets')}</div>
                             {[
-                              { label: 'UNIVERSAL', items: PRESETS.filter(p => !p.mode) },
-                              { label: 'ARCHITECTURE', items: PRESETS.filter(p => p.mode === 'architecture') },
-                              { label: 'INDUSTRIAL', items: PRESETS.filter(p => p.mode === 'industrial') },
-                              { label: 'GRAPHIC DESIGN', items: PRESETS.filter(p => p.mode === 'graphic') },
+                              { label: t('universal'), items: PRESETS.filter(p => !p.mode) },
+                              { label: t('architecture'), items: PRESETS.filter(p => p.mode === 'architecture') },
+                              { label: t('industrial'), items: PRESETS.filter(p => p.mode === 'industrial') },
+                              { label: t('graphicDesign'), items: PRESETS.filter(p => p.mode === 'graphic') },
                             ].map((group) => (
                               <div key={group.label} style={{ marginBottom: '8px' }}>
                                 <div className="preset-group-header" style={{ fontSize: '0.62rem', fontWeight: 700, opacity: 0.6, letterSpacing: '0.08em', padding: '4px 8px', borderBottom: '1px solid var(--border-light)', textTransform: 'uppercase' }}>
@@ -1094,8 +1130,8 @@ export default function Cran3oColorStudio() {
                         )}
                       </div>
                     </div>
-                    <label className="palette-size-control" title="Palette size">
-                      <span>SIZE</span>
+                    <label className="palette-size-control" title={t('paletteSize')}>
+                      <span>{t('paletteSize').toUpperCase()}</span>
                       <input
                         type="range"
                         min={MIN_PALETTE_SIZE}
@@ -1136,19 +1172,19 @@ export default function Cran3oColorStudio() {
                           onMouseEnter={() => setHoveredColorId(color.id)}
                           onMouseLeave={() => setHoveredColorId(null)}
                           onContextMenu={(event) => handleCopySwatchCard(event, color, index)}
-                          title="Right-click to copy this color card as an image"
+                          title={t('rightClickCopy')}
                         >
                           <div className="swatch-fill" style={{ backgroundColor: color.hex }}>
                             <div
                               className="drag-handle"
-                              title="Drag to reorder"
+                              title={t('dragToReorder')}
                             >
                               <MaterialIcon name="drag_indicator" size={14} />
                             </div>
                             <button 
                               className={`swatch-lock-indicator-fill ${color.locked ? 'locked-state' : ''}`} 
                               onClick={(event) => { event.stopPropagation(); handleToggleLock(color.id); }} 
-                              title={color.locked ? 'Unlock color' : 'Lock color'}
+                              title={color.locked ? t('unlockColor') : t('lockColor')}
                             >
                               <MaterialIcon name={color.locked ? 'lock' : 'lock_open'} size={13} />
                             </button>
@@ -1159,7 +1195,7 @@ export default function Cran3oColorStudio() {
                                   event.stopPropagation();
                                   handleDeleteColor(color.id);
                                 }}
-                                title="Delete color"
+                                title={t('deleteColor')}
                               >
                                 <MaterialIcon name="close" size={12} />
                               </button>
@@ -1182,7 +1218,7 @@ export default function Cran3oColorStudio() {
                                 value={hexDrafts[color.id] ?? color.hex.toUpperCase()}
                                 spellCheck={false}
                                 draggable={false}
-                                aria-label={`Edit HEX value for ${color.displayName}`}
+                                aria-label={`${lang === 'es' ? 'Editar valor HEX para' : 'Edit HEX value for'} ${color.displayName}`}
                                 onDragStart={(event) => event.stopPropagation()}
                                 onClick={(event) => event.stopPropagation()}
                                 onChange={(event) => handleHexDraftChange(color.id, event.target.value)}
@@ -1210,12 +1246,12 @@ export default function Cran3oColorStudio() {
                                     marginRight: '2px',
                                     fontFamily: 'var(--font-mono)' 
                                   }}
-                                  title="Out of sRGB Gamut (Color will be clamped by browsers)"
+                                  title={t('outOfSRGB')}
                                 >
                                   <span style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--button-amber)' }}>
                                     <MaterialIcon name="warning" size={10} />
                                   </span>
-                                  <span>OUT</span>
+                                  <span>{t('out')}</span>
                                 </span>
                               )}
                               <button
@@ -1227,7 +1263,7 @@ export default function Cran3oColorStudio() {
                                     setTimeout(() => setCopiedColorId(null), 1500);
                                   });
                                 }}
-                                title="Copy HEX"
+                                title={t('copyHex')}
                               >
                                 <MaterialIcon name={copiedColorId === color.id ? 'check' : 'content_copy'} size={12} />
                               </button>
@@ -1269,7 +1305,7 @@ export default function Cran3oColorStudio() {
                                   event.stopPropagation();
                                   handleMoveColor(index, index - 1);
                                 }}
-                                title="Move left"
+                                title={t('moveLeft')}
                               >
                                 <MaterialIcon name="keyboard_arrow_left" size={13} />
                               </button>
@@ -1280,7 +1316,7 @@ export default function Cran3oColorStudio() {
                                   event.stopPropagation();
                                   handleMoveColor(index, index + 1);
                                 }}
-                                title="Move right"
+                                title={t('moveRight')}
                               >
                                 <MaterialIcon name="keyboard_arrow_right" size={13} />
                               </button>
@@ -1293,10 +1329,10 @@ export default function Cran3oColorStudio() {
                       <button 
                         className="swatch-add-card" 
                         onClick={handleAddColor}
-                        title="Add new color"
+                        title={t('addColor')}
                       >
                         <MaterialIcon name="add" size={24} />
-                        <span>Add Color</span>
+                        <span>{t('addColor')}</span>
                       </button>
                     )}
                   </div>
@@ -1308,16 +1344,16 @@ export default function Cran3oColorStudio() {
                 <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      VARIATION & MUTATION ENGINE
+                      {t('variationPanel')}
                       <button
                         onClick={() => setInfoVariationOpen(!infoVariationOpen)}
                         style={{ background: 'none', border: 'none', color: infoVariationOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Ayuda de la herramienta"
+                        title={t('toolHelp')}
                       >
                         <MaterialIcon name="info" size={14} />
                       </button>
                     </h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Calibrate temperature, restraint, contrast, and material presence in OKLCH.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>{t('variationPanelDesc')}</p>
                   </div>
                   
                   <div className="mutation-controls-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1325,14 +1361,14 @@ export default function Cran3oColorStudio() {
                       onClick={() => setSlidersOpen(!slidersOpen)} 
                       className={`icon-button ${slidersOpen ? 'active' : ''}`}
                       style={{ padding: '4px', minHeight: '28px', minWidth: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      title="Toggle Settings & Sliders"
+                      title={lang === 'es' ? 'Mostrar Ajustes y Sliders' : 'Toggle Settings & Sliders'}
                     >
                       <MaterialIcon name="tune" size={16} />
                     </button>
-                    <button onClick={handleRefinePalette} className="calculator-action secondary">REFINE</button>
+                    <button onClick={handleRefinePalette} className="calculator-action secondary">{t('refine')}</button>
                     <button onClick={handleMutatePalette} className="calculator-action amber">
                       <MaterialIcon name="auto_awesome" size={12} />
-                      MUTATE
+                      {t('mutate')}
                     </button>
                   </div>
                 </div>
@@ -1349,9 +1385,9 @@ export default function Cran3oColorStudio() {
                     fontFamily: 'var(--font-mono)',
                     marginBottom: '10px'
                   }}>
-                    <strong>¿Qué es?</strong> Un generador algorítmico para crear variaciones estéticas de color de forma controlada.
+                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('variationPanelHelpWhat')}
                     <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Define la dirección con los deslizadores de ambiente (temperatura, contraste, niebla cinematográfica). El botón MUTATE introduce desviaciones aleatorias dosificadas por la fuerza seleccionada (suave, moderada o atrevida). El botón REFINE equilibra y suaviza los tonos generados.
+                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('variationPanelHelpHow')}
                   </div>
                 )}
 
@@ -1359,21 +1395,21 @@ export default function Cran3oColorStudio() {
                   <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="control-label-mini" style={{ margin: 0 }}>MUTATION STRENGTH</span>
+                        <span className="control-label-mini" style={{ margin: 0 }}>{t('mutationStrength')}</span>
                         <div className="button-strip">
                           {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
                             <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer' }}>
-                              {strength.toUpperCase()}
+                              {lang === 'es' ? (strength === 'subtle' ? 'SUAVE' : strength === 'balanced' ? 'MODERADA' : 'ATREVIDA') : strength.toUpperCase()}
                             </button>
                           ))}
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="control-label-mini" style={{ margin: 0 }}>MUTATION TARGET</span>
+                        <span className="control-label-mini" style={{ margin: 0 }}>{t('mutationTarget')}</span>
                         <div className="button-strip">
                           {(['all', 'selected'] as const).map((tgt) => (
                             <button key={tgt} className={slidersTarget === tgt ? 'active' : ''} onClick={() => setSlidersTarget(tgt)} style={{ cursor: 'pointer' }}>
-                              {tgt === 'all' ? 'ALL COLORS' : 'ACTIVE COLOR'}
+                              {tgt === 'all' ? t('allColors') : t('activeColor')}
                             </button>
                           ))}
                         </div>
@@ -1381,14 +1417,14 @@ export default function Cran3oColorStudio() {
                     </div>
                     <div className="sliders-grid">
                       {[
-                        ['temperature', 'TEMPERATURE', sliders.temperature > 50 ? `WARM ${sliders.temperature}` : sliders.temperature < 50 ? `COOL ${sliders.temperature}` : 'NEUTRAL', 'Ajusta hacia tonos fríos (pizarra/zinc) o cálidos (terracota/madera).'],
-                        ['muting', 'MUTING', `${sliders.muting}%`, 'Muteado: Reduce la pureza cromática hacia tonos yeso/hormigón neutros y minerales.'],
-                        ['contrast', 'CONTRAST', `${sliders.contrast}%`, 'Contraste: Incrementa la diferencia de luz (LRV) entre paredes, suelos y carpintería.'],
-                        ['luminosity', 'LUMINOSITY', `${sliders.luminosity}%`, 'Luminosidad: Sube o baja la reflectancia general de la paleta (sol de mediodía vs crepúsculo).'],
-                        ['cinematicFog', 'CINEMATIC FOG', `${sliders.cinematicFog}%`, 'Niebla Cinemática: Aplica un velo mate y atmosférico (efecto arenado o difuso).'],
-                        ['materialFeel', 'MATERIAL FEEL', `${sliders.materialFeel}%`, 'Sensación de Material: Ajusta los valores para simular texturas orgánicas rugosas y mate.'],
-                        ['warmAccent', 'WARM ACCENT', `${sliders.warmAccent}%`, 'Acento Cálido: Resalta detalles metálicos o maderas (como cobre, bronce o roble).'],
-                        ['futurism', 'VISIBLE FUTURISM', `${sliders.futurism}%`, 'Futurismo Visible: Desvía matices hacia tonos sofisticados y silenciosos de la arquitectura premium.'],
+                        ['temperature', lang === 'es' ? 'TEMPERATURA' : 'TEMPERATURE', sliders.temperature > 50 ? (lang === 'es' ? `CÁLIDO ${sliders.temperature}` : `WARM ${sliders.temperature}`) : sliders.temperature < 50 ? (lang === 'es' ? `FRÍO ${sliders.temperature}` : `COOL ${sliders.temperature}`) : (lang === 'es' ? 'NEUTRO' : 'NEUTRAL'), lang === 'es' ? 'Ajusta hacia tonos fríos (pizarra/zinc) o cálidos (terracota/madera).' : 'Adjust towards cool (slate/zinc) or warm (terracota/wood) tones.'],
+                        ['muting', lang === 'es' ? 'APAGADO' : 'MUTING', `${sliders.muting}%`, lang === 'es' ? 'Muteado: Reduce la pureza cromática hacia tonos yeso/hormigón neutros y minerales.' : 'Muted: Reduces chromatic purity towards neutral plaster/concrete tones.'],
+                        ['contrast', lang === 'es' ? 'CONTRASTE' : 'CONTRAST', `${sliders.contrast}%`, lang === 'es' ? 'Contraste: Incrementa la diferencia de luz (LRV) entre paredes, suelos y carpintería.' : 'Contrast: Increases light reflectance (LRV) difference between walls, floors, and openings.'],
+                        ['luminosity', lang === 'es' ? 'LUMINOSIDAD' : 'LUMINOSITY', `${sliders.luminosity}%`, lang === 'es' ? 'Luminosidad: Sube o baja la reflectancia general de la paleta (sol de mediodía vs crepúsculo).' : 'Luminosity: Raises or lowers general reflectance (midday sun vs twilight).'],
+                        ['cinematicFog', lang === 'es' ? 'NIEBLA CINEMÁTICA' : 'CINEMATIC FOG', `${sliders.cinematicFog}%`, lang === 'es' ? 'Niebla Cinemática: Aplica un velo mate y atmosférico (efecto arenado o difuso).' : 'Cinematic Fog: Applies a matte and atmospheric veil (sandblasted or diffuse effect).'],
+                        ['materialFeel', lang === 'es' ? 'TACTO DE MATERIAL' : 'MATERIAL FEEL', `${sliders.materialFeel}%`, lang === 'es' ? 'Sensación de Material: Ajusta los valores para simular texturas orgánicas rugosas y mate.' : 'Material Feel: Adjusts values to simulate rough, matte organic textures.'],
+                        ['warmAccent', lang === 'es' ? 'ACENTO CÁLIDO' : 'WARM ACCENT', `${sliders.warmAccent}%`, lang === 'es' ? 'Acento Cálido: Resalta detalles metálicos o maderas (como cobre, bronce o roble).' : 'Warm Accent: Highlights metallic details or wood tones (like copper, bronze, or oak).'],
+                        ['futurism', lang === 'es' ? 'FUTURISMO VISIBLE' : 'VISIBLE FUTURISM', `${sliders.futurism}%`, lang === 'es' ? 'Futurismo Visible: Desvía matices hacia tonos sofisticados y silenciosos de la arquitectura premium.' : 'Visible Futurism: Offsets hues towards sophisticated, quiet tones of premium architecture.'],
                       ].map(([key, label, value, tooltip]) => (
                         <div key={key} className="blender-slider-wrapper" title={tooltip} style={{ cursor: 'help' }}>
                           <input 
@@ -1444,10 +1480,10 @@ export default function Cran3oColorStudio() {
                         <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
                           <MaterialIcon name="settings" size={14} />
                         </span>
-                        COLOR IDENTITY
+                        {t('colorIdentity')}
                       </h3>
                       <p className="section-description" style={{ margin: '4px 0 0' }}>
-                        Tune the studio&apos;s long-term color bias: quiet, material, legible, and controlled.
+                        {t('colorIdentityDesc')}
                       </p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', marginLeft: '12px' }}>
@@ -1459,7 +1495,7 @@ export default function Cran3oColorStudio() {
                   <button
                     onClick={() => setInfoIdentityOpen(!infoIdentityOpen)}
                     style={{ background: 'none', border: 'none', color: infoIdentityOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
-                    title="Ayuda de la herramienta"
+                    title={t('toolHelp')}
                   >
                     <MaterialIcon name="info" size={14} />
                   </button>
@@ -1478,9 +1514,9 @@ export default function Cran3oColorStudio() {
                     marginBottom: '14px',
                     marginTop: '10px'
                   }}>
-                    <strong>¿Qué es?</strong> La constitución matemática de tu estudio; impone restricciones fijas a las variaciones procedimentales.
+                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('colorIdentityHelpWhat')}
                     <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Ajusta los límites de Croma Máximo, Rango de Luz (LRV) y Armonías. El motor descartará y corregirá automáticamente los colores generados por sliders o mutaciones que intenten exceder estos límites.
+                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('colorIdentityHelpHow')}
                   </div>
                 )}
                 {identityOpen && (
@@ -1489,6 +1525,7 @@ export default function Cran3oColorStudio() {
                       identity={identity} 
                       onIdentityChange={handleIdentitySliderChange} 
                       onInteractionEnd={handleIdentityInteractionEnd} 
+                      lang={lang}
                     />
                   </div>
                 )}
@@ -1519,10 +1556,10 @@ export default function Cran3oColorStudio() {
                       <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
                         <MaterialIcon name="menu_book" size={14} />
                       </span>
-                      ARCHITECTURAL CMF GUIDE
+                      {t('architecturalCmfGuide')}
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>
-                      Read OKLCH values as spatial decisions: plaster, stone, textile, metal, and shadow.
+                      {t('cmfGuideDesc')}
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
@@ -1534,44 +1571,44 @@ export default function Cran3oColorStudio() {
                 {helpOpen && (
                   <div className="collapsible-content CmfGuide" style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                     <div style={{ borderBottom: '1px dashed var(--border-medium)', paddingBottom: '10px' }}>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>COORDINATES (OKLCH) TO PHYSICAL MATERIALS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>{lang === 'es' ? 'COORDENADAS (OKLCH) A MATERIALES FÍSICOS' : 'COORDINATES (OKLCH) TO PHYSICAL MATERIALS'}</h4>
                       <ul style={{ listStyleType: 'none', paddingLeft: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <li>
-                          <strong>Lightness (L) / LRV:</strong> Measures Light Reflectance Value.
+                          <strong>{lang === 'es' ? 'Luminosidad (L) / LRV:' : 'Lightness (L) / LRV:'}</strong> {t('lrvLightnessDesc')}
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.95: Plaster / Chalk</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.55: Concrete / Stone</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>L ~0.20: Steel / Graphite</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'L ~0.95: Yeso / Tiza' : 'L ~0.95: Plaster / Chalk'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'L ~0.55: Hormigón / Piedra' : 'L ~0.55: Concrete / Stone'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'L ~0.20: Acero / Grafito' : 'L ~0.20: Steel / Graphite'}</span>
                           </div>
                         </li>
                         <li>
-                          <strong>Chroma (C) / Purity:</strong> Determines color cleanliness. Low chroma ensures spatial serenity.
+                          <strong>{lang === 'es' ? 'Croma (C) / Pureza:' : 'Chroma (C) / Purity:'}</strong> {t('chromaPurityDesc')}
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.00-0.03: Concrete, Slate, Nickel</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C 0.04-0.08: Travertine, Oak, Limestone</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>C &gt; 0.10: Synthetic Accents</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'C 0.00-0.03: Hormigón, Pizarra, Níquel' : 'C 0.00-0.03: Concrete, Slate, Nickel'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'C 0.04-0.08: Travertino, Roble, Caliza' : 'C 0.04-0.08: Travertine, Oak, Limestone'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'C > 0.10: Acentos Sintéticos' : 'C > 0.10: Synthetic Accents'}</span>
                           </div>
                         </li>
                         <li>
-                          <strong>Hue (H) / Temperature:</strong> Angle of tint (0° - 360°).
+                          <strong>{lang === 'es' ? 'Tono (H) / Temperatura:' : 'Hue (H) / Temperature:'}</strong> {t('hueTempDesc')}
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px', opacity: 0.8, fontSize: 'var(--font-size-xxs)' }}>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~35°: Terracotta / Clay</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~75°: Warm Travertine / Oak</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~135°: Lichen / Moss Green</span>
-                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>H ~220°: Slate Blue / Zinc Grey</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'H ~35°: Terracota / Arcilla' : 'H ~35°: Terracotta / Clay'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'H ~75°: Travertino Cálido / Roble' : 'H ~75°: Warm Travertine / Oak'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'H ~135°: Liquen / Verde Musgo' : 'H ~135°: Lichen / Moss Green'}</span>
+                            <span style={{ background: 'var(--bg-panel-deep)', padding: '2px 4px', borderRadius: '2px' }}>{lang === 'es' ? 'H ~220°: Azul Pizarra / Gris Zinc' : 'H ~220°: Slate Blue / Zinc Grey'}</span>
                           </div>
                         </li>
                       </ul>
                     </div>
 
                     <div>
-                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>PRACTICAL WORKFLOW TIPS</h4>
+                      <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontFamily: "var(--font-mono)" }}>{t('workflowTips')}</h4>
                       <p style={{ margin: 0, lineHeight: 1.4 }}>
-                        1. <strong>Contrast Rule:</strong> Ensure text and background have an APCA Lc score of at least 75 for clear reading.
+                        {t('tip1')}
                         <br />
-                        2. <strong>Structure vs Details:</strong> Use low chroma (C &lt; 0.05) for ceilings, floors, and main walls. Keep accents (C ~ 0.08) reserved for secondary highlights or furniture elements.
+                        {t('tip2')}
                         <br />
-                        3. <strong>Locking Colors:</strong> Click the lock icon on a color card to keep it fixed while generating harmony relationships.
+                        {t('tip3')}
                       </p>
                     </div>
                   </div>
@@ -1585,7 +1622,7 @@ export default function Cran3oColorStudio() {
               
               {/* Live Mockup Preview */}
               <section className="studio-panel calculator-face">
-                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} />
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} />
               </section>
 
             </aside>
@@ -1598,16 +1635,16 @@ export default function Cran3oColorStudio() {
                 <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      HARMONY RULES
+                      {t('harmonyRules')}
                       <button
                         onClick={() => setInfoHarmonyRulesOpen(!infoHarmonyRulesOpen)}
                         style={{ background: 'none', border: 'none', color: infoHarmonyRulesOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Ayuda de la herramienta"
+                        title={t('toolHelp')}
                       >
                         <MaterialIcon name="info" size={14} />
                       </button>
                     </h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Choose the governing relationship for the active color system.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>{t('harmonyRulesDesc')}</p>
                   </div>
                 </div>
 
@@ -1623,9 +1660,9 @@ export default function Cran3oColorStudio() {
                     fontFamily: 'var(--font-mono)',
                     marginBottom: '10px'
                   }}>
-                    <strong>¿Qué es?</strong> Fórmulas geométricas que distribuyen de forma armónica los tonos basándose en un origen.
+                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('harmonyRulesHelpWhat')}
                     <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Elige una regla de color (Monocromático, Complementario, etc.) para calcular la paleta. Los colores no bloqueados se reubicarán automáticamente al rededor del color ancla (marcado en las tiras con el icono de ancla).
+                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('harmonyRulesHelpHow')}
                   </div>
                 )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1637,8 +1674,8 @@ export default function Cran3oColorStudio() {
                         className={`harmony-rule-btn ${isActive ? 'active' : ''}`}
                         onClick={() => handleHarmonyChange(harmony.id)}
                       >
-                        <span className="harmony-rule-name">{harmony.name}</span>
-                        <span className="harmony-rule-desc">{harmony.description}</span>
+                        <span className="harmony-rule-name">{t((harmony.id + 'Name') as keyof typeof TRANSLATIONS['en']) || harmony.name}</span>
+                        <span className="harmony-rule-desc">{t((harmony.id + 'Desc') as keyof typeof TRANSLATIONS['en']) || harmony.description}</span>
                       </button>
                     );
                   })}
@@ -1667,7 +1704,7 @@ export default function Cran3oColorStudio() {
                 >
                   <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                     <MaterialIcon name="menu_book" size={14} />
-                    CMF GUIDE
+                    {t('cmfGuide')}
                   </h3>
                   <span style={{ transform: helpOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
                     <MaterialIcon name="keyboard_arrow_right" size={18} />
@@ -1676,16 +1713,16 @@ export default function Cran3oColorStudio() {
                 {helpOpen && (
                   <div style={{ fontSize: 'var(--font-size-xxs)', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div>
-                      <strong>LRV (Lightness):</strong>
-                      <div style={{ opacity: 0.8 }}>L ~0.95: Plaster | L ~0.55: Concrete | L ~0.20: Steel</div>
+                      <strong>{lang === 'es' ? 'LRV (Luminosidad):' : 'LRV (Lightness):'}</strong>
+                      <div style={{ opacity: 0.8 }}>{lang === 'es' ? 'L ~0.95: Yeso | L ~0.55: Hormigón | L ~0.20: Acero' : 'L ~0.95: Plaster | L ~0.55: Concrete | L ~0.20: Steel'}</div>
                     </div>
                     <div>
-                      <strong>Chroma (Purity):</strong>
-                      <div style={{ opacity: 0.8 }}>C 0.0-0.03: Slate | C 0.04-0.08: Travertine/Wood</div>
+                      <strong>{lang === 'es' ? 'Croma (Pureza):' : 'Chroma (Purity):'}</strong>
+                      <div style={{ opacity: 0.8 }}>{lang === 'es' ? 'C 0.0-0.03: Pizarra | C 0.04-0.08: Travertino/Madera' : 'C 0.0-0.03: Slate | C 0.04-0.08: Travertine/Wood'}</div>
                     </div>
                     <div>
-                      <strong>Hue (Temperature):</strong>
-                      <div style={{ opacity: 0.8 }}>H ~35°: Clay | H ~75°: Oak | H ~135°: Lichen</div>
+                      <strong>{lang === 'es' ? 'Tono (Temperatura):' : 'Hue (Temperature):'}</strong>
+                      <div style={{ opacity: 0.8 }}>{lang === 'es' ? 'H ~35°: Arcilla | H ~75°: Roble | H ~135°: Liquen' : 'H ~35°: Clay | H ~75°: Oak | H ~135°: Lichen'}</div>
                     </div>
                   </div>
                 )}
@@ -1699,19 +1736,19 @@ export default function Cran3oColorStudio() {
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      GEOMETRIC HARMONY
+                      {t('geometricHarmony')}
                       <button
                         onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
                         style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Ayuda de la herramienta"
+                        title={t('toolHelp')}
                       >
                         <MaterialIcon name="info" size={14} />
                       </button>
                     </h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Move the system points while preserving the selected harmony logic.</p>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>{t('geometricHarmonyDesc')}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="control-label-mini" style={{ margin: 0 }}>PICKER</span>
+                    <span className="control-label-mini" style={{ margin: 0 }}>{t('picker')}</span>
                     <div className="button-strip">
                       {(['wheel', 'plane_lc', 'plane_hc'] as const).map((shape) => (
                         <button
@@ -1720,7 +1757,7 @@ export default function Cran3oColorStudio() {
                           onClick={() => setPickerShape(shape)}
                           style={{ cursor: 'pointer', padding: '3px 8px', fontSize: '0.65rem' }}
                         >
-                          {shape === 'wheel' ? 'WHEEL' : shape === 'plane_lc' ? 'L-C' : 'H-C'}
+                          {shape === 'wheel' ? t('wheel') : shape === 'plane_lc' ? t('lc') : t('hc')}
                         </button>
                       ))}
                     </div>
@@ -1740,9 +1777,9 @@ export default function Cran3oColorStudio() {
                     marginBottom: '14px',
                     width: '100%'
                   }}>
-                    <strong>¿Qué es?</strong> Un visualizador geométrico interactivo de armonías en el espacio cromático polar OKLCH.
+                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('geometricHarmonyHelpWhat')}
                     <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Arrastra el nodo base (ancla) para rotar o escalar toda la paleta de forma coordinada según la regla activa. Las líneas punteadas muestran las conexiones proporcionales entre tonos.
+                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('geometricHarmonyHelpHow')}
                   </div>
                 )}
 
@@ -1758,12 +1795,13 @@ export default function Cran3oColorStudio() {
                   pickerShape={pickerShape}
                   drawHarmonyLines={true}
                   harmonyBaseColorId={harmonyBaseColorId}
+                  lang={lang}
                 />
               </section>
 
               <div className="harmony-control-row">
-                <label className="palette-size-control harmony-size-control" title="Palette size">
-                  <span>Size</span>
+                <label className="palette-size-control harmony-size-control" title={t('paletteSize')}>
+                  <span>{t('paletteSize')}</span>
                   <input
                     type="range"
                     min={MIN_PALETTE_SIZE}
@@ -1774,7 +1812,7 @@ export default function Cran3oColorStudio() {
                   <strong>{paletteSize}</strong>
                 </label>
                 <span className="harmony-count-note">
-                  {colors.length} colors active
+                  {colors.length} {t('colorsActive')}
                 </span>
               </div>
 
@@ -1815,7 +1853,7 @@ export default function Cran3oColorStudio() {
                               });
                               updateColorsAndPushHistory(nextColors);
                             }}
-                            title={isBase ? "Harmony Anchor Base Color" : "Set as Harmony Anchor"}
+                            title={isBase ? t('anchorBase') : t('setAnchor')}
                           >
                             <MaterialIcon name={isBase ? "anchor" : "pin_drop"} size={11} />
                           </button>
@@ -1825,7 +1863,7 @@ export default function Cran3oColorStudio() {
                               e.stopPropagation();
                               handleToggleLock(color.id);
                             }}
-                            title={color.locked ? "Unlock Color" : "Lock Color"}
+                            title={color.locked ? t('unlockColor') : t('lockColor')}
                             style={{ color: color.locked ? "var(--button-amber)" : "rgba(255,255,255,0.85)" }}
                           >
                             <MaterialIcon name={color.locked ? "lock" : "lock_open"} size={11} />
@@ -1952,17 +1990,17 @@ export default function Cran3oColorStudio() {
             {/* COLUMN 3: Sticky Previews & Metrology (Right) */}
             <aside className="right-column sticky-sidebar stack">
               <section className="studio-panel calculator-face">
-                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} />
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} />
               </section>
 
               <section className="studio-panel calculator-face">
                 <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    METROLOGY & ENGINE
+                    {t('metrologyEngine')}
                     <button
                       onClick={() => setInfoMetrologyOpen(!infoMetrologyOpen)}
                       style={{ background: 'none', border: 'none', color: infoMetrologyOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      title="Ayuda de la herramienta"
+                      title={t('toolHelp')}
                     >
                       <MaterialIcon name="info" size={14} />
                     </button>
@@ -1981,24 +2019,24 @@ export default function Cran3oColorStudio() {
                     fontFamily: 'var(--font-mono)',
                     marginBottom: '10px'
                   }}>
-                    <strong>¿Qué es?</strong> Control de parámetros del lienzo y del motor de mutación rápida.
+                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('metrologyEngineHelpWhat')}
                     <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Cambia el tamaño total de la paleta con la barra deslizadora. Configura la fuerza del motor y haz clic en REFINE (suavizar) o MUTATE (alterar) para recalcular los colores que no estén bloqueados.
+                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('metrologyEngineHelpHow')}
                   </div>
                 )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)' }}>
-                    <span>PALETTE SIZE</span>
+                    <span>{t('paletteSize').toUpperCase()}</span>
                     <strong>{colors.length}</strong>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={handleRefinePalette} className="calculator-action secondary" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>REFINE</button>
-                    <button onClick={handleMutatePalette} className="calculator-action amber" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>MUTATE</button>
+                    <button onClick={handleRefinePalette} className="calculator-action secondary" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>{t('refine')}</button>
+                    <button onClick={handleMutatePalette} className="calculator-action amber" style={{ flex: 1, minHeight: '28px', fontSize: '0.7rem' }}>{t('mutate')}</button>
                   </div>
                   <div className="button-strip" style={{ width: '100%' }}>
                     {(['subtle', 'balanced', 'bold'] as MutationStrength[]).map((strength) => (
                       <button key={strength} className={mutationStrength === strength ? 'active' : ''} onClick={() => setMutationStrength(strength)} style={{ cursor: 'pointer', flex: 1, padding: '4px', fontSize: '0.65rem' }}>
-                        {strength.toUpperCase()}
+                        {lang === 'es' ? (strength === 'subtle' ? 'SUAVE' : strength === 'balanced' ? 'MODERADA' : 'ATREVIDA') : strength.toUpperCase()}
                       </button>
                     ))}
                   </div>

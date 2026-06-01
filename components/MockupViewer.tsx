@@ -5,6 +5,7 @@ import { ColorData, ColorRole, DesignMode } from '../types';
 import { createColorFromHex } from '../lib/color-spaces';
 import { checkApca, getWcagContrast } from '../lib/accessibility';
 import MaterialIcon from './MaterialIcon';
+import { TRANSLATIONS } from '../data/translations';
 
 function splitName(name: string): string[] {
   if (name.length <= 15) return [name];
@@ -32,6 +33,7 @@ interface MockupViewerProps {
   mode: DesignMode;
   onModeChange: (newMode: DesignMode) => void;
   paletteName?: string;
+  lang?: 'en' | 'es';
 }
 
 type ResolvedRoleColors = {
@@ -131,57 +133,61 @@ function resolveColorRoles(colors: ColorData[]): ResolvedRoleColors {
   return { bg, wall, floor, shadow, details, accent1, accent2, accentTeal };
 }
 
-function getModeDescription(mode: DesignMode): string {
-  if (mode === 'architecture') return 'Validate spatial calm, material hierarchy, daylight behavior, and accent control.';
-  if (mode === 'industrial') return 'Validate CMF zones, interface contrast, product legibility, and accent discipline.';
-  if (mode === 'graphic') return 'Validate hierarchy, tokens, editorial contrast, and brand signal.';
-  return 'Document the palette as a studio-ready specification sheet.';
+function getModeDescription(mode: DesignMode, lang: 'en' | 'es' = 'en'): string {
+  const tKey = mode === 'architecture' ? 'mockupDescArch' :
+               mode === 'industrial' ? 'mockupDescInd' :
+               mode === 'graphic' ? 'mockupDescGraph' : 'mockupDescSpec';
+  return TRANSLATIONS[lang]?.[tKey] || TRANSLATIONS['en'][tKey];
 }
 
-function getApplicationMap(mode: DesignMode, resolved: ResolvedRoleColors) {
+function getApplicationMap(mode: DesignMode, resolved: ResolvedRoleColors, lang: 'en' | 'es' = 'en') {
+  const t = (key: keyof typeof TRANSLATIONS['en']) => {
+    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key];
+  };
+
   if (mode === 'architecture') {
     return [
-      { label: 'Main wall', share: 34, color: resolved.wall },
-      { label: 'Floor / base', share: 22, color: resolved.floor },
-      { label: 'Ceiling / light', share: 16, color: resolved.bg },
-      { label: 'Furniture', share: 14, color: resolved.details },
-      { label: 'Accent', share: 6, color: resolved.accent1 },
-      { label: 'Detail line', share: 4, color: resolved.shadow },
-      { label: 'Secondary', share: 4, color: resolved.accentTeal },
+      { label: t('mapMainWall'), share: 34, color: resolved.wall },
+      { label: t('mapFloorBase'), share: 22, color: resolved.floor },
+      { label: t('mapCeilingLight'), share: 16, color: resolved.bg },
+      { label: t('mapFurniture'), share: 14, color: resolved.details },
+      { label: t('mapAccent'), share: 6, color: resolved.accent1 },
+      { label: t('mapDetailLine'), share: 4, color: resolved.shadow },
+      { label: t('mapSecondary'), share: 4, color: resolved.accentTeal },
     ];
   }
 
   if (mode === 'industrial') {
     return [
-      { label: 'Body shell', share: 38, color: resolved.wall },
-      { label: 'Base material', share: 22, color: resolved.floor },
-      { label: 'Interface', share: 14, color: resolved.shadow },
-      { label: 'Functional part', share: 10, color: resolved.details },
-      { label: 'Brand accent', share: 8, color: resolved.accent1 },
-      { label: 'Status signal', share: 8, color: resolved.accentTeal },
+      { label: t('mapBodyShell'), share: 38, color: resolved.wall },
+      { label: t('mapBaseMaterial'), share: 22, color: resolved.floor },
+      { label: t('mapInterface'), share: 14, color: resolved.shadow },
+      { label: t('mapFunctionalPart'), share: 10, color: resolved.details },
+      { label: t('mapBrandAccent'), share: 8, color: resolved.accent1 },
+      { label: t('mapStatusSignal'), share: 8, color: resolved.accentTeal },
     ];
   }
 
   if (mode === 'graphic') {
     return [
-      { label: 'Background', share: 34, color: resolved.bg },
-      { label: 'Surface', share: 20, color: resolved.wall },
-      { label: 'Primary block', share: 16, color: resolved.accent1 },
-      { label: 'Text', share: 12, color: resolved.shadow },
-      { label: 'Muted layer', share: 10, color: resolved.details },
-      { label: 'Signal', share: 8, color: resolved.accentTeal },
+      { label: t('mapBackground'), share: 34, color: resolved.bg },
+      { label: t('mapSurface'), share: 20, color: resolved.wall },
+      { label: t('mapPrimaryBlock'), share: 16, color: resolved.accent1 },
+      { label: t('mapText'), share: 12, color: resolved.shadow },
+      { label: t('mapMutedLayer'), share: 10, color: resolved.details },
+      { label: t('mapSignal'), share: 8, color: resolved.accentTeal },
     ];
   }
 
   return [
-    { label: 'Swatches', share: 50, color: resolved.wall },
-    { label: 'Metadata', share: 20, color: resolved.shadow },
-    { label: 'Background', share: 20, color: resolved.bg },
-    { label: 'Accent notes', share: 10, color: resolved.accent1 },
+    { label: t('mapSwatches'), share: 50, color: resolved.wall },
+    { label: t('mapMetadata'), share: 20, color: resolved.shadow },
+    { label: t('mapBackground'), share: 20, color: resolved.bg },
+    { label: t('mapAccentNotes'), share: 10, color: resolved.accent1 },
   ];
 }
 
-function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors): AssessmentItem[] {
+function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors, lang: 'en' | 'es' = 'en'): AssessmentItem[] {
   const wallFloorDelta = Math.abs(resolved.wall.oklch.l - resolved.floor.oklch.l);
   const wallDetailContrast = getWcagContrast(resolved.shadow.rgb, resolved.wall.rgb);
   const accentDelta = Math.abs(resolved.accent1.oklch.l - resolved.wall.oklch.l);
@@ -189,53 +195,57 @@ function getAssessment(mode: DesignMode, resolved: ResolvedRoleColors): Assessme
   const accentChroma = Math.max(resolved.accent1.oklch.c, resolved.accentTeal.oklch.c);
   const apca = checkApca(resolved.shadow.rgb, resolved.wall.rgb);
 
+  const t = (key: keyof typeof TRANSLATIONS['en']) => {
+    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key];
+  };
+
   if (mode === 'architecture') {
     return [
       {
-        label: 'Wall / floor separation',
+        label: t('assessWallFloorSep'),
         value: `${Math.round(wallFloorDelta * 100)} L`,
         status: wallFloorDelta >= 0.16 ? 'pass' : wallFloorDelta >= 0.09 ? 'warn' : 'fail',
-        detail: wallFloorDelta >= 0.16 ? 'Planes read clearly.' : 'Spatial planes may collapse.',
+        detail: wallFloorDelta >= 0.16 ? t('assessWallFloorSepPass') : t('assessWallFloorSepFail'),
       },
       {
-        label: 'Large-surface chroma',
+        label: t('assessLargeSurfChroma'),
         value: surfaceChroma.toFixed(3),
         status: surfaceChroma <= 0.08 ? 'pass' : surfaceChroma <= 0.12 ? 'warn' : 'fail',
-        detail: surfaceChroma <= 0.08 ? 'Calm enough for broad architectural surfaces.' : 'Surfaces may feel too graphic.',
+        detail: surfaceChroma <= 0.08 ? t('assessLargeSurfChromaPass') : t('assessLargeSurfChromaFail'),
       },
       {
-        label: 'Accent discipline',
+        label: t('assessAccentDiscipline'),
         value: accentChroma.toFixed(3),
         status: accentChroma <= 0.12 && accentDelta >= 0.12 ? 'pass' : accentChroma <= 0.16 ? 'warn' : 'fail',
-        detail: accentChroma <= 0.12 ? 'Accent can remain controlled.' : 'Accent may dominate the room.',
+        detail: accentChroma <= 0.12 ? t('assessAccentDisciplinePass') : t('assessAccentDisciplineFail'),
       },
       {
-        label: 'Detail readability',
+        label: t('assessDetailReadability'),
         value: `${wallDetailContrast.toFixed(1)}:1`,
         status: apca.largeText ? 'pass' : apca.nonText ? 'warn' : 'fail',
-        detail: apca.largeText ? 'Frames and edge details should remain legible.' : 'Linework needs stronger contrast.',
+        detail: apca.largeText ? t('assessDetailReadabilityPass') : t('assessDetailReadabilityFail'),
       },
     ];
   }
 
   return [
     {
-      label: 'Primary contrast',
+      label: t('assessPrimaryContrast'),
       value: `${wallDetailContrast.toFixed(1)}:1`,
       status: wallDetailContrast >= 4.5 ? 'pass' : wallDetailContrast >= 3 ? 'warn' : 'fail',
-      detail: wallDetailContrast >= 4.5 ? 'Core information can read cleanly.' : 'Core labels may need stronger contrast.',
+      detail: wallDetailContrast >= 4.5 ? t('assessPrimaryContrastPass') : t('assessPrimaryContrastFail'),
     },
     {
-      label: 'Accent signal',
+      label: t('assessAccentSignal'),
       value: accentChroma.toFixed(3),
       status: accentChroma >= 0.06 ? 'pass' : 'warn',
-      detail: accentChroma >= 0.06 ? 'Accent is distinct enough to guide attention.' : 'Accent may be too quiet.',
+      detail: accentChroma >= 0.06 ? t('assessAccentSignalPass') : t('assessAccentSignalFail'),
     },
     {
-      label: 'System restraint',
+      label: t('assessSystemRestraint'),
       value: surfaceChroma.toFixed(3),
       status: surfaceChroma <= 0.1 ? 'pass' : surfaceChroma <= 0.14 ? 'warn' : 'fail',
-      detail: surfaceChroma <= 0.1 ? 'Neutral structure stays disciplined.' : 'Base system may feel saturated.',
+      detail: surfaceChroma <= 0.1 ? t('assessSystemRestraintPass') : t('assessSystemRestraintFail'),
     },
   ];
 }
@@ -270,7 +280,7 @@ function getContrastColor(surfaceHex: string, resolved: ResolvedRoleColors): str
   }
 }
 
-export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec' }: MockupViewerProps) {
+export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec', lang = 'en' }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
   const [prevMode, setPrevMode] = useState<DesignMode>(mode);
 
@@ -279,9 +289,13 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     setActiveSubtype(getDefaultSubtype(mode));
   }
 
+  const t = (key: keyof typeof TRANSLATIONS['en']) => {
+    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key];
+  };
+
   const resolved = useMemo(() => resolveColorRoles(colors), [colors]);
-  const applicationMap = useMemo(() => getApplicationMap(mode, resolved), [mode, resolved]);
-  const assessment = useMemo(() => getAssessment(mode, resolved), [mode, resolved]);
+  const applicationMap = useMemo(() => getApplicationMap(mode, resolved, lang), [mode, resolved, lang]);
+  const assessment = useMemo(() => getAssessment(mode, resolved, lang), [mode, resolved, lang]);
 
   const bg = resolved.bg.hex;
   const wall = resolved.wall.hex;
@@ -336,7 +350,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="14" y1="290" x2="22" y2="290" stroke={textContrast} strokeOpacity="0.5" strokeWidth="0.8" />
         <text x="12" y="165" fill={textContrast} opacity="0.6" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
 
-        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A / MATERIAL VALUE TEST</text>
+        <text x="35" y="45" fill={textContrast} opacity="0.5" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpElevationAATest')}</text>
       </svg>
     );
   };
@@ -383,7 +397,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="18" y1="30" x2="18" y2="290" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
         <text x="12" y="165" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 12, 165)">3200 mm</text>
 
-        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION A-A (NIGHT) / LIGHT VALUE TEST</text>
+        <text x="35" y="45" fill={textContrast} opacity="0.3" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpElevationAANight')}</text>
       </svg>
     );
   };
@@ -409,14 +423,14 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </defs>
         <rect width="500" height="320" fill="url(#moodboard-grid)" />
 
-        <text x="25" y="28" fill={textContrast} opacity="0.7" fontSize="9" fontWeight="700" fontFamily="'Space Mono', monospace">CMF BOARD / SPATIAL MATERIAL SPECIFICATION</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.7" fontSize="9" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpCmfBoard')}</text>
 
         {/* Plaster sample */}
         <g transform="translate(25, 45)">
           <rect x="0" y="0" width="135" height="235" fill={boardBg} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="125" height="150" fill={wall} rx="2" />
           <path d="M15 170 H120 M15 185 H120 M15 200 H120" stroke={textContrast} strokeOpacity="0.08" />
-          <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">PLASTER / TEXTURE</text>
+          <text x="15" y="222" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpPlasterTexture')}</text>
           <text x="15" y="231" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {wall.toUpperCase()}</text>
         </g>
 
@@ -424,7 +438,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <g transform="translate(175, 45)">
           <rect x="0" y="0" width="140" height="110" fill={wall} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={floor} rx="2" />
-          <text x="12" y="93" fill={wallText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SURFACE WALL</text>
+          <text x="12" y="93" fill={wallText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpSurfaceWall')}</text>
           <text x="12" y="102" fill={wallText} opacity="0.65" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {floor.toUpperCase()}</text>
         </g>
 
@@ -432,7 +446,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <g transform="translate(175, 170)">
           <rect x="0" y="0" width="140" height="110" fill={floor} rx="3" stroke={textContrast} strokeOpacity="0.15" />
           <rect x="5" y="5" width="130" height="70" fill={details} rx="2" />
-          <text x="12" y="93" fill={floorText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">STONE / CONCRETE</text>
+          <text x="12" y="93" fill={floorText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpStoneConcrete')}</text>
           <text x="12" y="102" fill={floorText} opacity="0.65" fontSize="7" fontFamily="'Space Mono', monospace">VAL: {details.toUpperCase()}</text>
         </g>
 
@@ -440,23 +454,23 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <g transform="translate(330, 45)">
           {/* Accent 1 */}
           <rect x="0" y="0" width="145" height="65" fill={accent1} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="45" fill={accent1Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ACCENT PRIMARY</text>
+          <text x="12" y="45" fill={accent1Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpAccentPrimary')}</text>
           <text x="12" y="54" fill={accent1Text} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accent1.toUpperCase()}</text>
 
           {/* Accent Teal */}
           <rect x="0" y="75" width="145" height="65" fill={accentTeal} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="120" fill={accentTealText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ACCENT SIGNAL</text>
+          <text x="12" y="120" fill={accentTealText} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpAccentSignal')}</text>
           <text x="12" y="129" fill={accentTealText} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accentTeal.toUpperCase()}</text>
 
           {/* Accent 2 */}
           <rect x="0" y="150" width="145" height="85" fill={accent2} rx="3" stroke={textContrast} strokeOpacity="0.15" />
-          <text x="12" y="215" fill={accent2Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SECONDARY ACCENT</text>
+          <text x="12" y="215" fill={accent2Text} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpSecondaryAccent')}</text>
           <text x="12" y="224" fill={accent2Text} opacity="0.72" fontSize="7" fontFamily="'Space Mono', monospace">{accent2.toUpperCase()}</text>
         </g>
 
         {/* Technical notes */}
         <line x1="25" y1="295" x2="475" y2="295" stroke={textContrast} strokeOpacity="0.15" />
-        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">{"CRAN3O COLOR LAB SPECIFICATION // OKLCH SYSTEM CONTROL"}</text>
+        <text x="25" y="307" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">{t('bpCran3oSpec')}</text>
       </svg>
     );
   };
@@ -474,7 +488,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           </pattern>
         </defs>
         
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ELEVATION & PROFILE: DESKTOP SPEAKER</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpElevationProfileSpeaker')}</text>
 
         {/* FRONT VIEW */}
         <g transform="translate(60, 50)">
@@ -490,7 +504,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <rect x="40" y="180" width="40" height="8" fill={floor} rx="2" />
           <circle cx="85" cy="184" r="2.5" fill={accentTeal} />
           
-          <text x="60" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">FRONT ELEVATION</text>
+          <text x="60" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpFrontElevation')}</text>
         </g>
 
         {/* SIDE PROFILE VIEW */}
@@ -507,7 +521,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <rect x="15" y="200" width="25" height="6" fill={shadow} rx="1" />
           <rect x="90" y="200" width="25" height="6" fill={shadow} rx="1" />
 
-          <text x="65" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">SIDE PROFILE</text>
+          <text x="65" y="-10" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpSideProfile')}</text>
         </g>
 
         {/* TECHNICAL DIMENSION LINES */}
@@ -524,7 +538,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="60" y1="50" x2="420" y2="50" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         <line x1="60" y1="250" x2="420" y2="250" stroke={textContrast} strokeOpacity="0.1" strokeDasharray="2,4" />
         
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">HOUSING [SRF]: {wall.toUpperCase()}{" // "}DIALS [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpHousingSrf')}: {wall.toUpperCase()}{" // "}{t('bpDialsMut')}: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -536,7 +550,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">TUBE FRAME LOUNGE CHAIR / CAD SHEET</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpChairCadSheet')}</text>
 
         {/* FRONT VIEW */}
         <g transform="translate(60, 60)">
@@ -549,7 +563,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <line x1="30" y1="105" x2="30" y2="180" stroke={details} strokeWidth="3.5" />
           <line x1="90" y1="105" x2="90" y2="180" stroke={details} strokeWidth="3.5" />
 
-          <text x="60" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">ALZADO FRONTAL (FRONT)</text>
+          <text x="60" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpAlzadoFrontalFront')}</text>
         </g>
 
         {/* SIDE VIEW */}
@@ -561,7 +575,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <path d="M 15 105 L 15 90 Q 15 80 40 80 L 80 80 Q 95 80 95 105 L 95 180" fill="none" stroke={shadow} strokeWidth="3.5" strokeLinecap="round" />
           <line x1="10" y1="180" x2="105" y2="180" stroke={details} strokeWidth="3" />
 
-          <text x="55" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">ALZADO LATERAL (PROFILE)</text>
+          <text x="55" y="210" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpAlzadoLateralProfile')}</text>
         </g>
 
         {/* Alignment Lines */}
@@ -575,7 +589,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <line x1="31" y1="240" x2="39" y2="240" stroke={textContrast} strokeOpacity="0.4" strokeWidth="0.8" />
         <text x="27" y="170" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 27, 170)">820.0 mm</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">CUSHION [ACC1]: {accent1.toUpperCase()}{" // "}SHELL [ACC2]: {accent2.toUpperCase()}{" // "}TUBE [MUT]: {details.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpCushionAcc1')}: {accent1.toUpperCase()}{" // "}{t('bpShellAcc2')}: {accent2.toUpperCase()}{" // "}{t('bpTubeMut')}: {details.toUpperCase()}</text>
       </svg>
     );
   };
@@ -587,7 +601,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">DIGITAL CALIPER / CMF METROLOGY INSTRUMENT</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpDigitalCaliper')}</text>
 
         <g transform="translate(50, 110)">
           <rect x="0" y="30" width="370" height="26" fill={floor} rx="2" stroke={textContrast} strokeOpacity="0.2" />
@@ -612,7 +626,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <circle cx="205" cy="54" r="4.5" fill={accent2} />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">BEAM [BDR]: {floor.toUpperCase()}{" // "}DISPLAY CASE [TXT]: {shadow.toUpperCase()}{" // "}MOVABLE JAW [SRF]: {wall.toUpperCase()}</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpBeamBdr')}: {floor.toUpperCase()}{" // "}{t('bpDisplayCaseTxt')}: {shadow.toUpperCase()}{" // "}{t('bpMovableJawSrf')}: {wall.toUpperCase()}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.1" />
       </svg>
     );
@@ -625,7 +639,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
     const textContrast = getContrastColor(bg, resolved);
     return (
       <svg viewBox="0 0 500 320" width="100%" height="100%" style={{ background: bg, borderRadius: '4px' }}>
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">ESPRESSO MACHINE ELEVATION / DOMESTIC APPLIANCE CMF</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpEspressoElevation')}</text>
 
         <g transform="translate(180, 45)">
           <rect x="0" y="20" width="130" height="200" fill={wall} rx="4" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1.5" />
@@ -653,12 +667,12 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </g>
 
         <line x1="130" y1="65" x2="180" y2="65" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
-        <text x="120" y="68" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="end">BOILER PRESSURE GAUGE</text>
+        <text x="120" y="68" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="end">{t('bpBoilerPressure')}</text>
 
         <line x1="310" y1="140" x2="350" y2="140" stroke={textContrast} strokeOpacity="0.2" strokeWidth="0.8" />
-        <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="start">PORTAFILTER CMF ACCENT</text>
+        <text x="355" y="143" fill={textContrast} opacity="0.5" fontSize="7.5" fontFamily="'Space Mono', monospace" textAnchor="start">{t('bpPortafilterAccent')}</text>
 
-        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">CHASSIS [SRF]: {wall.toUpperCase()}{" // "}PORTAFILTER [TXT]: {shadow.toUpperCase()}{" // "}FLUIDS [ACC_TL]: {accentTeal.toUpperCase()}</text>
+        <text x="25" y="302" fill={textContrast} opacity="0.35" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpChassisSrf')}: {wall.toUpperCase()}{" // "}{t('bpPortafilterTxt')}: {shadow.toUpperCase()}{" // "}{t('bpFluidsAccTl')}: {accentTeal.toUpperCase()}</text>
       </svg>
     );
   };
@@ -681,7 +695,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <rect x="15" y="15" width="470" height="290" fill="none" stroke={textContrast} strokeOpacity="0.15" strokeWidth="1" />
 
         <text x="35" y="55" fill={textContrast} fontSize="28" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1.5">CRAN3O COLOR</text>
-        <text x="35" y="75" fill={accent1} fontSize="14" fontWeight="600" fontFamily="'Space Mono', monospace" letterSpacing="4">OKLCH CHROMATIC SYSTEM</text>
+        <text x="35" y="75" fill={accent1} fontSize="14" fontWeight="600" fontFamily="'Space Mono', monospace" letterSpacing="4">{t('bpOklchChromaticSystem')}</text>
 
         <g transform="translate(190, 40)">
           <path d="M 60 170 A 60 60 0 0 1 180 170 Z" fill={accent2} opacity="0.85" />
@@ -692,16 +706,16 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           <line x1="120" y1="30" x2="120" y2="190" stroke={textContrast} strokeOpacity="0.25" strokeWidth="1" />
         </g>
 
-        <text x="35" y="220" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">EDITION SWISS GRAPHICS LAB</text>
-        <text x="35" y="232" fill={textContrast} opacity="0.6" fontSize="7.5" fontFamily="'Space Mono', monospace">MAX CHROMA CAP: 0.10 OKLCH</text>
+        <text x="35" y="220" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpSwissGraphicsEdition')}</text>
+        <text x="35" y="232" fill={textContrast} opacity="0.6" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpMaxChromaCap')}</text>
         <text x="35" y="244" fill={accentTeal} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SYS.ACC_TL: {accentTeal.toUpperCase()}</text>
 
         <g transform="translate(360, 220)">
-          <text x="0" y="0" fill={textContrast} opacity="0.8" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">COLORWEIGHT PROPORTIONS</text>
+          <text x="0" y="0" fill={textContrast} opacity="0.8" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpColorweightProportions')}</text>
           <rect x="0" y="8" width="100" height="6" fill={wall} />
           <rect x="0" y="8" width="60" height="6" fill={accent1} />
           <rect x="0" y="8" width="30" height="6" fill={accentTeal} />
-          <text x="0" y="24" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">TOTAL SYSTEM HARMONY VALUE: PASS</text>
+          <text x="0" y="24" fill={textContrast} opacity="0.4" fontSize="7" fontFamily="'Space Mono', monospace">{t('bpTotalSystemHarmony')}</text>
         </g>
       </svg>
     );
@@ -726,7 +740,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <circle cx="48" cy="38" r="4.5" fill={accentTeal} />
         <circle cx="60" cy="38" r="4.5" fill={accent2} />
 
-        <text x="460" y="42" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="end">CRAN3O OS / LABORATORY DASHBOARD</text>
+        <text x="460" y="42" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="end">{t('bpCran3oOsDashboard')}</text>
 
         {/* Navigation Sidebar */}
         <rect x="35" y="65" width="100" height="220" fill={widgetBg} rx="3" stroke={details} strokeOpacity="0.2" />
@@ -738,7 +752,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         {/* Widgets */}
         <rect x="150" y="65" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="165" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">CORE TEMPERATURE</text>
+        <text x="165" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpCoreTemperature')}</text>
         <text x="165" y="120" fill={textContrast} fontSize="24" fontWeight="800" fontFamily="'Space Mono', monospace">38.4</text>
         <text x="235" y="110" fill={textContrast} opacity="0.7" fontSize="10" fontFamily="'Space Mono', monospace">°C</text>
         
@@ -747,16 +761,16 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         {/* Chart Widget */}
         <rect x="315" y="65" width="150" height="220" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="330" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">HARMONY METRIC</text>
+        <text x="330" y="85" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpHarmonyMetric')}</text>
         
         <path d="M 330 220 Q 355 130 380 180 T 430 110" fill="none" stroke={accent1} strokeWidth="3" strokeLinecap="round" />
         <path d="M 330 220 Q 355 130 380 180 T 430 110 L 430 230 L 330 230 Z" fill={accent1} opacity="0.08" />
         <circle cx="430" cy="110" r="4.5" fill={accentTeal} />
 
         <rect x="150" y="180" width="150" height="105" fill={widgetBg} rx="4" stroke={details} strokeOpacity="0.2" />
-        <text x="165" y="200" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">SYSTEM METRIC</text>
+        <text x="165" y="200" fill={details} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpSystemMetric')}</text>
         <text x="165" y="235" fill={textContrast} fontSize="18" fontWeight="800" fontFamily="'Space Mono', monospace">OKLCH OK</text>
-        <text x="165" y="255" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">CONTRAST Lc: 78.5</text>
+        <text x="165" y="255" fill={textContrast} opacity="0.5" fontSize="7" fontFamily="'Space Mono', monospace">{t('bpContrastLc')}</text>
       </svg>
     );
   };
@@ -781,18 +795,18 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         
         <rect x="360" y="28" width="40" height="8" fill={shadow} opacity="0.4" rx="1" />
         <rect x="415" y="26" width="40" height="12" fill={accent1} rx="2" />
-        <text x="435" y="34" fill="#ffffff" fontSize="6.5" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>GET</text>
+        <text x="435" y="34" fill="#ffffff" fontSize="6.5" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>{t('bpStartLab')}</text>
 
         <g transform="translate(35, 75)">
-          <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">Quiet Systems.</text>
-          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">Rams Aesthetic.</text>
-          <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="'Space Mono', monospace">OKLCH CHROMA CONTROL ENGINE</text>
+          <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">{t('bpQuietSystems')}</text>
+          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">{t('bpRamsAesthetic')}</text>
+          <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="'Space Mono', monospace">{t('bpOklchChromaEngine')}</text>
           
           <rect x="0" y="115" width="85" height="26" fill={accent1} rx="3" />
-          <text x="42.5" y="131" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>START LAB</text>
+          <text x="42.5" y="131" fill="#ffffff" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle" style={{ mixBlendMode: 'difference' }}>{t('bpStartLab')}</text>
 
           <rect x="100" y="115" width="85" height="26" fill="none" stroke={details} strokeWidth="1.5" rx="3" />
-          <text x="142.5" y="131" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle">EXPLORE</text>
+          <text x="142.5" y="131" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpExplore')}</text>
         </g>
 
         {/* 2D Geometric Composition */}
@@ -808,7 +822,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           
           <rect x="25" y="135" width="115" height="15" fill={accent1} rx="2" opacity="0.9" />
 
-          <text x="12" y="163" fill={textContrast} opacity="0.5" fontSize="6.5" fontFamily="'Space Mono', monospace">FIG 01. ENGINE CORE</text>
+          <text x="12" y="163" fill={textContrast} opacity="0.5" fontSize="6.5" fontFamily="'Space Mono', monospace">{t('bpFig01EngineCore')}</text>
         </g>
       </svg>
     );
@@ -829,14 +843,14 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         </defs>
         <rect width="500" height="320" fill="url(#packaging-grid)" />
 
-        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">DIE-CUT PACKAGING SLEEVE / FLAT LAYOUT</text>
+        <text x="25" y="28" fill={textContrast} opacity="0.6" fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace">{t('bpDieCutSleeve')}</text>
 
         <g transform="translate(30, 45)">
           <rect x="20" y="20" width="90" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="65" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle">REAR COVER</text>
+          <text x="65" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle">{t('bpRearCover')}</text>
 
           <rect x="110" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="125" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 125, 110)">SPINE A</text>
+          <text x="125" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 125, 110)">{t('bpSpineA')}</text>
 
           <rect x="140" y="20" width="90" height="180" fill={wall} stroke={textContrast} strokeOpacity="0.4" />
           
@@ -861,15 +875,15 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
           </g>
 
           <rect x="230" y="20" width="30" height="180" fill={floor} stroke={textContrast} strokeOpacity="0.4" strokeDasharray="3,3" />
-          <text x="245" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 245, 110)">SPINE B</text>
+          <text x="245" y="110" fill={textContrast} opacity="0.4" fontSize="8" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 245, 110)">{t('bpSpineB')}</text>
 
           <polygon points="260,30 280,45 280,175 260,190" fill={details} opacity="0.25" stroke={textContrast} strokeOpacity="0.4" />
-          <text x="270" y="110" fill={textContrast} opacity="0.3" fontSize="6.5" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 270, 110)">GLUE FLAP</text>
+          <text x="270" y="110" fill={textContrast} opacity="0.3" fontSize="6.5" fontFamily="'Space Mono', monospace" textAnchor="middle" transform="rotate(-90, 270, 110)">{t('bpGlueFlap')}</text>
 
           <path d="M 20 20 L 260 20 M 20 200 L 260 200" stroke={accent1} strokeWidth="1.2" strokeOpacity="0.5" />
         </g>
 
-        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">{"SOLID LINE: CUT // DASHED LINE: FOLD // ACCENT BAND: GLUE"}</text>
+        <text x="25" y="280" fill={textContrast} opacity="0.4" fontSize="7.5" fontFamily="'Space Mono', monospace">{t('bpSolidLineCut')}</text>
         <line x1="25" y1="262" x2="475" y2="262" stroke={textContrast} strokeOpacity="0.15" />
       </svg>
     );
@@ -885,8 +899,8 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
         <rect width="500" height="500" fill="#ffffff" />
         <line x1="20" y1="45" x2="480" y2="45" stroke={textContrast} strokeWidth="1" opacity="0.15" />
         <text x="20" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" letterSpacing="2">CRAN3O COLOR STUDIO</text>
-        <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="end" letterSpacing="1">SPEC.02 / SYSTEM PALETTE SHEET</text>
-        <text x="20" y="38" fill={textContrast} opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Space Mono', monospace">PALETTE: {paletteName.toUpperCase()}</text>
+        <text x="480" y="26" fill={textContrast} fontSize="8" fontWeight="700" fontFamily="'Space Mono', monospace" textAnchor="end" letterSpacing="1">{t('bpSpecSheet')}</text>
+        <text x="20" y="38" fill={textContrast} opacity="0.6" fontSize="9" fontWeight="600" fontFamily="'Space Mono', monospace">{t('bpPaletteLabel')}{paletteName.toUpperCase()}</text>
 
         {colors.map((color, i) => {
           const rowHeight = Math.floor(430 / colors.length);
@@ -1178,28 +1192,28 @@ const handleCopyMockupImage = async (event: React.MouseEvent<HTMLDivElement>) =>
   const getSubtypes = () => {
     if (mode === 'architecture') {
       return [
-        { id: 'day', label: 'Space', icon: <MaterialIcon name="wb_sunny" size={14} /> },
-        { id: 'night', label: 'Night', icon: <MaterialIcon name="dark_mode" size={14} /> },
-        { id: 'moodboard', label: 'Materials', icon: <MaterialIcon name="layers" size={14} /> },
+        { id: 'day', label: t('subtypeSpace'), icon: <MaterialIcon name="wb_sunny" size={14} /> },
+        { id: 'night', label: t('subtypeNight'), icon: <MaterialIcon name="dark_mode" size={14} /> },
+        { id: 'moodboard', label: t('subtypeMaterials'), icon: <MaterialIcon name="layers" size={14} /> },
       ];
     } else if (mode === 'industrial') {
       return [
-        { id: 'speaker', label: 'Speaker', icon: <MaterialIcon name="speaker" size={14} /> },
-        { id: 'chair', label: 'Chair', icon: <MaterialIcon name="chair" size={14} /> },
-        { id: 'tool', label: 'Tool', icon: <MaterialIcon name="straighten" size={14} /> },
-        { id: 'appliance', label: 'Appliance', icon: <MaterialIcon name="coffee_maker" size={14} /> },
+        { id: 'speaker', label: t('subtypeSpeaker'), icon: <MaterialIcon name="speaker" size={14} /> },
+        { id: 'chair', label: t('subtypeChair'), icon: <MaterialIcon name="chair" size={14} /> },
+        { id: 'tool', label: t('subtypeTool'), icon: <MaterialIcon name="straighten" size={14} /> },
+        { id: 'appliance', label: t('subtypeAppliance'), icon: <MaterialIcon name="coffee_maker" size={14} /> },
       ];
     } else if (mode === 'spec') {
       return [
-        { id: 'list', label: 'List', icon: <MaterialIcon name="article" size={14} /> },
-        { id: 'columns', label: 'Columns', icon: <MaterialIcon name="dashboard" size={14} /> },
+        { id: 'list', label: t('subtypeList'), icon: <MaterialIcon name="article" size={14} /> },
+        { id: 'columns', label: t('subtypeColumns'), icon: <MaterialIcon name="dashboard" size={14} /> },
       ];
     } else {
       return [
-        { id: 'poster', label: 'Poster', icon: <MaterialIcon name="article" size={14} /> },
-        { id: 'dashboard', label: 'UI', icon: <MaterialIcon name="dashboard" size={14} /> },
-        { id: 'landing', label: 'Hero', icon: <MaterialIcon name="web" size={14} /> },
-        { id: 'packaging', label: 'Sleeve', icon: <MaterialIcon name="inventory_2" size={14} /> },
+        { id: 'poster', label: t('subtypePoster'), icon: <MaterialIcon name="article" size={14} /> },
+        { id: 'dashboard', label: t('subtypeUi'), icon: <MaterialIcon name="dashboard" size={14} /> },
+        { id: 'landing', label: t('subtypeHero'), icon: <MaterialIcon name="web" size={14} /> },
+        { id: 'packaging', label: t('subtypeSleeve'), icon: <MaterialIcon name="inventory_2" size={14} /> },
       ];
     }
   };
@@ -1208,21 +1222,21 @@ const handleCopyMockupImage = async (event: React.MouseEvent<HTMLDivElement>) =>
     <div className="mockup-viewer-panel">
       <div className="mockup-panel-header">
         <div>
-          <h3 className="section-title">APPLIED COLOR LAB</h3>
-          <p className="section-description">{getModeDescription(mode)}</p>
+          <h3 className="section-title">{t('appliedColorLab')}</h3>
+          <p className="section-description">{getModeDescription(mode, lang)}</p>
         </div>
         <div className="mockup-panel-actions">
           <div className="mode-toggle-group mockup-mode-tabs" aria-label="Design mode">
             {(['architecture', 'industrial', 'graphic', 'spec'] as DesignMode[]).map((item) => (
               <button key={item} onClick={() => onModeChange(item)} className={`mode-btn ${mode === item ? 'active' : ''}`}>
-                {item === 'architecture' ? 'ARCH' : item === 'industrial' ? 'CMF' : item === 'graphic' ? 'GRAPHIC' : 'SPEC'}
+                {item === 'architecture' ? t('modeArch') : item === 'industrial' ? t('modeCmf') : item === 'graphic' ? t('modeGraphic') : t('modeSpec')}
               </button>
             ))}
           </div>
           <button 
             onClick={handleDownloadJpg} 
             className="calculator-action"
-            title="Download PNG (Square)"
+            title={t('downloadPngSquare')}
           >
             <MaterialIcon name="download" size={14} />
           </button>
@@ -1246,15 +1260,15 @@ const handleCopyMockupImage = async (event: React.MouseEvent<HTMLDivElement>) =>
         className="mockup-canvas-wrapper"
         style={{ aspectRatio: mode === 'spec' ? '1 / 1' : '500 / 320' }}
         onContextMenu={handleCopyMockupImage}
-        title="Right-click to copy this preview as an image"
+        title={t('rightClickCopyMockup')}
       >
         {renderActiveMockup()}
       </div>
 
       <div className="application-map">
         <div className="application-map-header">
-          <span>APPLICATION MAP</span>
-          <b>{mode === 'architecture' ? 'SPATIAL USE' : mode === 'industrial' ? 'CMF USE' : mode === 'graphic' ? 'SYSTEM USE' : 'SHEET USE'}</b>
+          <span>{t('applicationMap')}</span>
+          <b>{mode === 'architecture' ? t('spatialUse') : mode === 'industrial' ? t('cmfUse') : mode === 'graphic' ? t('systemUse') : t('sheetUse')}</b>
         </div>
         <div className="application-stack" aria-label="Applied color proportions">
           {applicationMap.map((item) => (

@@ -7,12 +7,14 @@ interface IdentityPanelProps {
   identity: UserIdentity;
   onIdentityChange: (updated: UserIdentity) => void;
   onInteractionEnd: () => void;
+  lang?: 'en' | 'es';
 }
 
 export default function IdentityPanel({
   identity,
   onIdentityChange,
   onInteractionEnd,
+  lang = 'en',
 }: IdentityPanelProps) {
   
   const handleSliderChange = (key: keyof UserIdentity, value: number) => {
@@ -26,7 +28,12 @@ export default function IdentityPanel({
     key: keyof UserIdentity;
     leftLabel: string;
     rightLabel: string;
-  }[] = [
+  }[] = lang === 'es' ? [
+    { key: 'temperature', leftLabel: 'FRÍO', rightLabel: 'CÁLIDO' },
+    { key: 'chroma', leftLabel: 'APAGADO', rightLabel: 'SATURADO' },
+    { key: 'contrast', leftLabel: 'CONTRASTE SUAVE', rightLabel: 'CONTRASTE FUERTE' },
+    { key: 'experimentality', leftLabel: 'CLÁSICO', rightLabel: 'EXPERIMENTAL' },
+  ] : [
     { key: 'temperature', leftLabel: 'COOL', rightLabel: 'WARM' },
     { key: 'chroma', leftLabel: 'MUTED', rightLabel: 'SATURATED' },
     { key: 'contrast', leftLabel: 'SOFT CONTRAST', rightLabel: 'STRONG CONTRAST' },
