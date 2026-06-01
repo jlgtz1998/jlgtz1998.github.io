@@ -225,9 +225,9 @@ export const TRANSLATIONS = {
     materialName: 'Material Palette',
     materialDesc: 'Tactile CMF-inspired tones: copper, travertine, concrete, and sage ash.',
     cinematicName: 'Cinematic Noir',
-    cinematicDesc: 'Blade Runner and Gabriel Fabra inspired low-key fog and localized accent glows.',
+    cinematicDesc: 'Atmospheric low-key fog and localized accent glows.',
     mutedFuturistName: 'Muted Futurist',
-    mutedFuturistDesc: 'Syd Mead transit style: matte metallics, graphite cells, and a petrol beacon.',
+    mutedFuturistDesc: 'Functional transit style: matte metallics, graphite cells, and a petrol beacon.',
 
     // Blueprint / CAD Labels
     bpElevationAATest: 'ELEVATION A-A / MATERIAL VALUE TEST',
@@ -272,7 +272,7 @@ export const TRANSLATIONS = {
     bpSystemMetric: 'SYSTEM METRIC',
     bpContrastLc: 'CONTRAST Lc: 78.5',
     bpQuietSystems: 'Quiet Systems.',
-    bpRamsAesthetic: 'Rams Aesthetic.',
+    bpFunctionalAesthetic: 'Functional Aesthetic.',
     bpOklchChromaEngine: 'OKLCH CHROMA CONTROL ENGINE',
     bpStartLab: 'START LAB',
     bpExplore: 'EXPLORE',
@@ -512,9 +512,9 @@ export const TRANSLATIONS = {
     materialName: 'Paleta de Materiales',
     materialDesc: 'Tonos CMF: cobre, travertino, hormigón y ceniza de salvia.',
     cinematicName: 'Cinematic Noir',
-    cinematicDesc: 'Inspirado en Blade Runner: niebla de clave baja y destellos de acento localizados.',
+    cinematicDesc: 'Niebla de clave baja y destellos de acento localizados.',
     mutedFuturistName: 'Futurista Silencioso',
-    mutedFuturistDesc: 'Estilo Dieter Rams: metales mate, celdas de grafito y un faro de gasolina.',
+    mutedFuturistDesc: 'Estilo funcional: metales mate, celdas de grafito y un faro de gasolina.',
 
     // Blueprint / CAD Labels
     bpElevationAATest: 'ALZADO A-A / PRUEBA DE VALOR DE MATERIAL',
@@ -559,7 +559,7 @@ export const TRANSLATIONS = {
     bpSystemMetric: 'MÉTRICA DEL SISTEMA',
     bpContrastLc: 'CONTRASTE Lc: 78.5',
     bpQuietSystems: 'Sistemas Silenciosos.',
-    bpRamsAesthetic: 'Estética de Rams.',
+    bpFunctionalAesthetic: 'Estética Funcional.',
     bpOklchChromaEngine: 'MOTOR DE CONTROL DE CROMA OKLCH',
     bpStartLab: 'INICIAR LAB',
     bpExplore: 'EXPLORAR',

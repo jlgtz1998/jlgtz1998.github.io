@@ -10,8 +10,8 @@ export const HARMONIES: HarmonyOption[] = [
   { id: 'achromatic', name: 'Achromatic', description: 'Zero chroma tones. Pure plaster white, nickel grey, and carbon soot.' },
   { id: 'warm-cool', name: 'Warm-Cool Balance', description: 'Sophisticated interplay of warm clay/brass against cool overcast mist.' },
   { id: 'material', name: 'Material Palette', description: 'Tactile CMF-inspired tones: copper, travertine, concrete, and sage ash.' },
-  { id: 'cinematic', name: 'Cinematic Noir', description: 'Blade Runner and Gabriel Fabra inspired low-key fog and localized accent glows.' },
-  { id: 'muted-futurist', name: 'Muted Futurist', description: 'Syd Mead transit style: matte metallics, graphite cells, and a petrol beacon.' },
+  { id: 'cinematic', name: 'Cinematic Noir', description: 'Atmospheric low-key fog and localized accent glows.' },
+  { id: 'muted-futurist', name: 'Muted Futurist', description: 'Retro-futurist transit style: matte metallics, graphite cells, and a petrol beacon.' },
 ];
 
 // Helper to keep chroma within professional ranges
@@ -199,7 +199,7 @@ export function generateHarmony(seed: OklchColor, harmonyId: string, maxChromaFa
     }
 
     case 'muted-futurist': {
-      // Quiet Future / Dieter Rams. Very high-end silver, warm bones, and a clean interface blue/teal
+      // Quiet Future. Very high-end silver, warm bones, and a clean interface blue/teal
       const stepsL = [0.94, 0.88, 0.74, 0.52, 0.38, 0.22, 0.68, 0.45];
       const stepsC = [0.008, 0.012, 0.01, 0.005, 0.005, 0.008, 0.08, 0.06]; // Teal/Oxide accents at the end
       const futHues = [

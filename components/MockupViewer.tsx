@@ -799,7 +799,7 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 
         <g transform="translate(35, 75)">
           <text x="0" y="30" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">{t('bpQuietSystems')}</text>
-          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">{t('bpRamsAesthetic')}</text>
+          <text x="0" y="55" fill={textContrast} fontSize="22" fontWeight="900" fontFamily="'Space Mono', monospace" letterSpacing="-1">{t('bpFunctionalAesthetic')}</text>
           <text x="0" y="80" fill={details} fontSize="9.5" fontWeight="500" fontFamily="'Space Mono', monospace">{t('bpOklchChromaEngine')}</text>
           
           <rect x="0" y="115" width="85" height="26" fill={accent1} rx="3" />

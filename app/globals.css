@@ -993,7 +993,7 @@ input[type='range']::-moz-range-track {
   text-transform: uppercase;
 }
 
-.settings-menu-row, .settings-field {
+.settings-menu-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1003,25 +1003,67 @@ input[type='range']::-moz-range-track {
   width: 100%;
   text-align: left;
   border-radius: 3px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease, color var(--transition-fast) ease;
+}
+
+.settings-menu-row svg {
+  color: var(--text-muted) !important;
+  flex-shrink: 0;
 }
 
 .settings-menu-row:hover {
-  background: var(--bg-panel-deep);
+  background: var(--bg-panel-deep) !important;
+  color: var(--text-primary) !important;
+}
+
+.settings-menu-row:hover svg {
+  color: var(--text-primary) !important;
 }
 
 .settings-field {
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
+  padding: 6px 8px;
+  width: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: var(--text-secondary) !important;
 }
 
 .settings-field select {
-  font-size: 0.72rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
   min-height: 28px;
-  padding: 2px 6px;
-  background: var(--bg-panel-deep);
-  border: 1px solid var(--border-light);
+  padding: 4px 8px;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border-medium) !important;
+  color: var(--text-primary) !important;
   border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+}
+
+.settings-field select:focus {
+  border-color: var(--button-dark) !important;
+}
+
+/* Ensure select option elements render legibly in light and dark mode */
+select option {
+  background-color: var(--bg-object) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ==========================================================================

@@ -1,9 +1,31 @@
 import { ColorData } from '../../types';
 
-export function exportPaletteToSvg(colors: ColorData[], paletteName: string, modeName: string): string {
+const svgTranslations = {
+  en: {
+    mode: 'MODE',
+    tone: 'TONE',
+    footerLeft: 'PRECISION SPACE OKLCH • GENERATED VIA CULORI ENGINE',
+    footerRight: 'OKLCH CHROMATIC CONTROL SYSTEM',
+    warm: 'WARM',
+    cool: 'COOL',
+    neutral: 'NEUTRAL',
+  },
+  es: {
+    mode: 'MODO',
+    tone: 'TONO',
+    footerLeft: 'OKLCH DE PRECISIÓN ESPACIAL • GENERADO CON MOTOR CULORI',
+    footerRight: 'SISTEMA DE CONTROL CROMÁTICO OKLCH',
+    warm: 'CÁLIDO',
+    cool: 'FRÍO',
+    neutral: 'NEUTRO',
+  }
+};
+
+export function exportPaletteToSvg(colors: ColorData[], paletteName: string, modeName: string, lang: 'en' | 'es' = 'en'): string {
   const width = 800;
   const height = colors.length * 90 + 200;
-  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const dateStr = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const t = svgTranslations[lang];
 
   let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" style="background-color: #121416; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
     <!-- Background grid -->
@@ -23,7 +45,7 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
     <text x="40" y="105" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="1">CRAN3O COLOR STUDIO</text>
     
     <text x="${width - 40}" y="80" text-anchor="end" fill="#70808a" font-size="12" font-weight="600">${dateStr.toUpperCase()}</text>
-    <text x="${width - 40}" y="105" text-anchor="end" fill="#ffffff" fill-opacity="0.6" font-size="12" font-weight="500" letter-spacing="0.5">MODE: ${modeName.toUpperCase()}</text>
+    <text x="${width - 40}" y="105" text-anchor="end" fill="#ffffff" fill-opacity="0.6" font-size="12" font-weight="500" letter-spacing="0.5">${t.mode}: ${modeName.toUpperCase()}</text>
 
     <!-- Header divider -->
     <line x1="40" y1="130" x2="${width - 40}" y2="130" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
@@ -35,6 +57,10 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
     const lValue = Math.round(color.oklch.l * 100) / 100;
     const cValue = Math.round(color.oklch.c * 100) / 100;
     const hValue = Math.round(color.oklch.h);
+
+    // Translate temperature
+    const tempText = color.temperature === 'warm' ? t.warm :
+                     color.temperature === 'cool' ? t.cool : t.neutral;
     
     svgContent += `
       <!-- Swatch -->
@@ -43,7 +69,7 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
       <!-- Label Details -->
       <text x="160" y="${y + 25}" fill="#ffffff" font-size="16" font-weight="600">${color.displayName}</text>
       <text x="160" y="${y + 48}" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="0.5">${color.role.toUpperCase()}</text>
-      <text x="160" y="${y + 63}" fill="#70808a" font-size="11" font-weight="500">${color.temperature.toUpperCase()} TONE</text>
+      <text x="160" y="${y + 63}" fill="#70808a" font-size="11" font-weight="500">${t.tone}: ${tempText}</text>
 
       <!-- Technical values -->
       <text x="320" y="${y + 25}" fill="#ffffff" fill-opacity="0.8" font-size="12" font-family="monospace">HEX: ${color.hex.toUpperCase()}</text>
@@ -61,8 +87,8 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
   const footerY = height - 40;
   svgContent += `
     <line x1="40" y1="${footerY - 20}" x2="${width - 40}" y2="${footerY - 20}" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
-    <text x="40" y="${footerY}" fill="#70808a" font-size="10" font-weight="500">PRECISION SPACE OKLCH • GENERATED VIA CULORI ENGINE</text>
-    <text x="${width - 40}" y="${footerY}" text-anchor="end" fill="#70808a" font-size="10" font-weight="500">RAMS-MEAD RETRO FUTURIST SYSTEM</text>
+    <text x="40" y="${footerY}" fill="#70808a" font-size="10" font-weight="500">${t.footerLeft}</text>
+    <text x="${width - 40}" y="${footerY}" text-anchor="end" fill="#70808a" font-size="10" font-weight="500">${t.footerRight}</text>
   </svg>`;
 
   return svgContent;

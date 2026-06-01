@@ -86,16 +86,23 @@ export default function Cran3oColorStudio() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
-  const [infoInstrumentOpen, setInfoInstrumentOpen] = useState(false);
-  const [infoMatrixOpen, setInfoMatrixOpen] = useState(false);
-  const [infoVariationOpen, setInfoVariationOpen] = useState(false);
-  const [infoIdentityOpen, setInfoIdentityOpen] = useState(false);
-  const [infoHarmonyRulesOpen, setInfoHarmonyRulesOpen] = useState(false);
-  const [infoMetrologyOpen, setInfoMetrologyOpen] = useState(false);
   const [lang, setLang] = useState<'en' | 'es'>('en');
 
   const t = (key: keyof typeof TRANSLATIONS['en']) => {
     return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
+  };
+
+  const getTooltipText = (whatKey: keyof typeof TRANSLATIONS['en'], howKey: keyof typeof TRANSLATIONS['en']) => {
+    const qWhat = lang === 'es' ? '¿Qué es?' : 'What is it?';
+    const qHow = lang === 'es' ? '¿Cómo funciona?' : 'How does it work?';
+    return `${qWhat}\n${t(whatKey)}\n\n${qHow}\n${t(howKey)}`;
+  };
+
+  const getTranslatedModeName = (m: DesignMode) => {
+    if (m === 'graphic') return t('graphicDesign');
+    if (m === 'spec') return t('modeSpec');
+    const key = m as keyof typeof TRANSLATIONS['en'];
+    return t(key) || INFLUENCES[m].name;
   };
 
   useEffect(() => {
@@ -592,7 +599,7 @@ export default function Cran3oColorStudio() {
   };
 
   const handleExportSvg = () => {
-    const blob = new Blob([exportPaletteToSvg(colors, paletteName, INFLUENCES[mode].name)], { type: 'image/svg+xml' });
+    const blob = new Blob([exportPaletteToSvg(colors, paletteName, getTranslatedModeName(mode), lang)], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -713,29 +720,48 @@ export default function Cran3oColorStudio() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = '#111313';
+    // Dynamic background color
+    ctx.fillStyle = isDarkMode ? '#0c0f12' : '#fdfbf7';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#f1eee6';
-    ctx.font = '600 26px Inter, Arial';
+
+    // Dynamic text colors
+    const textPrimary = isDarkMode ? '#f9fafb' : '#111827';
+    const textSecondary = isDarkMode ? '#9ca3af' : '#4b5563';
+    const swatchBorder = isDarkMode ? 'rgba(249, 250, 251, 0.15)' : 'rgba(17, 24, 39, 0.12)';
+
+    ctx.fillStyle = textPrimary;
+    ctx.font = '600 26px Space Grotesk, system-ui, sans-serif';
     ctx.fillText(paletteName, 48, 74);
-    ctx.fillStyle = '#b5b0a5';
-    ctx.font = '500 12px Inter, Arial';
-    ctx.fillText(`${INFLUENCES[mode].name} / ${colors.length} colors / OKLCH`, 48, 100);
+
+    ctx.fillStyle = textSecondary;
+    ctx.font = '500 12px Space Grotesk, system-ui, sans-serif';
+    
+    // Translated labels
+    const colorsText = lang === 'es' ? 'colores' : 'colors';
+    const translatedMode = getTranslatedModeName(mode);
+    ctx.fillText(`${translatedMode} / ${colors.length} ${colorsText} / OKLCH`, 48, 100);
 
     colors.forEach((color, index) => {
       const y = 140 + index * rowHeight;
+      
+      // Draw Swatch
       ctx.fillStyle = color.hex;
       ctx.fillRect(48, y, 104, 56);
-      ctx.strokeStyle = 'rgba(241,238,230,0.18)';
+      
+      // Swatch Border
+      ctx.strokeStyle = swatchBorder;
       ctx.strokeRect(48, y, 104, 56);
-      ctx.fillStyle = '#f1eee6';
-      ctx.font = '600 16px Inter, Arial';
+      
+      // Color Info Text
+      ctx.fillStyle = textPrimary;
+      ctx.font = '600 16px Space Grotesk, system-ui, sans-serif';
       ctx.fillText(color.displayName, 176, y + 22);
-      ctx.fillStyle = '#b5b0a5';
-      ctx.font = '500 12px JetBrains Mono, monospace';
-      ctx.fillText(`${color.hex.toUpperCase()} / ${color.role}`, 176, y + 44);
+      
+      ctx.fillStyle = textSecondary;
+      ctx.font = '500 12px Space Mono, monospace';
+      ctx.fillText(`${color.hex.toUpperCase()} / ${color.role.toUpperCase()}`, 176, y + 44);
       ctx.fillText(`RGB ${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}`, 440, y + 22);
-      ctx.fillText(`OKLCH ${color.oklch.l.toFixed(2)}, ${color.oklch.c.toFixed(3)}, ${Math.round(color.oklch.h)}`, 440, y + 44);
+      ctx.fillText(`OKLCH ${color.oklch.l.toFixed(2)}, ${color.oklch.c.toFixed(3)}, ${Math.round(color.oklch.h)}°`, 440, y + 44);
     });
 
     const a = document.createElement('a');
@@ -745,7 +771,7 @@ export default function Cran3oColorStudio() {
   };
 
   const handlePrintPdf = () => {
-    printPaletteCatalog(colors, paletteName, INFLUENCES[mode].name);
+    printPaletteCatalog(colors, paletteName, getTranslatedModeName(mode), lang);
   };
 
   if (!mounted) {
@@ -966,13 +992,12 @@ export default function Cran3oColorStudio() {
                     <div>
                       <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {t('colorInstrument')}
-                        <button
-                          onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
-                          style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                          title={t('toolHelp')}
+                        <span 
+                          title={getTooltipText('colorInstrumentHelpWhat', 'colorInstrumentHelpHow')}
+                          style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <MaterialIcon name="info" size={14} />
-                        </button>
+                        </span>
                       </h3>
                       <p className="section-description" style={{ margin: '4px 0 0' }}>{t('colorInstrumentDesc')}</p>
                     </div>
@@ -993,24 +1018,6 @@ export default function Cran3oColorStudio() {
                       </div>
                     </div>
                   </div>
-
-                  {infoInstrumentOpen && (
-                    <div style={{
-                      background: 'var(--bg-panel-deep)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: '4px',
-                      padding: '10px 12px',
-                      fontSize: '0.72rem',
-                      lineHeight: '1.45',
-                      color: 'var(--text-secondary)',
-                      fontFamily: 'var(--font-mono)',
-                      marginBottom: '14px'
-                    }}>
-                      <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('colorInstrumentHelpWhat')}
-                      <br />
-                      <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('colorInstrumentHelpHow')}
-                    </div>
-                  )}
                   
                   <div className="instrument-vertical-stack">
                     <div className="instrument-wheel-wrapper">
@@ -1049,13 +1056,12 @@ export default function Cran3oColorStudio() {
                     <div>
                       <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {t('paletteSystemMatrix')}
-                        <button
-                          onClick={() => setInfoMatrixOpen(!infoMatrixOpen)}
-                          style={{ background: 'none', border: 'none', color: infoMatrixOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                          title={t('toolHelp')}
+                        <span 
+                          title={getTooltipText('paletteSystemMatrixHelpWhat', 'paletteSystemMatrixHelpHow')}
+                          style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <MaterialIcon name="info" size={14} />
-                        </button>
+                        </span>
                       </h3>
                       <p className="section-description">{t('paletteSystemMatrixDesc')}</p>
                     </div>
@@ -1065,24 +1071,6 @@ export default function Cran3oColorStudio() {
                       </span>
                     </div>
                   </div>
-
-                  {infoMatrixOpen && (
-                    <div style={{
-                      background: 'var(--bg-panel-deep)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: '4px',
-                      padding: '10px 12px',
-                      fontSize: '0.72rem',
-                      lineHeight: '1.45',
-                      color: 'var(--text-secondary)',
-                      fontFamily: 'var(--font-mono)',
-                      marginBottom: '10px'
-                    }}>
-                      <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('paletteSystemMatrixHelpWhat')}
-                      <br />
-                      <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('paletteSystemMatrixHelpHow')}
-                    </div>
-                  )}
 
                   <div className="panel-toolbar swatches-toolbar" style={{ position: 'relative' }}>
                     <div className="swatches-toolbar-primary">
@@ -1345,13 +1333,12 @@ export default function Cran3oColorStudio() {
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {t('variationPanel')}
-                      <button
-                        onClick={() => setInfoVariationOpen(!infoVariationOpen)}
-                        style={{ background: 'none', border: 'none', color: infoVariationOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title={t('toolHelp')}
+                      <span 
+                        title={getTooltipText('variationPanelHelpWhat', 'variationPanelHelpHow')}
+                        style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <MaterialIcon name="info" size={14} />
-                      </button>
+                      </span>
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>{t('variationPanelDesc')}</p>
                   </div>
@@ -1372,24 +1359,6 @@ export default function Cran3oColorStudio() {
                     </button>
                   </div>
                 </div>
-
-                {infoVariationOpen && (
-                  <div style={{
-                    background: 'var(--bg-panel-deep)',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: '4px',
-                    padding: '10px 12px',
-                    fontSize: '0.72rem',
-                    lineHeight: '1.45',
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '10px'
-                  }}>
-                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('variationPanelHelpWhat')}
-                    <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('variationPanelHelpHow')}
-                  </div>
-                )}
 
                 {slidersOpen && (
                   <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
@@ -1481,6 +1450,13 @@ export default function Cran3oColorStudio() {
                           <MaterialIcon name="settings" size={14} />
                         </span>
                         {t('colorIdentity')}
+                        <span 
+                          title={getTooltipText('colorIdentityHelpWhat', 'colorIdentityHelpHow')}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <MaterialIcon name="info" size={14} />
+                        </span>
                       </h3>
                       <p className="section-description" style={{ margin: '4px 0 0' }}>
                         {t('colorIdentityDesc')}
@@ -1492,33 +1468,7 @@ export default function Cran3oColorStudio() {
                       </span>
                     </div>
                   </button>
-                  <button
-                    onClick={() => setInfoIdentityOpen(!infoIdentityOpen)}
-                    style={{ background: 'none', border: 'none', color: infoIdentityOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
-                    title={t('toolHelp')}
-                  >
-                    <MaterialIcon name="info" size={14} />
-                  </button>
                 </div>
-
-                {infoIdentityOpen && (
-                  <div style={{
-                    background: 'var(--bg-panel-deep)',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: '4px',
-                    padding: '10px 12px',
-                    fontSize: '0.72rem',
-                    lineHeight: '1.45',
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '14px',
-                    marginTop: '10px'
-                  }}>
-                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('colorIdentityHelpWhat')}
-                    <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('colorIdentityHelpHow')}
-                  </div>
-                )}
                 {identityOpen && (
                   <div className="collapsible-content">
                     <IdentityPanel 
@@ -1636,35 +1586,16 @@ export default function Cran3oColorStudio() {
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {t('harmonyRules')}
-                      <button
-                        onClick={() => setInfoHarmonyRulesOpen(!infoHarmonyRulesOpen)}
-                        style={{ background: 'none', border: 'none', color: infoHarmonyRulesOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title={t('toolHelp')}
+                      <span 
+                        title={getTooltipText('harmonyRulesHelpWhat', 'harmonyRulesHelpHow')}
+                        style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <MaterialIcon name="info" size={14} />
-                      </button>
+                      </span>
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>{t('harmonyRulesDesc')}</p>
                   </div>
                 </div>
-
-                {infoHarmonyRulesOpen && (
-                  <div style={{
-                    background: 'var(--bg-panel-deep)',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: '4px',
-                    padding: '10px 12px',
-                    fontSize: '0.72rem',
-                    lineHeight: '1.45',
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '10px'
-                  }}>
-                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('harmonyRulesHelpWhat')}
-                    <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('harmonyRulesHelpHow')}
-                  </div>
-                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {HARMONIES.map((harmony) => {
                     const isActive = activeHarmonyId === harmony.id;
@@ -1737,13 +1668,12 @@ export default function Cran3oColorStudio() {
                   <div>
                     <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {t('geometricHarmony')}
-                      <button
-                        onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
-                        style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                        title={t('toolHelp')}
+                      <span 
+                        title={getTooltipText('geometricHarmonyHelpWhat', 'geometricHarmonyHelpHow')}
+                        style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <MaterialIcon name="info" size={14} />
-                      </button>
+                      </span>
                     </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>{t('geometricHarmonyDesc')}</p>
                   </div>
@@ -1763,25 +1693,6 @@ export default function Cran3oColorStudio() {
                     </div>
                   </div>
                 </div>
-
-                {infoInstrumentOpen && (
-                  <div style={{
-                    background: 'var(--bg-panel)',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: '4px',
-                    padding: '10px 12px',
-                    fontSize: '0.72rem',
-                    lineHeight: '1.45',
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '14px',
-                    width: '100%'
-                  }}>
-                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('geometricHarmonyHelpWhat')}
-                    <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('geometricHarmonyHelpHow')}
-                  </div>
-                )}
 
                 <ColorWheel 
                   activeColor={activeColor} 
@@ -1997,33 +1908,14 @@ export default function Cran3oColorStudio() {
                 <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {t('metrologyEngine')}
-                    <button
-                      onClick={() => setInfoMetrologyOpen(!infoMetrologyOpen)}
-                      style={{ background: 'none', border: 'none', color: infoMetrologyOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      title={t('toolHelp')}
+                    <span 
+                      title={getTooltipText('metrologyEngineHelpWhat', 'metrologyEngineHelpHow')}
+                      style={{ color: 'var(--text-muted)', cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <MaterialIcon name="info" size={14} />
-                    </button>
+                    </span>
                   </h3>
                 </div>
-
-                {infoMetrologyOpen && (
-                  <div style={{
-                    background: 'var(--bg-panel-deep)',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: '4px',
-                    padding: '10px 12px',
-                    fontSize: '0.72rem',
-                    lineHeight: '1.45',
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '10px'
-                  }}>
-                    <strong>{lang === 'es' ? '¿Qué es?' : 'What is it?'}</strong> {t('metrologyEngineHelpWhat')}
-                    <br />
-                    <strong style={{ display: 'block', marginTop: '4px' }}>{lang === 'es' ? '¿Cómo funciona?' : 'How does it work?'}</strong> {t('metrologyEngineHelpHow')}
-                  </div>
-                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)' }}>
                     <span>{t('paletteSize').toUpperCase()}</span>
