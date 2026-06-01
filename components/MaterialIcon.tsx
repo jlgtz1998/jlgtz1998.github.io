@@ -93,6 +93,8 @@ function iconPath(name: string) {
       return <><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" {...common} /></>;
     case 'warning':
       return <><path d="m10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" {...common} /><line x1="12" y1="9" x2="12" y2="13" {...common} /><line x1="12" y1="17" x2="12.01" y2="17" {...common} /></>;
+    case 'info':
+      return <><circle cx="12" cy="12" r="10" {...common} /><line x1="12" y1="16" x2="12" y2="12" {...common} /><line x1="12" y1="8" x2="12.01" y2="8" {...common} /></>;
     default:
       return <circle cx="12" cy="12" r="8" {...common} />;
   }

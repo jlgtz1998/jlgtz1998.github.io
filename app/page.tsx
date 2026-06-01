@@ -85,6 +85,12 @@ export default function Cran3oColorStudio() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
+  const [infoInstrumentOpen, setInfoInstrumentOpen] = useState(false);
+  const [infoMatrixOpen, setInfoMatrixOpen] = useState(false);
+  const [infoVariationOpen, setInfoVariationOpen] = useState(false);
+  const [infoIdentityOpen, setInfoIdentityOpen] = useState(false);
+  const [infoHarmonyRulesOpen, setInfoHarmonyRulesOpen] = useState(false);
+  const [infoMetrologyOpen, setInfoMetrologyOpen] = useState(false);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light';
@@ -923,8 +929,17 @@ export default function Cran3oColorStudio() {
                 <section className="studio-panel calculator-face color-space-instrument">
                   <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                      <h3 className="section-title" style={{ margin: 0 }}>COLOR INSTRUMENT</h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>Shape hue, lightness, and chroma with architectural restraint.</p>
+                      <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        COLOR INSTRUMENT
+                        <button
+                          onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
+                          style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          title="Ayuda de la herramienta"
+                        >
+                          <MaterialIcon name="info" size={14} />
+                        </button>
+                      </h3>
+                      <p className="section-description" style={{ margin: '4px 0 0' }}>Shape hue, lightness, and chroma with architectural restraint.</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className="control-label-mini" style={{ margin: 0, opacity: 0.8 }}>PICKER</span>
@@ -943,6 +958,24 @@ export default function Cran3oColorStudio() {
                       </div>
                     </div>
                   </div>
+
+                  {infoInstrumentOpen && (
+                    <div style={{
+                      background: 'var(--bg-panel-deep)',
+                      border: '1px solid var(--border-medium)',
+                      borderRadius: '4px',
+                      padding: '10px 12px',
+                      fontSize: '0.72rem',
+                      lineHeight: '1.45',
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'var(--font-mono)',
+                      marginBottom: '14px'
+                    }}>
+                      <strong>¿Qué es?</strong> Un selector visual que opera en el espacio de color OKLCH, el cual imita la percepción humana de brillo y color de forma natural.
+                      <br />
+                      <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Arrastra los nodos en el círculo para cambiar tono (ángulo), croma (distancia al centro) y luminosidad (mediante las cajas numéricas inferiores). Usa los botones WHEEL, L-C o H-C para proyectar el espacio tridimensional en 2D.
+                    </div>
+                  )}
                   
                   <div className="instrument-vertical-stack">
                     <div className="instrument-wheel-wrapper">
@@ -978,7 +1011,16 @@ export default function Cran3oColorStudio() {
                 <section className="studio-panel calculator-face swatches-panel">
                   <div className="panel-header swatches-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '8px' }}>
                     <div>
-                      <h3 className="section-title">PALETTE SYSTEM MATRIX</h3>
+                      <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        PALETTE SYSTEM MATRIX
+                        <button
+                          onClick={() => setInfoMatrixOpen(!infoMatrixOpen)}
+                          style={{ background: 'none', border: 'none', color: infoMatrixOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          title="Ayuda de la herramienta"
+                        >
+                          <MaterialIcon name="info" size={14} />
+                        </button>
+                      </h3>
                       <p className="section-description">Curate ordered color tokens for spatial, CMF, and graphic systems.</p>
                     </div>
                     <div>
@@ -987,6 +1029,24 @@ export default function Cran3oColorStudio() {
                       </span>
                     </div>
                   </div>
+
+                  {infoMatrixOpen && (
+                    <div style={{
+                      background: 'var(--bg-panel-deep)',
+                      border: '1px solid var(--border-medium)',
+                      borderRadius: '4px',
+                      padding: '10px 12px',
+                      fontSize: '0.72rem',
+                      lineHeight: '1.45',
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'var(--font-mono)',
+                      marginBottom: '10px'
+                    }}>
+                      <strong>¿Qué es?</strong> La matriz del sistema que gestiona tus fichas de color y sus propiedades de diseño.
+                      <br />
+                      <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Selecciona tarjetas para editarlas, arrástralas (o usa flechas) para ordenar, edita el HEX de forma directa y haz clic en el candado para congelar colores. Asigna roles funcionales (ej. background, accent) para mapear los colores en el simulador 3D/maqueta.
+                    </div>
+                  )}
 
                   <div className="panel-toolbar swatches-toolbar" style={{ position: 'relative' }}>
                     <div className="swatches-toolbar-primary">
@@ -1247,7 +1307,16 @@ export default function Cran3oColorStudio() {
               <section className="studio-panel calculator-face variation-panel">
                 <div className="panel-header variation-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '14px', marginBottom: '16px' }}>
                   <div>
-                    <h3 className="section-title" style={{ margin: 0 }}>VARIATION & MUTATION ENGINE</h3>
+                    <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      VARIATION & MUTATION ENGINE
+                      <button
+                        onClick={() => setInfoVariationOpen(!infoVariationOpen)}
+                        style={{ background: 'none', border: 'none', color: infoVariationOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Ayuda de la herramienta"
+                      >
+                        <MaterialIcon name="info" size={14} />
+                      </button>
+                    </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>Calibrate temperature, restraint, contrast, and material presence in OKLCH.</p>
                   </div>
                   
@@ -1267,6 +1336,24 @@ export default function Cran3oColorStudio() {
                     </button>
                   </div>
                 </div>
+
+                {infoVariationOpen && (
+                  <div style={{
+                    background: 'var(--bg-panel-deep)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    fontSize: '0.72rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: '10px'
+                  }}>
+                    <strong>¿Qué es?</strong> Un generador algorítmico para crear variaciones estéticas de color de forma controlada.
+                    <br />
+                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Define la dirección con los deslizadores de ambiente (temperatura, contraste, niebla cinematográfica). El botón MUTATE introduce desviaciones aleatorias dosificadas por la fuerza seleccionada (suave, moderada o atrevida). El botón REFINE equilibra y suaviza los tonos generados.
+                  </div>
+                )}
 
                 {slidersOpen && (
                   <div className="variation-sliders-drawer" style={{ paddingTop: '8px' }}>
@@ -1328,41 +1415,74 @@ export default function Cran3oColorStudio() {
 
               {/* Row 6: Collapsible Color Identity Settings */}
               <section className="studio-panel calculator-face">
-                <button 
-                  className="identity-collapsible-trigger" 
-                  onClick={() => setIdentityOpen(!identityOpen)}
+                <div 
                   style={{
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
-                    background: 'transparent',
-                    border: 0,
-                    width: '100%',
-                    cursor: 'pointer',
-                    textAlign: 'left',
                     paddingBottom: identityOpen ? '14px' : '4px',
                     borderBottom: identityOpen ? '1px solid var(--border-light)' : 'none',
                     marginBottom: identityOpen ? '16px' : '0px',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div>
-                    <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                      <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
-                        <MaterialIcon name="settings" size={14} />
+                  <button 
+                    className="identity-collapsible-trigger" 
+                    onClick={() => setIdentityOpen(!identityOpen)}
+                    style={{
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      background: 'transparent',
+                      border: 0,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      flex: 1
+                    }}
+                  >
+                    <div>
+                      <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                        <span style={{ color: 'var(--text-muted)', display: 'inline-flex' }}>
+                          <MaterialIcon name="settings" size={14} />
+                        </span>
+                        COLOR IDENTITY
+                      </h3>
+                      <p className="section-description" style={{ margin: '4px 0 0' }}>
+                        Tune the studio&apos;s long-term color bias: quiet, material, legible, and controlled.
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', marginLeft: '12px' }}>
+                      <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
+                        <MaterialIcon name="keyboard_arrow_right" size={18} />
                       </span>
-                      COLOR IDENTITY
-                    </h3>
-                    <p className="section-description" style={{ margin: '4px 0 0' }}>
-                      Tune the studio&apos;s long-term color bias: quiet, material, legible, and controlled.
-                    </p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setInfoIdentityOpen(!infoIdentityOpen)}
+                    style={{ background: 'none', border: 'none', color: infoIdentityOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
+                    title="Ayuda de la herramienta"
+                  >
+                    <MaterialIcon name="info" size={14} />
+                  </button>
+                </div>
+
+                {infoIdentityOpen && (
+                  <div style={{
+                    background: 'var(--bg-panel-deep)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    fontSize: '0.72rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: '14px',
+                    marginTop: '10px'
+                  }}>
+                    <strong>¿Qué es?</strong> La constitución matemática de tu estudio; impone restricciones fijas a las variaciones procedimentales.
+                    <br />
+                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Ajusta los límites de Croma Máximo, Rango de Luz (LRV) y Armonías. El motor descartará y corregirá automáticamente los colores generados por sliders o mutaciones que intenten exceder estos límites.
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-                    <span style={{ transform: identityOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease', display: 'inline-flex' }}>
-                      <MaterialIcon name="keyboard_arrow_right" size={18} />
-                    </span>
-                  </div>
-                </button>
+                )}
                 {identityOpen && (
                   <div className="collapsible-content">
                     <IdentityPanel 
@@ -1475,10 +1595,39 @@ export default function Cran3oColorStudio() {
             {/* COLUMN 1: harmony Harmony Sidebar (Left) */}
             <div className="left-column stack harmony-sidebar">
               <section className="studio-panel calculator-face">
-                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '16px' }}>
-                  <h3 className="section-title" style={{ margin: 0 }}>HARMONY RULES</h3>
-                  <p className="section-description" style={{ margin: '4px 0 0' }}>Choose the governing relationship for the active color system.</p>
+                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      HARMONY RULES
+                      <button
+                        onClick={() => setInfoHarmonyRulesOpen(!infoHarmonyRulesOpen)}
+                        style={{ background: 'none', border: 'none', color: infoHarmonyRulesOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Ayuda de la herramienta"
+                      >
+                        <MaterialIcon name="info" size={14} />
+                      </button>
+                    </h3>
+                    <p className="section-description" style={{ margin: '4px 0 0' }}>Choose the governing relationship for the active color system.</p>
+                  </div>
                 </div>
+
+                {infoHarmonyRulesOpen && (
+                  <div style={{
+                    background: 'var(--bg-panel-deep)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    fontSize: '0.72rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: '10px'
+                  }}>
+                    <strong>¿Qué es?</strong> Fórmulas geométricas que distribuyen de forma armónica los tonos basándose en un origen.
+                    <br />
+                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Elige una regla de color (Monocromático, Complementario, etc.) para calcular la paleta. Los colores no bloqueados se reubicarán automáticamente al rededor del color ancla (marcado en las tiras con el icono de ancla).
+                  </div>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {HARMONIES.map((harmony) => {
                     const isActive = activeHarmonyId === harmony.id;
@@ -1547,9 +1696,18 @@ export default function Cran3oColorStudio() {
             <div className="harmony-center-workspace">
               {/* Polar Color Wheel Section */}
               <section className="studio-panel calculator-face harmony-wheel-panel" style={{ background: 'var(--bg-panel-deep)' }}>
-                <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
-                    <h3 className="section-title" style={{ margin: 0 }}>GEOMETRIC HARMONY</h3>
+                    <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      GEOMETRIC HARMONY
+                      <button
+                        onClick={() => setInfoInstrumentOpen(!infoInstrumentOpen)}
+                        style={{ background: 'none', border: 'none', color: infoInstrumentOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Ayuda de la herramienta"
+                      >
+                        <MaterialIcon name="info" size={14} />
+                      </button>
+                    </h3>
                     <p className="section-description" style={{ margin: '4px 0 0' }}>Move the system points while preserving the selected harmony logic.</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1568,6 +1726,25 @@ export default function Cran3oColorStudio() {
                     </div>
                   </div>
                 </div>
+
+                {infoInstrumentOpen && (
+                  <div style={{
+                    background: 'var(--bg-panel)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    fontSize: '0.72rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: '14px',
+                    width: '100%'
+                  }}>
+                    <strong>¿Qué es?</strong> Un visualizador geométrico interactivo de armonías en el espacio cromático polar OKLCH.
+                    <br />
+                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Arrastra el nodo base (ancla) para rotar o escalar toda la paleta de forma coordinada según la regla activa. Las líneas punteadas muestran las conexiones proporcionales entre tonos.
+                  </div>
+                )}
 
                 <ColorWheel 
                   activeColor={activeColor} 
@@ -1779,9 +1956,36 @@ export default function Cran3oColorStudio() {
               </section>
 
               <section className="studio-panel calculator-face">
-                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px' }}>
-                  <h3 className="section-title" style={{ margin: 0 }}>METROLOGY & ENGINE</h3>
+                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '10px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    METROLOGY & ENGINE
+                    <button
+                      onClick={() => setInfoMetrologyOpen(!infoMetrologyOpen)}
+                      style={{ background: 'none', border: 'none', color: infoMetrologyOpen ? 'var(--button-dark)' : 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Ayuda de la herramienta"
+                    >
+                      <MaterialIcon name="info" size={14} />
+                    </button>
+                  </h3>
                 </div>
+
+                {infoMetrologyOpen && (
+                  <div style={{
+                    background: 'var(--bg-panel-deep)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    fontSize: '0.72rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: '10px'
+                  }}>
+                    <strong>¿Qué es?</strong> Control de parámetros del lienzo y del motor de mutación rápida.
+                    <br />
+                    <strong style={{ display: 'block', marginTop: '4px' }}>¿Cómo funciona?</strong> Cambia el tamaño total de la paleta con la barra deslizadora. Configura la fuerza del motor y haz clic en REFINE (suavizar) o MUTATE (alterar) para recalcular los colores que no estén bloqueados.
+                  </div>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)' }}>
                     <span>PALETTE SIZE</span>
