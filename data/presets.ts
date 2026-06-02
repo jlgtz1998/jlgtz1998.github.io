@@ -6,6 +6,9 @@ export const PRESETS: Preset[] = [
   // ==========================================
   {
     id: 'quiet-future',
+    mood: 'neutral',
+    contrastLevel: 'medium',
+    tags: ['studio', 'signature', 'minimalist'],
     name: 'Quiet Future',
     description: 'Core studio palette: luminous neutrals, controlled blue-green, warm mineral accent, and carbon depth.',
     colors: [
@@ -21,6 +24,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'muted-warm-cool',
+    mood: 'neutral',
+    contrastLevel: 'medium',
+    tags: ['balanced', 'studio', 'neutral'],
     name: 'Muted Warm/Cool Balance',
     description: 'Balanced studio neutral with cool mist, slate sky, clay, oxide copper, and soot ash.',
     colors: [
@@ -36,6 +42,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'nordic-fog',
+    mood: 'cool',
+    contrastLevel: 'medium',
+    tags: ['scandinavian', 'minimalist', 'nature'],
     name: 'Nordic Fog',
     description: 'Scandinavian minimalist system: soft pale spruce, warm cream chalk, arctic slate, and timber ash.',
     colors: [
@@ -51,6 +60,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'wabi-sabi-sand',
+    mood: 'warm',
+    contrastLevel: 'medium',
+    tags: ['japanese', 'rustic', 'earthy'],
     name: 'Wabi-Sabi Sand',
     description: 'Rustic Japanese interior palette: raw linen, plaster white, moss green, tea leaf, and charcoal.',
     colors: [
@@ -66,6 +78,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'bauhaus-primary',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['modernist', 'classic', 'primary'],
     name: 'Bauhaus Primary Balance',
     description: 'Restrained modernist primary palette: cream paper, zinc grey, cadmium red, deep cobalt, and ochre yellow.',
     colors: [
@@ -81,6 +96,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'impressionist-garden',
+    mood: 'cool',
+    contrastLevel: 'medium',
+    tags: ['artistic', 'floral', 'pastel'],
     name: 'Impressionist Garden',
     description: 'Impressionist water lily garden palette: water lily pink, wisteria purple, lake blue, and lichen green.',
     colors: [
@@ -96,6 +114,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'post-impressionist-cobalt',
+    mood: 'noir',
+    contrastLevel: 'high',
+    tags: ['artistic', 'deep', 'night'],
     name: 'Post-Impressionist Cobalt',
     description: 'Post-impressionist color field palette: deep Prussian blue, cobalt sky, crescent yellow, and cypress green.',
     colors: [
@@ -111,6 +132,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'mid-century-modern',
+    mood: 'warm',
+    contrastLevel: 'medium',
+    tags: ['modernist', 'retro', 'warm'],
     name: 'Mid-Century Modern',
     description: '1950s American modernist palette: olive green, mustard gold, teal, pumpkin orange, and cream bone.',
     colors: [
@@ -126,6 +150,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'desert-bloom',
+    mood: 'warm',
+    contrastLevel: 'medium',
+    tags: ['southwest', 'nature', 'earthy'],
     name: 'Desert Bloom',
     description: 'Southwest desert clay landscape: adobe dust, sand dune, terracotta red, sagebrush, and sky blue.',
     colors: [
@@ -141,6 +168,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'luminous-dawn',
+    mood: 'cool',
+    contrastLevel: 'medium',
+    tags: ['sunrise', 'gradients', 'soft'],
     name: 'Luminous Dawn',
     description: 'Atmospheric clean sunrise gradients: warm plaster, blush pink, violet mist, and overcast blue.',
     colors: [
@@ -160,6 +190,9 @@ export const PRESETS: Preset[] = [
   // ==========================================
   {
     id: 'curtain-stone',
+    mood: 'architectural',
+    contrastLevel: 'medium',
+    tags: ['interior', 'plaster', 'stone'],
     name: 'Curtain Stone',
     mode: 'architecture',
     description: 'Interior-first plaster, travertine, flax taupe, mist blue, sage ash, and soot.',
@@ -174,6 +207,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'aylin-neutral',
+    mood: 'teal',
+    contrastLevel: 'high',
+    tags: ['teal', 'signature', 'clean'],
     name: 'Aylin Neutral',
     mode: 'architecture',
     description: 'Soft teal-based neutral system with plaster light, sea-glass grey, oxidized teal, and deep ink balance.',
@@ -190,6 +226,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'fabra-curtain-light',
+    mood: 'architectural',
+    contrastLevel: 'low',
+    tags: ['sunlit', 'interior', 'soft'],
     name: 'Fabra Curtain Light',
     mode: 'architecture',
     description: 'Sunlit interior neutrals: curtain plaster, travertine silk, sage mist, soft drape, and soot shadow.',
@@ -206,6 +245,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'rapture-deco',
+    mood: 'architectural',
+    contrastLevel: 'high',
+    tags: ['deco', 'metallic', 'teal'],
     name: 'Rapture Deco',
     mode: 'architecture',
     description: 'Deco material palette with ivory, soft travertine, muted gold, marine teal, and vermilion trim.',
@@ -222,6 +264,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'pioneering-pavilion',
+    mood: 'architectural',
+    contrastLevel: 'high',
+    tags: ['marble', 'material-board', 'modern'],
     name: 'Pioneering Pavilion',
     mode: 'architecture',
     description: 'Architectural material board: smoke glass, green marble, travertine beige, onyx gold, steel chrome, and red curtain.',
@@ -236,6 +281,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'arrakis-stone',
+    mood: 'warm',
+    contrastLevel: 'medium',
+    tags: ['desert', 'brass', 'spice'],
     name: 'Arrakis Stone',
     mode: 'architecture',
     description: 'Desert architectural palette with basalt canyon, muted sand, spice clay, emperor brass, and oasis shadow.',
@@ -250,6 +298,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'stucco-modernism',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['stucco', 'plaster', 'vibrant'],
     name: 'Stucco Modernism',
     mode: 'architecture',
     description: 'Vibrant pink plaster stucco, terracotta clay, sky blue, and deep slate shadow.',
@@ -266,6 +317,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'brutalist-concrete',
+    mood: 'neutral',
+    contrastLevel: 'medium',
+    tags: ['brutalist', 'concrete', 'raw'],
     name: 'Brutalist Concrete',
     mode: 'architecture',
     description: 'Raw materials: exposed concrete, formwork timber, rebar oxidation, glass, and dark weathering steel.',
@@ -282,6 +336,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'alhambra-court',
+    mood: 'warm',
+    contrastLevel: 'high',
+    tags: ['moorish', 'plaster', 'terracotta'],
     name: 'Alhambra Court',
     mode: 'architecture',
     description: 'Moorish architectural palette: plaster, terracotta clay, lapis lazuli glaze, copper gold, cedar wood, and olive tree shade.',
@@ -298,6 +355,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'concrete-light-shadow',
+    mood: 'noir',
+    contrastLevel: 'high',
+    tags: ['concrete', 'monochrome', 'light-shadow'],
     name: 'Concrete Light & Shadow',
     mode: 'architecture',
     description: 'Concrete architectural light and shadow: skylight white, polished concrete panels, steel shadows, and dark void.',
@@ -318,6 +378,9 @@ export const PRESETS: Preset[] = [
   // ==========================================
   {
     id: 'brushed-signal',
+    mood: 'material',
+    contrastLevel: 'medium',
+    tags: ['cmf', 'matte', 'metal'],
     name: 'Brushed Signal',
     mode: 'industrial',
     description: 'CMF palette for matte polymers, satin metal, petrol slate, muted copper, and smoked brass.',
@@ -332,6 +395,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'minimalist-neutral',
+    mood: 'material',
+    contrastLevel: 'high',
+    tags: ['minimalist', 'polymer', 'signal'],
     name: 'Minimalist Product Neutral',
     mode: 'industrial',
     description: 'Restrained minimalist product neutral system with graphite, off-white, signal orange, and blue.',
@@ -348,6 +414,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'industrial-transit',
+    mood: 'material',
+    contrastLevel: 'medium',
+    tags: ['transit', 'retro-futurism', 'metallic'],
     name: 'Retro Futurist Transit',
     mode: 'industrial',
     description: 'Transit-industrial palette: metallic pearl, nickel wing, slate petrol, hull copper, and beacon warmth.',
@@ -364,6 +433,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'cargo-vessel-low-key',
+    mood: 'noir',
+    contrastLevel: 'medium',
+    tags: ['industrial', 'cabin', 'low-key'],
     name: 'Cargo Vessel Low-Key',
     mode: 'industrial',
     description: 'Low-key industrial interior: sage nickel, lichen slate, carbon cabin, brass valve, and dark void.',
@@ -380,6 +452,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'prometheus-mineral',
+    mood: 'cool',
+    contrastLevel: 'medium',
+    tags: ['mineral', 'cold', 'obsidian'],
     name: 'Prometheus Mineral',
     mode: 'industrial',
     description: 'Cold mineral CMF: obsidian, dark silt, engineer grey, pale silver, and controlled blue light.',
@@ -394,6 +469,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'imperial-mono',
+    mood: 'noir',
+    contrastLevel: 'high',
+    tags: ['monochrome', 'disciplined', 'military'],
     name: 'Imperial Mono',
     mode: 'industrial',
     description: 'Disciplined monochrome product system: gloss black, imperial grey, officer olive, white shell, control blue, and terminal red.',
@@ -408,6 +486,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'retro-beige',
+    mood: 'warm',
+    contrastLevel: 'medium',
+    tags: ['retro', 'computing', 'hardware'],
     name: 'Retro Computing Classic',
     mode: 'industrial',
     description: '1980s personal computer classic hardware tones: warm platinum beige, system grey, dark grey bezel, and screen phosphor green.',
@@ -424,6 +505,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'synth-alloy',
+    mood: 'material',
+    contrastLevel: 'high',
+    tags: ['synthesizer', 'audio', 'aluminum'],
     name: 'Modular Synth Alloy',
     mode: 'industrial',
     description: 'Modular synthesizer audio device aesthetics: absolute white, encoder grey, cobalt button, aluminum, and alarm red.',
@@ -440,6 +524,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'sputnik-metal',
+    mood: 'cool',
+    contrastLevel: 'medium',
+    tags: ['space-race', 'hardware', 'cockpit'],
     name: 'Sputnik Metal',
     mode: 'industrial',
     description: 'Space-race hardware: oxidized aluminum plating, beacons, brass terminals, and cockpit instrument green.',
@@ -456,6 +543,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'calculator-classic',
+    mood: 'material',
+    contrastLevel: 'high',
+    tags: ['calculator', 'matte', 'retro'],
     name: 'Classic Desk Calculator',
     mode: 'industrial',
     description: 'Classic desktop calculator: matte black, key grey, yellow equals button, green switch, and alarm red.',
@@ -476,6 +566,9 @@ export const PRESETS: Preset[] = [
   // ==========================================
   {
     id: 'noir-deco-print',
+    mood: 'noir',
+    contrastLevel: 'medium',
+    tags: ['print', 'identity', 'deco'],
     name: 'Noir Deco Print',
     mode: 'graphic',
     description: 'Print and identity system with ivory paper, carbon ink, slate indigo, deco teal, vermilion, and soft gold.',
@@ -490,6 +583,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'cyber-noir-low-key',
+    mood: 'noir',
+    contrastLevel: 'medium',
+    tags: ['cyber-noir', 'low-key', 'smog'],
     name: 'Cyber Noir Low-Key',
     mode: 'graphic',
     description: 'Muted noir system based on smog, carbon, lavender shadow, oxide warmth, and restrained deck gold.',
@@ -506,6 +602,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'swiss-international',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['swiss', 'poster', 'typography'],
     name: 'Swiss Typographic Grid',
     mode: 'graphic',
     description: 'Swiss International Style: typographic poster layout with matte black ink, warm paper, red signal, grid cobalt, and grey scales.',
@@ -522,6 +621,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'gold-phase',
+    mood: 'warm',
+    contrastLevel: 'high',
+    tags: ['artistic', 'gold-leaf', 'mosaic'],
     name: 'Golden Phase',
     mode: 'graphic',
     description: 'Artistic golden phase: gold leaf, warm ochre, midnight black, mosaic red, turquoise glaze, and plaster veil.',
@@ -538,6 +640,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'great-wave',
+    mood: 'cool',
+    contrastLevel: 'high',
+    tags: ['woodblock', 'print', 'japanese'],
     name: 'Hokusai Great Wave',
     mode: 'graphic',
     description: 'Katsushika Hokusai woodblock print Under the Wave off Kanagawa: Prussian blue, indigo, sky wash, and dry wood beige.',
@@ -554,6 +659,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'high-fashion-editorial',
+    mood: 'noir',
+    contrastLevel: 'high',
+    tags: ['editorial', 'fashion', 'rich-black'],
     name: 'High Fashion Editorial',
     mode: 'graphic',
     description: 'High-fashion editorial graphic palette: warm cream paper, editorial rich black, rouge red, copper, and warm lichen.',
@@ -570,6 +678,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'monolith-cyberpunk',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['neon', 'cyberpunk', 'high-contrast'],
     name: 'Monolith Cyberpunk',
     mode: 'graphic',
     description: 'Vibrant neon cybernetic graphic layout: high-contrast concrete, neon magenta, cobalt wire, and cyber void black.',
@@ -586,6 +697,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'rothko-fields',
+    mood: 'warm',
+    contrastLevel: 'high',
+    tags: ['artistic', 'abstract', 'burgundy'],
     name: 'Rothko Color Fields',
     mode: 'graphic',
     description: 'Mark Rothko abstract fields: deep wine burgundy, glowing warm orange, charcoal violet, and sun-bleached sand.',
@@ -602,6 +716,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'metropolis-retro',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['retro-futurist', 'poster', 'sepia'],
     name: 'Metropolis Poster',
     mode: 'graphic',
     description: 'Retro-futurist metropolis poster art: sepia cream, charcoal black, rusted iron red, gear brass, and amber lights.',
@@ -618,6 +735,9 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'neo-tokyo-print',
+    mood: 'graphic',
+    contrastLevel: 'high',
+    tags: ['manga', 'print', 'poster'],
     name: 'Neo-Tokyo Manga Print',
     mode: 'graphic',
     description: 'Manga print and poster design: capsule red, asphalt grey, cement plaster, powerline blue, and hazard yellow.',

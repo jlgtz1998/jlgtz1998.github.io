@@ -47,12 +47,26 @@ export type DesignMode = 'architecture' | 'industrial' | 'graphic' | 'spec';
 
 export type MutationStrength = 'subtle' | 'balanced' | 'bold';
 
+export type PresetMood =
+  | 'neutral' | 'warm' | 'cool' | 'noir' | 'teal' | 'material' | 'graphic' | 'architectural';
+
+export type PresetContrastLevel = 'low' | 'medium' | 'high';
+
+export interface PresetColor {
+  hex: string;
+  name: string;
+  suggestedRole?: ColorRole;
+}
+
 export interface Preset {
   id: string;
   name: string;
-  colors: { hex: string; name: string }[];
+  colors: PresetColor[];
   mode?: DesignMode;
   description?: string;
+  tags?: string[];
+  mood?: PresetMood;
+  contrastLevel?: PresetContrastLevel;
 }
 
 export interface UserIdentity {
