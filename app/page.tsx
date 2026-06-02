@@ -26,8 +26,9 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.7';
-const APP_BUILD_LABEL = '2026.05.31';
+const APP_VERSION_LABEL = 'v0.1.8';
+const APP_BUILD_LABEL = '2026.06.02';
+const MAX_HISTORY_STEPS = 50;
 
 const STORAGE_KEYS = {
   identity: 'cran3o_identity',
@@ -51,6 +52,16 @@ function normalizeHexDraft(value: string): string | null {
   return `#${clean.toLowerCase()}`;
 }
 
+function getInitialLang(): 'en' | 'es' {
+  if (typeof window === 'undefined') return 'en';
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlLang = urlParams.get('lang');
+  if (urlLang === 'en' || urlLang === 'es') return urlLang;
+  const saved = localStorage.getItem('cran3o_color_studio_lang') as 'en' | 'es' | null;
+  if (saved === 'en' || saved === 'es') return saved;
+  return 'en';
+}
+
 export default function Cran3oColorStudio() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<DesignMode>('architecture');
@@ -58,7 +69,15 @@ export default function Cran3oColorStudio() {
   const [activeColorId, setActiveColorId] = useState<string | null>(null);
   const [activeHarmonyId, setActiveHarmonyId] = useState<string>('material');
   const [sliders, setSliders] = useState<SlidersState>(NEUTRAL_SLIDERS);
-  const [identity, setIdentity] = useState<UserIdentity>(DEFAULT_IDENTITY);
+  const [identity, setIdentity] = useState<UserIdentity>(() => {
+    if (typeof window === 'undefined') return DEFAULT_IDENTITY;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.identity);
+      return saved ? (JSON.parse(saved) as UserIdentity) : DEFAULT_IDENTITY;
+    } catch {
+      return DEFAULT_IDENTITY;
+    }
+  });
   const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
   const [blindnessSim, setBlindnessSim] = useState<VisionMode>('normal');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -86,7 +105,7 @@ export default function Cran3oColorStudio() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
-  const [lang, setLang] = useState<'en' | 'es'>('en');
+  const [lang, setLang] = useState<'en' | 'es'>(getInitialLang);
 
   const t = (key: keyof typeof TRANSLATIONS['en']) => {
     return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
@@ -107,6 +126,7 @@ export default function Cran3oColorStudio() {
 
   useEffect(() => {
     localStorage.setItem('cran3o_color_studio_lang', lang);
+    document.documentElement.lang = lang;
   }, [lang]);
 
   useEffect(() => {
@@ -123,59 +143,48 @@ export default function Cran3oColorStudio() {
       navigator.serviceWorker.register(normalizedPath).catch(() => undefined);
     }
 
-    const savedIdentity = localStorage.getItem(STORAGE_KEYS.identity);
     const savedMode = localStorage.getItem(STORAGE_KEYS.mode) as DesignMode | null;
     const savedSizeRaw = localStorage.getItem(STORAGE_KEYS.paletteSize);
     const savedSize = savedSizeRaw ? Number(savedSizeRaw) : Number.NaN;
     const initialMode = savedMode || 'architecture';
     const initialSize = Number.isFinite(savedSize) ? Math.max(0, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLang = urlParams.get('lang') as 'en' | 'es' | null;
-    const savedLang = urlLang || (localStorage.getItem('cran3o_color_studio_lang') as 'en' | 'es' | null);
-    if (savedLang === 'en' || savedLang === 'es') {
-      setLang(savedLang);
-    }
-
-    if (savedIdentity) {
-      try {
-        setIdentity(JSON.parse(savedIdentity));
-      } catch {
-        setIdentity(DEFAULT_IDENTITY);
-      }
-    }
-
-    setMode(initialMode);
-    setPaletteSize(initialSize);
-
     const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as PickerShape | null;
-    if (savedShape === 'wheel' || savedShape === 'plane_lc' || savedShape === 'plane_hc') {
-      setPickerShape(savedShape);
-    }
-
     const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'harmony' | null;
-    if (savedViewMode === 'instrument' || savedViewMode === 'harmony') {
-      setViewMode(savedViewMode);
-    }
-
+    let urlLayout: string | null = null;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const urlLayout = params.get('layout');
+      urlLayout = params.get('layout');
+    }
+
+    const defaultPreset = PRESETS[0];
+    const initialColors = createPaletteFromPreset(defaultPreset, initialSize, initialMode);
+
+    queueMicrotask(() => {
+      setMode(initialMode);
+      setPaletteSize(initialSize);
+
+      if (savedShape === 'wheel' || savedShape === 'plane_lc' || savedShape === 'plane_hc') {
+        setPickerShape(savedShape);
+      }
+
+      if (savedViewMode === 'instrument' || savedViewMode === 'harmony') {
+        setViewMode(savedViewMode);
+      }
+
       if (urlLayout === 'instrument') {
         setViewMode('instrument');
       } else if (urlLayout === 'harmony' || urlLayout === 'adobe') {
         setViewMode('harmony');
       }
-    }
 
-    const defaultPreset = PRESETS[0];
-    const initialColors = createPaletteFromPreset(defaultPreset, initialSize, initialMode);
-    setColors(initialColors);
-    setHistory([initialColors]);
-    setHistoryIndex(0);
-    setActiveColorId(initialColors[Math.min(4, initialColors.length - 1)]?.id ?? null);
-    setHarmonyBaseColorId(initialColors[0]?.id ?? null);
-    setMounted(true);
+      setColors(initialColors);
+      setHistory([initialColors]);
+      setHistoryIndex(0);
+      setActiveColorId(initialColors[Math.min(4, initialColors.length - 1)]?.id ?? null);
+      setHarmonyBaseColorId(initialColors[0]?.id ?? null);
+      setMounted(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -203,6 +212,7 @@ export default function Cran3oColorStudio() {
     [activeColorId, colors],
   );
 
+  /* eslint-disable react-hooks/set-state-in-effect -- sync derived UI state, not a cascading render loop */
   useEffect(() => {
     setHexDrafts(() => {
       const next: Record<string, string> = {};
@@ -212,7 +222,9 @@ export default function Cran3oColorStudio() {
       return next;
     });
   }, [colors]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  /* eslint-disable react-hooks/set-state-in-effect -- sync derived picker state, not a cascading render loop */
   useEffect(() => {
     if (activeColor) {
       const localHex = localOklch ? oklchToHex(localOklch) : '';
@@ -223,6 +235,7 @@ export default function Cran3oColorStudio() {
       setLocalOklch(null);
     }
   }, [activeColor, localOklch]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const getActiveColor = (): ColorData | null => activeColor;
 
@@ -243,7 +256,7 @@ export default function Cran3oColorStudio() {
         return;
       }
     }
-    const nextHistory = [...cleanHistory, newColors];
+    const nextHistory = [...cleanHistory, newColors].slice(-MAX_HISTORY_STEPS);
     setHistory(nextHistory);
     setHistoryIndex(nextHistory.length - 1);
   };
@@ -251,7 +264,22 @@ export default function Cran3oColorStudio() {
   const updateColorsAndPushHistory = (nextColors: ColorData[]) => {
     setColors(nextColors);
     const cleanHistory = history.slice(0, historyIndex + 1);
-    const nextHistory = [...cleanHistory, nextColors];
+    if (cleanHistory.length > 0) {
+      const last = cleanHistory[cleanHistory.length - 1];
+      if (
+        last.length === nextColors.length &&
+        last.every(
+          (c, idx) =>
+            c.hex === nextColors[idx]?.hex &&
+            c.locked === nextColors[idx]?.locked &&
+            c.role === nextColors[idx]?.role &&
+            c.displayName === nextColors[idx]?.displayName
+        )
+      ) {
+        return;
+      }
+    }
+    const nextHistory = [...cleanHistory, nextColors].slice(-MAX_HISTORY_STEPS);
     setHistory(nextHistory);
     setHistoryIndex(nextHistory.length - 1);
   };
@@ -706,7 +734,13 @@ export default function Cran3oColorStudio() {
       setCopiedColorId(color.id);
       setTimeout(() => setCopiedColorId(null), 1500);
     } catch {
-      await navigator.clipboard.writeText(text);
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopiedColorId(color.id);
+        setTimeout(() => setCopiedColorId(null), 1500);
+      } catch {
+        // Clipboard access can be blocked by browser policy; the context menu still remains safe.
+      }
     }
   };
 

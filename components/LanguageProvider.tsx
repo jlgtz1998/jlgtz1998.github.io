@@ -16,18 +16,23 @@ const LanguageContext = createContext<LanguageContextValue>({
 
 export const useLanguage = () => useContext(LanguageContext);
 
+function getInitialLang(): Lang {
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    if (urlLang === 'en' || urlLang === 'es') return urlLang;
+    const saved = localStorage.getItem('cran3o_color_studio_lang') as Lang | null;
+    if (saved === 'en' || saved === 'es') return saved;
+  }
+  return 'en';
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en');
-  const [hydrated, setHydrated] = useState(false);
+  const [lang, setLangState] = useState<Lang>(getInitialLang);
 
   useEffect(() => {
-    const saved = (localStorage.getItem('cran3o_color_studio_lang') as Lang | null) ?? 'en';
-    if (saved === 'en' || saved === 'es') {
-      setLangState(saved);
-      document.documentElement.lang = saved;
-    }
-    setHydrated(true);
-  }, []);
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = (next: Lang) => {
     setLangState(next);
@@ -35,8 +40,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = next;
   };
 
-  // Avoid hydration mismatch by rendering children only after hydration
-  // (street-level pages are client-rendered, so minimal impact)
   return (
     <LanguageContext.Provider value={{ lang, setLang }}>
       {children}
