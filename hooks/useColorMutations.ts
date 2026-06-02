@@ -41,6 +41,7 @@ export function useColorMutations(
     colors,
     activeColor,
     identity,
+    mode,
     setSliders,
     updateColorsAndPushHistory,
   );

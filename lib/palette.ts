@@ -1,6 +1,8 @@
 import { ColorData, ColorRole, DesignMode, Preset } from '../types';
-import { createColorFromHex } from './color-spaces';
+import { createColorFromHex, createColorFromOklch } from './color-spaces';
 import { mutateColor } from './variation';
+import { generateColorName } from './naming';
+import { generateHarmony } from './harmony';
 
 export const MIN_PALETTE_SIZE = 0;
 export const MAX_PALETTE_SIZE = 12;
@@ -88,4 +90,41 @@ export function moveColor(colors: ColorData[], fromIndex: number, toIndex: numbe
   const [moved] = next.splice(fromIndex, 1);
   next.splice(toIndex, 0, moved);
   return next;
+}
+
+export function generatePaletteHarmony(
+  colors: ColorData[],
+  seedColor: ColorData,
+  harmonyId: string,
+  mode: DesignMode,
+  maxChromaFactor: number = 1.0,
+): ColorData[] {
+  // Build preserved roles map for role !== 'none'
+  const preservedRoles: Record<number, ColorRole> = {};
+  colors.forEach((color, index) => {
+    if (color.locked) {
+      preservedRoles[index] = color.role;
+    } else if (color.role !== 'none') {
+      preservedRoles[index] = color.role;
+    }
+  });
+
+  const generatedOklchs = generateHarmony(seedColor.oklch, harmonyId, maxChromaFactor, preservedRoles);
+
+  return colors.map((color, index) => {
+    if (color.locked) {
+      return color;
+    }
+    const oklch = generatedOklchs[index % generatedOklchs.length];
+    const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
+    nextColor.id = color.id;
+    nextColor.locked = false;
+
+    if (preservedRoles[index] !== undefined) {
+      nextColor.role = preservedRoles[index];
+    } else {
+      nextColor.role = roleForIndex(mode, index);
+    }
+    return nextColor;
+  });
 }

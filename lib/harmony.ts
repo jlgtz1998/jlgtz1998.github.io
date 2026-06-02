@@ -1,4 +1,4 @@
-import { OklchColor, HarmonyOption } from '../types';
+import { OklchColor, HarmonyOption, ColorRole } from '../types';
 
 export const HARMONIES: HarmonyOption[] = [
   { id: 'monochromatic', name: 'Monochromatic', description: 'Varying lightness and chroma of a single refined hue.' },
@@ -20,7 +20,15 @@ function clampChroma(c: number, maxChroma: number = 0.08): number {
 }
 
 // Generate the 8-color palette in OKLCH based on a seed color and chosen harmony
-export function generateHarmony(seed: OklchColor, harmonyId: string, maxChromaFactor: number = 1.0): OklchColor[] {
+export function generateHarmony(
+  seed: OklchColor,
+  harmonyId: string,
+  maxChromaFactor: number = 1.0,
+  preservedRoles?: Record<number, ColorRole>
+): OklchColor[] {
+  if (preservedRoles) {
+    // preserved roles are processed by the caller
+  }
   const { c, h } = seed;
   const result: OklchColor[] = [];
   

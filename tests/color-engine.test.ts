@@ -5,7 +5,7 @@ import { checkWcag, checkApca } from '../lib/accessibility';
 import { generateColorName } from '../lib/naming';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { createColorFromHex } from '../lib/color-spaces';
-import { createPaletteFromPreset, createPaletteFromPresetNative, moveColor, normalizePaletteSize } from '../lib/palette';
+import { createPaletteFromPreset, createPaletteFromPresetNative, moveColor, normalizePaletteSize, generatePaletteHarmony } from '../lib/palette';
 import { PRESETS } from '../data/presets';
 
 describe('CRAN3O Color Studio Engine', () => {
@@ -109,5 +109,23 @@ describe('CRAN3O Color Studio Engine', () => {
     const hex0Index = movedSvg.indexOf(moved[0].hex.toUpperCase());
     const hex3Index = movedSvg.indexOf(moved[3].hex.toUpperCase());
     expect(hex0Index).toBeLessThan(hex3Index);
+  });
+
+  it('roles manuales se preservan al generar armonía', () => {
+    const initialColors = createPaletteFromPreset(PRESETS[0], 8, 'architecture');
+    initialColors[1].role = 'primary';
+    initialColors[2].role = 'accent';
+    initialColors[2].locked = true;
+
+    const seedColor = initialColors[0];
+    const generated = generatePaletteHarmony(initialColors, seedColor, 'complementary', 'architecture');
+
+    expect(generated[1].hex).not.toBe(initialColors[1].hex);
+    expect(generated[1].role).toBe('primary');
+
+    expect(generated[2].hex).toBe(initialColors[2].hex);
+    expect(generated[2].role).toBe('accent');
+
+    expect(generated[3].role).toBe('muted');
   });
 });
