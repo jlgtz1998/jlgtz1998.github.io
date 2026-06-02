@@ -13,7 +13,7 @@ import { applySliders, NEUTRAL_SLIDERS, generateFromIdentity, mutateColor } from
 import { checkApca, checkWcag } from '../lib/accessibility';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
-import { createPaletteFromPreset, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, moveColor, roleForIndex } from '../lib/palette';
+import { createPaletteFromPreset, createPaletteFromPresetNative, DEFAULT_PALETTE_SIZE, MAX_PALETTE_SIZE, moveColor, roleForIndex } from '../lib/palette';
 import ColorWheel from '../components/ColorWheel';
 import IdentityPanel from '../components/IdentityPanel';
 import MaterialIcon from '../components/MaterialIcon';
@@ -26,7 +26,7 @@ const DEFAULT_IDENTITY: UserIdentity = {
   experimentality: 30,
 };
 
-const APP_VERSION_LABEL = 'v0.1.8';
+const APP_VERSION_LABEL = 'v0.1.9';
 const APP_BUILD_LABEL = '2026.06.02';
 const MAX_HISTORY_STEPS = 50;
 
@@ -41,6 +41,10 @@ const STORAGE_KEYS = {
 
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 type PickerShape = 'wheel' | 'plane_lc' | 'plane_hc';
+type WorkspaceView = 'instrument' | 'harmony' | 'explore';
+type PresetSizingMode = 'native' | 'current';
+type PresetFilter = 'all' | 'universal' | DesignMode;
+type PresetSort = 'curated' | 'name' | 'count';
 
 function sanitizeFileName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -50,6 +54,17 @@ function normalizeHexDraft(value: string): string | null {
   const clean = value.trim().replace(/^#/, '');
   if (!/^[0-9a-fA-F]{6}$/.test(clean)) return null;
   return `#${clean.toLowerCase()}`;
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function colorDistance(a: ColorData, b: ColorData): number {
+  const hueA = ((a.oklch.h % 360) + 360) % 360;
+  const hueB = ((b.oklch.h % 360) + 360) % 360;
+  const hueDelta = Math.min(Math.abs(hueA - hueB), 360 - Math.abs(hueA - hueB)) / 360;
+  return Math.abs(a.oklch.l - b.oklch.l) + Math.abs(a.oklch.c - b.oklch.c) * 2 + hueDelta * 0.45;
 }
 
 function getInitialLang(): 'en' | 'es' {
@@ -103,9 +118,12 @@ export default function Cran3oColorStudio() {
   const [pickerShape, setPickerShape] = useState<PickerShape>('wheel');
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
+  const [viewMode, setViewMode] = useState<WorkspaceView>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>(getInitialLang);
+  const [exploreQuery, setExploreQuery] = useState('');
+  const [exploreFilter, setExploreFilter] = useState<PresetFilter>('all');
+  const [exploreSort, setExploreSort] = useState<PresetSort>('curated');
 
   const t = (key: keyof typeof TRANSLATIONS['en']) => {
     return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
@@ -150,7 +168,7 @@ export default function Cran3oColorStudio() {
     const initialSize = Number.isFinite(savedSize) ? Math.max(0, Math.min(MAX_PALETTE_SIZE, savedSize)) : DEFAULT_PALETTE_SIZE;
 
     const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as PickerShape | null;
-    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'harmony' | null;
+    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as WorkspaceView | null;
     let urlLayout: string | null = null;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -168,7 +186,7 @@ export default function Cran3oColorStudio() {
         setPickerShape(savedShape);
       }
 
-      if (savedViewMode === 'instrument' || savedViewMode === 'harmony') {
+      if (savedViewMode === 'instrument' || savedViewMode === 'harmony' || savedViewMode === 'explore') {
         setViewMode(savedViewMode);
       }
 
@@ -176,6 +194,8 @@ export default function Cran3oColorStudio() {
         setViewMode('instrument');
       } else if (urlLayout === 'harmony' || urlLayout === 'adobe') {
         setViewMode('harmony');
+      } else if (urlLayout === 'explore') {
+        setViewMode('explore');
       }
 
       setColors(initialColors);
@@ -211,6 +231,38 @@ export default function Cran3oColorStudio() {
     () => colors.find((color) => color.id === activeColorId) || colors[0] || null,
     [activeColorId, colors],
   );
+
+  const exploredPresets = useMemo(() => {
+    const query = exploreQuery.trim().toLowerCase();
+    const modeLabel = (preset: Preset) => preset.mode ?? 'universal';
+    const matchesFilter = (preset: Preset) => {
+      if (exploreFilter === 'all') return true;
+      if (exploreFilter === 'universal') return !preset.mode;
+      return preset.mode === exploreFilter;
+    };
+    const matchesQuery = (preset: Preset) => {
+      if (!query) return true;
+      const text = [
+        preset.name,
+        preset.description ?? '',
+        modeLabel(preset),
+        ...preset.colors.flatMap((color) => [color.name, color.hex]),
+      ].join(' ').toLowerCase();
+      return text.includes(query);
+    };
+
+    const sorted = PRESETS
+      .filter((preset) => matchesFilter(preset) && matchesQuery(preset))
+      .map((preset, index) => ({ preset, index }));
+
+    if (exploreSort === 'name') {
+      sorted.sort((a, b) => a.preset.name.localeCompare(b.preset.name));
+    } else if (exploreSort === 'count') {
+      sorted.sort((a, b) => b.preset.colors.length - a.preset.colors.length || a.index - b.index);
+    }
+
+    return sorted.map(({ preset }) => preset);
+  }, [exploreFilter, exploreQuery, exploreSort]);
 
   /* eslint-disable react-hooks/set-state-in-effect -- sync derived UI state, not a cascading render loop */
   useEffect(() => {
@@ -416,6 +468,90 @@ export default function Cran3oColorStudio() {
     }
   };
 
+  const handleImagePaletteUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      const sampleSize = 120;
+      const canvas = document.createElement('canvas');
+      canvas.width = sampleSize;
+      canvas.height = sampleSize;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        URL.revokeObjectURL(imageUrl);
+        return;
+      }
+
+      ctx.drawImage(image, 0, 0, sampleSize, sampleSize);
+      const { data } = ctx.getImageData(0, 0, sampleSize, sampleSize);
+      const buckets = new Map<string, { r: number; g: number; b: number; count: number }>();
+
+      for (let index = 0; index < data.length; index += 16) {
+        const alpha = data[index + 3];
+        if (alpha < 180) continue;
+        const r = data[index];
+        const g = data[index + 1];
+        const b = data[index + 2];
+        const key = `${r >> 4}-${g >> 4}-${b >> 4}`;
+        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0 };
+        bucket.r += r;
+        bucket.g += g;
+        bucket.b += b;
+        bucket.count += 1;
+        buckets.set(key, bucket);
+      }
+
+      const targetSize = Math.max(3, Math.min(MAX_PALETTE_SIZE, paletteSize || DEFAULT_PALETTE_SIZE));
+      const candidates = Array.from(buckets.values())
+        .filter((bucket) => bucket.count > 2)
+        .sort((a, b) => b.count - a.count)
+        .map((bucket) => {
+          const hex = rgbToHex(bucket.r / bucket.count, bucket.g / bucket.count, bucket.b / bucket.count);
+          return createColorFromHex(hex, generateColorName(hexToOklch(hex)));
+        });
+
+      const selected: ColorData[] = [];
+      for (const candidate of candidates) {
+        if (selected.length >= targetSize) break;
+        const minDistance = selected.reduce((distance, color) => Math.min(distance, colorDistance(candidate, color)), Number.POSITIVE_INFINITY);
+        if (selected.length < 2 || minDistance > 0.12) {
+          selected.push(candidate);
+        }
+      }
+
+      for (const candidate of candidates) {
+        if (selected.length >= targetSize) break;
+        if (!selected.some((color) => color.hex === candidate.hex)) {
+          selected.push(candidate);
+        }
+      }
+
+      const nextColors = selected.slice(0, MAX_PALETTE_SIZE).map((color, index) => ({
+        ...color,
+        id: `image-${Date.now()}-${index}`,
+        locked: false,
+        role: roleForIndex(mode, index),
+      }));
+
+      if (nextColors.length > 0) {
+        setPaletteName(file.name.replace(/\.[^.]+$/, '') || 'Image Extract');
+        setPaletteSize(nextColors.length);
+        setSliders(NEUTRAL_SLIDERS);
+        updateColorsAndPushHistory(nextColors);
+        setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
+        setHarmonyBaseColorId(nextColors[0]?.id ?? null);
+      }
+
+      URL.revokeObjectURL(imageUrl);
+    };
+    image.onerror = () => URL.revokeObjectURL(imageUrl);
+    image.src = imageUrl;
+  };
+
   const handleGenerateHarmony = () => {
     const seedColor = colors.find((c) => c.id === harmonyBaseColorId) || getActiveColor() || colors[0];
     if (!seedColor) return;
@@ -549,13 +685,34 @@ export default function Cran3oColorStudio() {
     setColors(applySliders(baseColors, nextSliders, targetId));
   };
 
-  const handlePresetSelect = (preset: Preset) => {
-    const nextColors = createPaletteFromPreset(preset, paletteSize, mode, colors);
+  const handlePresetSelect = (preset: Preset, sizing: PresetSizingMode = 'native') => {
+    const nextMode = preset.mode ?? mode;
+    const nextColors = sizing === 'native'
+      ? createPaletteFromPresetNative(preset, mode, colors)
+      : createPaletteFromPreset(preset, paletteSize, nextMode, colors);
+    if (preset.mode) {
+      setMode(preset.mode);
+      localStorage.setItem(STORAGE_KEYS.mode, preset.mode);
+    }
     setPaletteName(preset.name);
     setSliders(NEUTRAL_SLIDERS);
+    setPaletteSize(nextColors.length);
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
     setHarmonyBaseColorId(nextColors[0]?.id ?? null);
+  };
+
+  const handleCopyPresetList = (preset: Preset) => {
+    const text = [
+      preset.name,
+      preset.description ?? '',
+      '',
+      ...preset.colors.map((color) => `${color.hex.toUpperCase()} - ${color.name}`),
+    ].join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }).catch(() => undefined);
   };
 
   const handleToggleLock = (id: string) => {
@@ -850,6 +1007,12 @@ export default function Cran3oColorStudio() {
           >
             {t('workspaceHarmony')}
           </button>
+          <button
+            className={`workspace-tab-btn ${viewMode === 'explore' ? 'active' : ''}`}
+            onClick={() => setViewMode('explore')}
+          >
+            {lang === 'es' ? 'EXPLORAR PALETAS' : 'EXPLORE PALETTES'}
+          </button>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -1022,7 +1185,7 @@ export default function Cran3oColorStudio() {
       </header>
 
       <div 
-        className={viewMode === 'instrument' ? "studio-grid" : "harmony-layout-grid"} 
+        className={viewMode === 'instrument' ? "studio-grid" : viewMode === 'harmony' ? "harmony-layout-grid" : "explore-layout"} 
         style={{ filter: blindnessSim !== 'normal' ? `url(#${blindnessSim})` : 'none' }}
       >
         {viewMode === 'instrument' ? (
@@ -1153,9 +1316,10 @@ export default function Cran3oColorStudio() {
                                   >
                                     <span style={{ fontWeight: 500, fontSize: '0.72rem' }}>{preset.name}</span>
                                     <span className="preset-dots" style={{ display: 'flex', gap: '3px' }}>
-                                      {preset.colors.slice(0, 4).map((color, idx) => (
+                                      {preset.colors.map((color, idx) => (
                                         <i key={idx} style={{ backgroundColor: color.hex, width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(255,255,255,0.15)' }} />
                                       ))}
+                                      <em style={{ color: 'var(--text-muted)', fontSize: '0.58rem', fontStyle: 'normal', marginLeft: '2px' }}>{preset.colors.length}</em>
                                     </span>
                                   </button>
                                 ))}
@@ -1164,6 +1328,20 @@ export default function Cran3oColorStudio() {
                           </div>
                         )}
                       </div>
+                      <label
+                        className="calculator-action secondary"
+                        style={{ minHeight: '28px', padding: '4px 8px', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                        title={lang === 'es' ? 'Extraer paleta desde una imagen local' : 'Extract palette from a local image'}
+                      >
+                        <MaterialIcon name="image" size={13} />
+                        <span>{lang === 'es' ? 'IMAGEN' : 'IMAGE'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImagePaletteUpload}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
                     </div>
                   </div>
 
@@ -1674,7 +1852,7 @@ export default function Cran3oColorStudio() {
 
             </aside>
           </>
-        ) : (
+        ) : viewMode === 'harmony' ? (
           <>
             {/* COLUMN 1: harmony Harmony Sidebar (Left) */}
             <div className="left-column stack harmony-sidebar">
@@ -2040,6 +2218,122 @@ export default function Cran3oColorStudio() {
               </section>
             </aside>
           </>
+        ) : (
+          <section className="studio-panel calculator-face explore-panel">
+            <div className="explore-header">
+              <div>
+                <h2 className="explore-title">{lang === 'es' ? 'EXPLORAR PALETAS' : 'EXPLORE PALETTES'}</h2>
+                <p className="section-description">
+                  {lang === 'es'
+                    ? 'Biblioteca curada de sistemas cromáticos CRAN3O. Busca por material, atmósfera, disciplina, nombre o código HEX.'
+                    : 'Curated CRAN3O color systems. Search by material, atmosphere, discipline, name, or HEX value.'}
+                </p>
+              </div>
+              <div className="explore-count">
+                <strong>{exploredPresets.length}</strong>
+                <span>{lang === 'es' ? 'paletas' : 'palettes'}</span>
+              </div>
+            </div>
+
+            <div className="explore-controls">
+              <label className="explore-search">
+                <MaterialIcon name="search" size={16} />
+                <input
+                  value={exploreQuery}
+                  onChange={(event) => setExploreQuery(event.target.value)}
+                  placeholder={lang === 'es' ? 'Buscar: teal, concreto, noir, arquitectura...' : 'Search: teal, concrete, noir, architecture...'}
+                  spellCheck={false}
+                />
+              </label>
+              <div className="button-strip explore-filter-strip">
+                {([
+                  ['all', lang === 'es' ? 'TODO' : 'ALL'],
+                  ['universal', lang === 'es' ? 'UNIV.' : 'UNIV.'],
+                  ['architecture', lang === 'es' ? 'ARQ.' : 'ARCH'],
+                  ['industrial', 'CMF'],
+                  ['graphic', lang === 'es' ? 'GRÁF.' : 'GRAPH'],
+                ] as [PresetFilter, string][]).map(([filter, label]) => (
+                  <button
+                    key={filter}
+                    className={exploreFilter === filter ? 'active' : ''}
+                    onClick={() => setExploreFilter(filter)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <select
+                className="select-control explore-sort"
+                value={exploreSort}
+                onChange={(event) => setExploreSort(event.target.value as PresetSort)}
+              >
+                <option value="curated">{lang === 'es' ? 'Orden curado' : 'Curated order'}</option>
+                <option value="name">{lang === 'es' ? 'Nombre A-Z' : 'Name A-Z'}</option>
+                <option value="count">{lang === 'es' ? 'Más colores' : 'Most colors'}</option>
+              </select>
+            </div>
+
+            <div className="explore-grid">
+              {exploredPresets.map((preset) => {
+                const modeText = preset.mode
+                  ? getTranslatedModeName(preset.mode).toUpperCase()
+                  : (lang === 'es' ? 'UNIVERSAL' : 'UNIVERSAL');
+                return (
+                  <article key={preset.id} className="explore-card">
+                    <div className="explore-card-strip" aria-hidden="true">
+                      {preset.colors.map((color) => (
+                        <i key={`${preset.id}-${color.hex}-${color.name}`} style={{ backgroundColor: color.hex }} />
+                      ))}
+                    </div>
+                    <div className="explore-card-body">
+                      <div className="explore-card-meta">
+                        <span>{modeText}</span>
+                        <span>{preset.colors.length} {lang === 'es' ? 'colores' : 'colors'}</span>
+                      </div>
+                      <h3>{preset.name}</h3>
+                      <p>{preset.description}</p>
+                      <div className="explore-mini-swatches">
+                        {preset.colors.map((color) => (
+                          <button
+                            key={`${preset.id}-mini-${color.hex}-${color.name}`}
+                            style={{ backgroundColor: color.hex }}
+                            title={`${color.name} ${color.hex.toUpperCase()}`}
+                            onClick={() => navigator.clipboard.writeText(color.hex.toUpperCase()).catch(() => undefined)}
+                            aria-label={`${lang === 'es' ? 'Copiar' : 'Copy'} ${color.name} ${color.hex.toUpperCase()}`}
+                          />
+                        ))}
+                      </div>
+                      <div className="explore-actions">
+                        <button
+                          className="calculator-action primary"
+                          onClick={() => handlePresetSelect(preset, 'native')}
+                          title={lang === 'es' ? 'Carga el conteo original del preset' : 'Load the preset original color count'}
+                        >
+                          <MaterialIcon name="palette" size={12} />
+                          {lang === 'es' ? 'USAR NATIVO' : 'USE NATIVE'}
+                        </button>
+                        <button
+                          className="calculator-action secondary"
+                          onClick={() => handlePresetSelect(preset, 'current')}
+                          title={lang === 'es' ? 'Adapta esta paleta al tamaño actual' : 'Fit this palette to current size'}
+                        >
+                          {lang === 'es' ? `AJUSTAR ${paletteSize}` : `FIT ${paletteSize}`}
+                        </button>
+                        <button
+                          className="icon-button"
+                          onClick={() => handleCopyPresetList(preset)}
+                          title={lang === 'es' ? 'Copiar lista HEX' : 'Copy HEX list'}
+                          aria-label={lang === 'es' ? 'Copiar lista HEX' : 'Copy HEX list'}
+                        >
+                          <MaterialIcon name={copied ? 'check' : 'content_copy'} size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
         )}
       </div>
       {helpOpen && (

@@ -39,6 +39,10 @@ function iconPath(name: string) {
       return <path d="m9 5 7 7-7 7" {...common} />;
     case 'explore':
       return <><circle cx="12" cy="12" r="9" {...common} /><path d="m15.5 8.5-2.2 5-4.8 2 2.2-5 4.8-2Z" {...common} /></>;
+    case 'search':
+      return <><circle cx="11" cy="11" r="7" {...common} /><path d="m20 20-4-4" {...common} /></>;
+    case 'palette':
+      return <><path d="M12 3a9 9 0 0 0 0 18h1.5a1.8 1.8 0 0 0 .6-3.5 1.2 1.2 0 0 1 .4-2.3H16a5 5 0 0 0 0-10h-4Z" {...common} /><circle cx="8" cy="10" r="1.1" fill="currentColor" /><circle cx="11" cy="7.5" r="1.1" fill="currentColor" /><circle cx="15" cy="9" r="1.1" fill="currentColor" /><circle cx="10" cy="13.5" r="1.1" fill="currentColor" /></>;
     case 'auto_awesome':
       return <><path d="m12 3 1.5 5.1L18.5 10l-5 1.9L12 17l-1.5-5.1-5-1.9 5-1.9L12 3Z" {...common} /><path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z" {...common} /></>;
     case 'refresh':

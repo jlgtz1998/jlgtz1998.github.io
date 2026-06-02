@@ -28,6 +28,7 @@ import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { printPaletteCatalog } from '../lib/exporters/pdf-exporter';
 import {
   createPaletteFromPreset,
+  createPaletteFromPresetNative,
   DEFAULT_PALETTE_SIZE,
   MAX_PALETTE_SIZE,
   moveColor,
@@ -53,6 +54,8 @@ const STORAGE_KEYS = {
 
 type VisionMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 type PickerShape = 'wheel' | 'plane_lc' | 'plane_hc';
+type WorkspaceView = 'instrument' | 'harmony' | 'explore';
+type PresetSizingMode = 'native' | 'current';
 
 function sanitizeFileName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -116,7 +119,7 @@ export function useStudioState() {
   const [pickerShape, setPickerShape] = useState<PickerShape>('wheel');
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
   const [helpOpen, setHelpOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'instrument' | 'harmony'>('instrument');
+  const [viewMode, setViewMode] = useState<WorkspaceView>('instrument');
   const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>(getInitialLang);
 
@@ -187,7 +190,7 @@ export function useStudioState() {
       : DEFAULT_PALETTE_SIZE;
 
     const savedShape = localStorage.getItem(STORAGE_KEYS.pickerShape) as PickerShape | null;
-    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as 'instrument' | 'harmony' | null;
+    const savedViewMode = localStorage.getItem(STORAGE_KEYS.viewMode) as WorkspaceView | null;
     let urlLayout: string | null = null;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -205,7 +208,7 @@ export function useStudioState() {
         setPickerShape(savedShape);
       }
 
-      if (savedViewMode === 'instrument' || savedViewMode === 'harmony') {
+      if (savedViewMode === 'instrument' || savedViewMode === 'harmony' || savedViewMode === 'explore') {
         setViewMode(savedViewMode);
       }
 
@@ -213,6 +216,8 @@ export function useStudioState() {
         setViewMode('instrument');
       } else if (urlLayout === 'harmony' || urlLayout === 'adobe') {
         setViewMode('harmony');
+      } else if (urlLayout === 'explore') {
+        setViewMode('explore');
       }
 
       setColors(initialColors);
@@ -622,10 +627,18 @@ export function useStudioState() {
   );
 
   const handlePresetSelect = useCallback(
-    (preset: Preset) => {
-      const nextColors = createPaletteFromPreset(preset, paletteSize, mode, colors);
+    (preset: Preset, sizing: PresetSizingMode = 'native') => {
+      const nextMode = preset.mode ?? mode;
+      const nextColors = sizing === 'native'
+        ? createPaletteFromPresetNative(preset, mode, colors)
+        : createPaletteFromPreset(preset, paletteSize, nextMode, colors);
+      if (preset.mode) {
+        setMode(preset.mode);
+        localStorage.setItem(STORAGE_KEYS.mode, preset.mode);
+      }
       setPaletteName(preset.name);
       setSliders(NEUTRAL_SLIDERS);
+      setPaletteSize(nextColors.length);
       updateColorsAndPushHistory(nextColors);
       setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
       setHarmonyBaseColorId(nextColors[0]?.id ?? null);

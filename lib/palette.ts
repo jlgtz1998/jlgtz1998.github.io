@@ -60,6 +60,19 @@ export function createPaletteFromPreset(
   return normalizePaletteSize(seeded, size, mode);
 }
 
+export function createPaletteFromPresetNative(
+  preset: Preset,
+  fallbackMode: DesignMode,
+  previousColors: ColorData[] = [],
+): ColorData[] {
+  return createPaletteFromPreset(
+    preset,
+    preset.colors.length,
+    preset.mode ?? fallbackMode,
+    previousColors,
+  );
+}
+
 export function moveColor(colors: ColorData[], fromIndex: number, toIndex: number): ColorData[] {
   if (
     fromIndex === toIndex ||

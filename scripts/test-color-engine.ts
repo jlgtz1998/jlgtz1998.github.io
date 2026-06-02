@@ -4,7 +4,7 @@ import { checkWcag, checkApca } from '../lib/accessibility';
 import { generateColorName } from '../lib/naming';
 import { exportPaletteToSvg } from '../lib/exporters/svg-exporter';
 import { createColorFromHex } from '../lib/color-spaces';
-import { createPaletteFromPreset, moveColor, normalizePaletteSize } from '../lib/palette';
+import { createPaletteFromPreset, createPaletteFromPresetNative, moveColor, normalizePaletteSize } from '../lib/palette';
 import { PRESETS } from '../data/presets';
 
 function assert(condition: boolean, message: string) {
@@ -87,10 +87,14 @@ const sizedThree = createPaletteFromPreset(PRESETS[0], 3, 'architecture');
 const sizedEight = createPaletteFromPreset(PRESETS[0], 8, 'architecture');
 const sizedTwelve = createPaletteFromPreset(PRESETS[0], 12, 'graphic');
 const presetSizeOverride = createPaletteFromPreset(PRESETS[1], 5, 'architecture');
+const nativeQuietFuture = createPaletteFromPresetNative(PRESETS[0], 'architecture');
+const nativeCurtainStone = createPaletteFromPresetNative(PRESETS.find((preset) => preset.id === 'curtain-stone')!, 'architecture');
 assert(sizedThree.length === 3, `Expected 3 colors, got ${sizedThree.length}`);
 assert(sizedEight.length === 8, `Expected 8 colors, got ${sizedEight.length}`);
 assert(sizedTwelve.length === 12, `Expected 12 colors, got ${sizedTwelve.length}`);
 assert(presetSizeOverride.length === 5, `Preset loading should respect requested palette size, got ${presetSizeOverride.length}`);
+assert(nativeQuietFuture.length === PRESETS[0].colors.length, `Native preset should keep its original count, got ${nativeQuietFuture.length}`);
+assert(nativeCurtainStone.length === 6, `Six-color presets should not be forced to stored palette size, got ${nativeCurtainStone.length}`);
 assert(sizedTwelve.every((color) => color.displayName.length > 0), 'Generated extension colors should have names');
 console.log('✅ Palette sizing passed.');
 

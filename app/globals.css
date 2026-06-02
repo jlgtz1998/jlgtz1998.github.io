@@ -658,6 +658,187 @@ input[type="number"] {
   color: var(--text-secondary);
 }
 
+/* ==========================================================================
+   EXPLORE PALETTES
+   ========================================================================== */
+.explore-layout {
+  width: min(100%, 1400px);
+  margin: 0 auto;
+}
+
+.explore-panel {
+  min-height: 70vh;
+}
+
+.explore-header {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+}
+
+.explore-title {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 1.5vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 0 0 6px;
+}
+
+.explore-count {
+  align-items: flex-end;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xxs);
+  min-width: 82px;
+  text-transform: uppercase;
+}
+
+.explore-count strong {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.explore-controls {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(240px, 1fr) auto minmax(148px, 180px);
+  margin-bottom: 18px;
+}
+
+.explore-search {
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+}
+
+.explore-search input {
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+.explore-filter-strip {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.explore-sort {
+  height: 34px;
+  min-width: 0;
+}
+
+.explore-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.explore-card {
+  background: var(--bg-panel-deep);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.explore-card-strip {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  height: 58px;
+}
+
+.explore-card-strip i {
+  min-width: 0;
+}
+
+.explore-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px;
+}
+
+.explore-card-meta {
+  color: var(--text-muted);
+  display: flex;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xxs);
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.explore-card h3 {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-lg);
+  letter-spacing: 0;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.explore-card p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  margin: 0;
+  min-height: 3.8em;
+}
+
+.explore-mini-swatches {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(18px, 1fr));
+}
+
+.explore-mini-swatches button {
+  aspect-ratio: 1;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  cursor: pointer;
+  min-width: 18px;
+}
+
+.explore-actions {
+  align-items: center;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr) 34px;
+}
+
+.explore-actions .calculator-action {
+  justify-content: center;
+  min-height: 32px;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
 .role-select:focus {
   color: var(--text-primary);
 }
@@ -2505,6 +2686,24 @@ button:disabled,
   .harmony-layout-grid .left-column,
   .harmony-layout-grid .right-column {
     grid-column: span 1;
+  }
+
+  .explore-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .explore-count {
+    align-items: flex-start;
+  }
+
+  .explore-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-filter-strip {
+    justify-self: stretch;
+    overflow-x: auto;
   }
 }
 
