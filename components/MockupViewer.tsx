@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ColorData, ColorRole, DesignMode } from '../types';
 import { createColorFromHex } from '../lib/color-spaces';
 import { checkApca, getWcagContrast } from '../lib/accessibility';
@@ -284,10 +284,12 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
   const [prevMode, setPrevMode] = useState<DesignMode>(mode);
 
-  if (mode !== prevMode) {
-    setPrevMode(mode);
-    setActiveSubtype(getDefaultSubtype(mode));
-  }
+  useEffect(() => {
+    if (mode !== prevMode) {
+      setPrevMode(mode);
+      setActiveSubtype(getDefaultSubtype(mode));
+    }
+  }, [mode, prevMode]);
 
   const t = (key: keyof typeof TRANSLATIONS['en']) => {
     return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key];
