@@ -55,18 +55,18 @@ export type PresetContrastLevel = 'low' | 'medium' | 'high';
 export interface PresetColor {
   hex: string;
   name: string;
-  suggestedRole?: ColorRole;
+  suggestedRole?: ColorRole; // new field
 }
 
 export interface Preset {
   id: string;
   name: string;
-  colors: PresetColor[];
+  colors: PresetColor[];      // PresetColor replaces { hex, name }
   mode?: DesignMode;
   description?: string;
-  tags?: string[];
-  mood?: PresetMood;
-  contrastLevel?: PresetContrastLevel;
+  tags?: string[];             // new
+  mood?: PresetMood;           // new
+  contrastLevel?: PresetContrastLevel; // new
 }
 
 export interface UserIdentity {
