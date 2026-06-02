@@ -124,6 +124,8 @@ export default function Cran3oColorStudio() {
   const [exploreQuery, setExploreQuery] = useState('');
   const [exploreFilter, setExploreFilter] = useState<PresetFilter>('all');
   const [exploreSort, setExploreSort] = useState<PresetSort>('curated');
+  const [copiedPresetId, setCopiedPresetId] = useState<string | null>(null);
+  const [copiedMiniSwatchKey, setCopiedMiniSwatchKey] = useState<string | null>(null);
 
   const t = (key: keyof typeof TRANSLATIONS['en']) => {
     return TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
@@ -602,6 +604,7 @@ export default function Cran3oColorStudio() {
   };
 
   const handleIdentitySliderChange = (newIdentity: UserIdentity) => {
+    if (colors.length === 0) return;
     setIdentity(newIdentity);
     const generated = generateFromIdentity(newIdentity, paletteSize);
     setPaletteName('Identity Preset');
@@ -700,6 +703,7 @@ export default function Cran3oColorStudio() {
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
     setHarmonyBaseColorId(nextColors[0]?.id ?? null);
+    setViewMode('instrument');
   };
 
   const handleCopyPresetList = (preset: Preset) => {
@@ -710,8 +714,8 @@ export default function Cran3oColorStudio() {
       ...preset.colors.map((color) => `${color.hex.toUpperCase()} - ${color.name}`),
     ].join('\n');
     navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      setCopiedPresetId(preset.id);
+      setTimeout(() => setCopiedPresetId(null), 1800);
     }).catch(() => undefined);
   };
 
@@ -782,7 +786,7 @@ export default function Cran3oColorStudio() {
   };
 
   const handleExportSvg = () => {
-    const blob = new Blob([exportPaletteToSvg(colors, paletteName, getTranslatedModeName(mode), lang)], { type: 'image/svg+xml' });
+    const blob = new Blob([exportPaletteToSvg(colors, paletteName, getTranslatedModeName(mode), lang, isDarkMode)], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1593,7 +1597,7 @@ export default function Cran3oColorStudio() {
                               handlePasteAddColor();
                             }}
                           >
-                            <MaterialIcon name="content_copy" size={12} />
+                            <MaterialIcon name="content_paste" size={12} />
                           </button>
                         </div>
                       </div>
@@ -1847,7 +1851,7 @@ export default function Cran3oColorStudio() {
               
               {/* Live Mockup Preview */}
               <section className="studio-panel calculator-face">
-                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} />
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} isDarkMode={isDarkMode} />
               </section>
 
             </aside>
@@ -2183,7 +2187,7 @@ export default function Cran3oColorStudio() {
             {/* COLUMN 3: Sticky Previews & Metrology (Right) */}
             <aside className="right-column sticky-sidebar stack">
               <section className="studio-panel calculator-face">
-                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} />
+                <MockupViewer key={mode} colors={colors} mode={mode} onModeChange={handleModeChange} paletteName={paletteName} lang={lang} isDarkMode={isDarkMode} />
               </section>
 
               <section className="studio-panel calculator-face">
@@ -2293,15 +2297,26 @@ export default function Cran3oColorStudio() {
                       <h3>{preset.name}</h3>
                       <p>{preset.description}</p>
                       <div className="explore-mini-swatches">
-                        {preset.colors.map((color) => (
-                          <button
-                            key={`${preset.id}-mini-${color.hex}-${color.name}`}
-                            style={{ backgroundColor: color.hex }}
-                            title={`${color.name} ${color.hex.toUpperCase()}`}
-                            onClick={() => navigator.clipboard.writeText(color.hex.toUpperCase()).catch(() => undefined)}
-                            aria-label={`${lang === 'es' ? 'Copiar' : 'Copy'} ${color.name} ${color.hex.toUpperCase()}`}
-                          />
-                        ))}
+                        {preset.colors.map((color) => {
+                          const swatchKey = `${preset.id}-${color.hex}`;
+                          return (
+                            <button
+                              key={`${preset.id}-mini-${color.hex}-${color.name}`}
+                              className={copiedMiniSwatchKey === swatchKey ? 'copied' : ''}
+                              style={{ backgroundColor: color.hex }}
+                              title={`${color.name} ${color.hex.toUpperCase()}`}
+                              onClick={() => {
+                                navigator.clipboard.writeText(color.hex.toUpperCase())
+                                  .then(() => {
+                                    setCopiedMiniSwatchKey(swatchKey);
+                                    setTimeout(() => setCopiedMiniSwatchKey(null), 1000);
+                                  })
+                                  .catch(() => undefined);
+                              }}
+                              aria-label={`${lang === 'es' ? 'Copiar' : 'Copy'} ${color.name} ${color.hex.toUpperCase()}`}
+                            />
+                          );
+                        })}
                       </div>
                       <div className="explore-actions">
                         <button
@@ -2325,7 +2340,7 @@ export default function Cran3oColorStudio() {
                           title={lang === 'es' ? 'Copiar lista HEX' : 'Copy HEX list'}
                           aria-label={lang === 'es' ? 'Copiar lista HEX' : 'Copy HEX list'}
                         >
-                          <MaterialIcon name={copied ? 'check' : 'content_copy'} size={16} />
+                          <MaterialIcon name={copiedPresetId === preset.id ? 'check' : 'content_copy'} size={16} />
                         </button>
                       </div>
                     </div>

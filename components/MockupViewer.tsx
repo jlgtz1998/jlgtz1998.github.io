@@ -34,6 +34,7 @@ interface MockupViewerProps {
   onModeChange: (newMode: DesignMode) => void;
   paletteName?: string;
   lang?: 'en' | 'es';
+  isDarkMode?: boolean;
 }
 
 type ResolvedRoleColors = {
@@ -280,7 +281,7 @@ function getContrastColor(surfaceHex: string, resolved: ResolvedRoleColors): str
   }
 }
 
-export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec', lang = 'en' }: MockupViewerProps) {
+export default function MockupViewer({ colors, mode, onModeChange, paletteName = 'CRAN3O Spec', lang = 'en', isDarkMode = false }: MockupViewerProps) {
   const [activeSubtype, setActiveSubtype] = useState<string>(() => getDefaultSubtype(mode));
   // mode changes are handled by parent passing key={mode}, which remounts this component
 
@@ -1062,7 +1063,9 @@ export default function MockupViewer({ colors, mode, onModeChange, paletteName =
 const renderSvgToImageBlob = (svgElement: SVGSVGElement): Promise<Blob | null> => {
   const isNight = activeSubtype === 'night';
   const isSpec = mode === 'spec';
-  const bgColor = isSpec || activeSubtype === 'moodboard' ? '#ffffff' : (isNight ? '#0b0d0e' : '#fcfbfa');
+  const bgColor = isSpec || activeSubtype === 'moodboard'
+    ? '#ffffff'
+    : (isNight ? '#0b0d0e' : (isDarkMode ? '#0c0f12' : '#fdfbf7'));
 
   const svgString = new XMLSerializer().serializeToString(svgElement);
   const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });

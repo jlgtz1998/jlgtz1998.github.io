@@ -2,7 +2,7 @@ import { ColorData, ColorRole, DesignMode, Preset } from '../types';
 import { createColorFromHex } from './color-spaces';
 import { mutateColor } from './variation';
 
-export const MIN_PALETTE_SIZE = 3;
+export const MIN_PALETTE_SIZE = 0;
 export const MAX_PALETTE_SIZE = 12;
 export const DEFAULT_PALETTE_SIZE = 8;
 

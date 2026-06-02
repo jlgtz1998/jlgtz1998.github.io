@@ -726,6 +726,13 @@ input[type="number"] {
   gap: 8px;
   min-width: 0;
   padding: 8px 10px;
+  transition: border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.explore-search:focus-within {
+  border-color: var(--button-dark);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--button-dark);
 }
 
 .explore-search input {
@@ -744,8 +751,42 @@ input[type="number"] {
   white-space: nowrap;
 }
 
-.explore-sort {
+.select-control {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--bg-input);
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
   height: 34px;
+  padding: 6px 28px 6px 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.dark .select-control {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%239ca3af' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+}
+
+.select-control:hover {
+  border-color: var(--border-medium);
+}
+
+.select-control:focus {
+  border-color: var(--button-dark);
+  box-shadow: 0 0 0 1px var(--button-dark);
+}
+
+.explore-sort {
   min-width: 0;
 }
 
@@ -819,10 +860,40 @@ input[type="number"] {
 
 .explore-mini-swatches button {
   aspect-ratio: 1;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-medium);
   border-radius: 50%;
   cursor: pointer;
   min-width: 18px;
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.explore-mini-swatches button:hover {
+  transform: scale(1.25);
+  z-index: 2;
+  box-shadow: 0 0 0 2px var(--bg-object), 0 0 0 3.5px var(--button-dark);
+}
+
+.explore-mini-swatches button.copied {
+  animation: swatchCopiedPulse 0.4s ease-out;
+  transform: scale(1.35);
+  box-shadow: 0 0 0 2px var(--bg-object), 0 0 0 4px var(--button-green) !important;
+  z-index: 3;
+}
+
+@keyframes swatchCopiedPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 var(--button-green);
+  }
+  50% {
+    transform: scale(1.55);
+    box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.3);
+  }
+  100% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 2px var(--bg-object), 0 0 0 4px var(--button-green);
+  }
 }
 
 .explore-actions {

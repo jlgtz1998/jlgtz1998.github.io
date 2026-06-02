@@ -45,13 +45,19 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
   const dateStr = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const t = pdfTranslations[lang];
 
+  // Dynamic table styling to prevent horizontal overflow on Letter/A4 pages
+  const colCount = colors.length;
+  const cellPadding = colCount > 10 ? '3px' : (colCount > 8 ? '4px' : '6px');
+  const cellFontSize = colCount > 10 ? '7.5px' : (colCount > 8 ? '8.5px' : '10px');
+  const headerFontSize = colCount > 10 ? '8.5px' : (colCount > 8 ? '9px' : '11px');
+
   // Generate contrast table for printing
   let contrastRows = '';
   colors.forEach((c1) => {
-    contrastRows += `<tr><td style="font-weight: 600; padding: 6px; font-size: 10px; border: 1px solid #eee;">${c1.displayName}</td>`;
+    contrastRows += `<tr><td style="font-weight: 600; padding: ${cellPadding}; font-size: ${headerFontSize}; border: 1px solid #eee; background-color: #fafafa;">${c1.displayName}</td>`;
     colors.forEach((c2) => {
       if (c1.id === c2.id) {
-        contrastRows += `<td style="text-align: center; color: #aaa; background: #fafafa; font-size: 10px; border: 1px solid #eee;">-</td>`;
+        contrastRows += `<td style="text-align: center; color: #aaa; background: #fdfdfd; font-size: ${cellFontSize}; padding: ${cellPadding}; border: 1px solid #eee;">-</td>`;
       } else {
         // Calculate WCAG contrast on the fly for the print table
         const l1 = getWcagLuminance(c1.rgb);
@@ -63,9 +69,9 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
         const apca = getApcaContrast(c1.rgb, c2.rgb);
         
         contrastRows += `
-          <td style="text-align: center; padding: 6px; font-size: 10px; border: 1px solid #eee;">
+          <td style="text-align: center; padding: ${cellPadding}; font-size: ${cellFontSize}; border: 1px solid #eee;">
             <div style="font-weight: bold;">${wRatio}:1</div>
-            <div style="color: #666;">Lc ${apca}</div>
+            <div style="color: #666; font-size: 0.9em; margin-top: 1px;">Lc ${apca}</div>
           </td>
         `;
       }
@@ -106,6 +112,14 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
   printContainer.innerHTML = `
     <style>
       @media print {
+        @page {
+          margin: 15mm;
+          size: auto;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
         html, body, #__next, .studio-shell, main {
           height: auto !important;
           min-height: 0 !important;
@@ -120,6 +134,8 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
         }
         #studio-print-catalog, #studio-print-catalog * {
           visibility: visible !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         #studio-print-catalog {
           display: block !important;
@@ -133,8 +149,6 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
           padding: 0;
           margin: 0;
           box-sizing: border-box;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
         }
       }
       
@@ -167,11 +181,11 @@ export function printPaletteCatalog(colors: ColorData[], paletteName: string, mo
     
     <div style="page-break-inside: avoid; margin-top: 30px;">
       <h2 style="font-size: 12px; font-weight: 700; color: #666; border-bottom: 1px solid #111; padding-bottom: 4px; text-transform: uppercase; margin-bottom: 15px;">${t.contrastMatrix}</h2>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
         <thead>
           <tr style="border-bottom: 1px solid #ddd; background-color: #f9f9f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-            <th style="text-align: left; padding: 8px; font-size: 11px; border: 1px solid #eee;">${t.colorName}</th>
-            ${colors.map(c => `<th style="padding: 8px; font-size: 10px; text-align: center; width: 80px; border: 1px solid #eee;">${c.displayName.split(' ')[0]}</th>`).join('')}
+            <th style="text-align: left; padding: ${cellPadding}; font-size: ${headerFontSize}; border: 1px solid #eee; background-color: #f9f9f9;">${t.colorName}</th>
+            ${colors.map(c => `<th style="padding: ${cellPadding}; font-size: ${cellFontSize}; text-align: center; border: 1px solid #eee; background-color: #f9f9f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.displayName.split(' ')[0]}</th>`).join('')}
           </tr>
         </thead>
         <tbody>

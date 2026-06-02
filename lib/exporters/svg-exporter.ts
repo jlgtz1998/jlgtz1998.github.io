@@ -21,34 +21,48 @@ const svgTranslations = {
   }
 };
 
-export function exportPaletteToSvg(colors: ColorData[], paletteName: string, modeName: string, lang: 'en' | 'es' = 'en'): string {
+export function exportPaletteToSvg(colors: ColorData[], paletteName: string, modeName: string, lang: 'en' | 'es' = 'en', isDarkMode: boolean = true): string {
   const width = 800;
   const height = colors.length * 90 + 200;
   const dateStr = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const t = svgTranslations[lang];
 
-  let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" style="background-color: #121416; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  // Theme-adaptive design variables
+  const bgFill = isDarkMode ? '#0c0f12' : '#fdfbf7';
+  const textPrimary = isDarkMode ? '#ffffff' : '#111827';
+  const textSecondary = isDarkMode ? '#a9a7a1' : '#4b5563';
+  const textMuted = isDarkMode ? '#70808a' : '#9ca3af';
+  const gridStroke = isDarkMode ? '#ffffff' : '#000000';
+  const gridOpacity = isDarkMode ? '0.02' : '0.015';
+  const borderStroke = isDarkMode ? '#ffffff' : '#000000';
+  const borderOpacity = isDarkMode ? '0.1' : '0.08';
+  const swatchStroke = isDarkMode ? '#ffffff' : '#000000';
+  const swatchOpacity = isDarkMode ? '0.15' : '0.12';
+  const dividerStroke = isDarkMode ? '#ffffff' : '#000000';
+  const dividerOpacity = isDarkMode ? '0.04' : '0.03';
+
+  let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" style="background-color: ${bgFill}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
     <!-- Background grid -->
-    <rect width="${width}" height="${height}" fill="#121416" />
+    <rect width="${width}" height="${height}" fill="${bgFill}" />
     <defs>
       <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ffffff" stroke-opacity="0.02" stroke-width="1"/>
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="${gridStroke}" stroke-opacity="${gridOpacity}" stroke-width="1"/>
       </pattern>
     </defs>
     <rect width="${width}" height="${height}" fill="url(#grid)" />
 
     <!-- Top Border Line -->
-    <line x1="40" y1="40" x2="${width - 40}" y2="40" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+    <line x1="40" y1="40" x2="${width - 40}" y2="40" stroke="${borderStroke}" stroke-opacity="${borderOpacity}" stroke-width="1"/>
 
     <!-- Header -->
-    <text x="40" y="80" fill="#ffffff" font-size="24" font-weight="700" letter-spacing="-0.5">${paletteName.toUpperCase()}</text>
-    <text x="40" y="105" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="1">CRAN3O COLOR STUDIO</text>
+    <text x="40" y="80" fill="${textPrimary}" font-size="24" font-weight="700" letter-spacing="-0.5">${paletteName.toUpperCase()}</text>
+    <text x="40" y="105" fill="${textSecondary}" font-size="12" font-weight="500" letter-spacing="1">CRAN3O COLOR STUDIO</text>
     
-    <text x="${width - 40}" y="80" text-anchor="end" fill="#70808a" font-size="12" font-weight="600">${dateStr.toUpperCase()}</text>
-    <text x="${width - 40}" y="105" text-anchor="end" fill="#ffffff" fill-opacity="0.6" font-size="12" font-weight="500" letter-spacing="0.5">${t.mode}: ${modeName.toUpperCase()}</text>
+    <text x="${width - 40}" y="80" text-anchor="end" fill="${textMuted}" font-size="12" font-weight="600">${dateStr.toUpperCase()}</text>
+    <text x="${width - 40}" y="105" text-anchor="end" fill="${textPrimary}" fill-opacity="0.6" font-size="12" font-weight="500" letter-spacing="0.5">${t.mode}: ${modeName.toUpperCase()}</text>
 
     <!-- Header divider -->
-    <line x1="40" y1="130" x2="${width - 40}" y2="130" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+    <line x1="40" y1="130" x2="${width - 40}" y2="130" stroke="${borderStroke}" stroke-opacity="${borderOpacity}" stroke-width="1"/>
   `;
 
   // Draw colors
@@ -64,31 +78,31 @@ export function exportPaletteToSvg(colors: ColorData[], paletteName: string, mod
     
     svgContent += `
       <!-- Swatch -->
-      <rect x="40" y="${y}" width="100" height="70" rx="3" fill="${color.hex}" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+      <rect x="40" y="${y}" width="100" height="70" rx="3" fill="${color.hex}" stroke="${swatchStroke}" stroke-opacity="${swatchOpacity}" stroke-width="1"/>
       
       <!-- Label Details -->
-      <text x="160" y="${y + 25}" fill="#ffffff" font-size="16" font-weight="600">${color.displayName}</text>
-      <text x="160" y="${y + 48}" fill="#a9a7a1" font-size="12" font-weight="500" letter-spacing="0.5">${color.role.toUpperCase()}</text>
-      <text x="160" y="${y + 63}" fill="#70808a" font-size="11" font-weight="500">${t.tone}: ${tempText}</text>
+      <text x="160" y="${y + 25}" fill="${textPrimary}" font-size="16" font-weight="600">${color.displayName}</text>
+      <text x="160" y="${y + 48}" fill="${textSecondary}" font-size="12" font-weight="500" letter-spacing="0.5">${color.role.toUpperCase()}</text>
+      <text x="160" y="${y + 63}" fill="${textMuted}" font-size="11" font-weight="500">${t.tone}: ${tempText}</text>
 
       <!-- Technical values -->
-      <text x="320" y="${y + 25}" fill="#ffffff" fill-opacity="0.8" font-size="12" font-family="monospace">HEX: ${color.hex.toUpperCase()}</text>
-      <text x="320" y="${y + 48}" fill="#a9a7a1" font-size="11" font-family="monospace">RGB: ${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}</text>
+      <text x="320" y="${y + 25}" fill="${textPrimary}" fill-opacity="0.8" font-size="12" font-family="monospace">HEX: ${color.hex.toUpperCase()}</text>
+      <text x="320" y="${y + 48}" fill="${textSecondary}" font-size="11" font-family="monospace">RGB: ${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}</text>
 
-      <text x="500" y="${y + 25}" fill="#ffffff" fill-opacity="0.8" font-size="12" font-family="monospace">HSL: ${color.hsl.h}°, ${color.hsl.s}%, ${color.hsl.l}%</text>
-      <text x="500" y="${y + 48}" fill="#a9a7a1" font-size="11" font-family="monospace">OKLCH: ${lValue}, ${cValue}, ${hValue}°</text>
+      <text x="500" y="${y + 25}" fill="${textPrimary}" fill-opacity="0.8" font-size="12" font-family="monospace">HSL: ${color.hsl.h}°, ${color.hsl.s}%, ${color.hsl.l}%</text>
+      <text x="500" y="${y + 48}" fill="${textSecondary}" font-size="11" font-family="monospace">OKLCH: ${lValue}, ${cValue}, ${hValue}°</text>
       
       <!-- Swatch indicator line -->
-      <line x1="40" y1="${y + 80}" x2="${width - 40}" y2="${y + 80}" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+      <line x1="40" y1="${y + 80}" x2="${width - 40}" y2="${y + 80}" stroke="${dividerStroke}" stroke-opacity="${dividerOpacity}" stroke-width="1"/>
     `;
   });
 
   // Footer
   const footerY = height - 40;
   svgContent += `
-    <line x1="40" y1="${footerY - 20}" x2="${width - 40}" y2="${footerY - 20}" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
-    <text x="40" y="${footerY}" fill="#70808a" font-size="10" font-weight="500">${t.footerLeft}</text>
-    <text x="${width - 40}" y="${footerY}" text-anchor="end" fill="#70808a" font-size="10" font-weight="500">${t.footerRight}</text>
+    <line x1="40" y1="${footerY - 20}" x2="${width - 40}" y2="${footerY - 20}" stroke="${borderStroke}" stroke-opacity="${borderOpacity}" stroke-width="1"/>
+    <text x="40" y="${footerY}" fill="${textMuted}" font-size="10" font-weight="500">${t.footerLeft}</text>
+    <text x="${width - 40}" y="${footerY}" text-anchor="end" fill="${textMuted}" font-size="10" font-weight="500">${t.footerRight}</text>
   </svg>`;
 
   return svgContent;
