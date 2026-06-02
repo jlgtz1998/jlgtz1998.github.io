@@ -1,13 +1,15 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ColorData, DesignMode, MutationStrength, OklchColor, SlidersState, UserIdentity, Preset } from '../types';
-import { mutateColor, applySliders, NEUTRAL_SLIDERS, generateFromIdentity } from '../lib/variation';
-import { createColorFromHex, createColorFromOklch, hexToOklch } from '../lib/color-spaces';
+import { ColorData, DesignMode, SlidersState, UserIdentity, Preset } from '../types';
+import { applySliders, generateFromIdentity, mutateColor, NEUTRAL_SLIDERS } from '../lib/variation';
+import { createColorFromHex, hexToOklch } from '../lib/color-spaces';
 import { generateColorName } from '../lib/naming';
-import { roleForIndex, moveColor, createPaletteFromPresetNative, createPaletteFromPreset, MAX_PALETTE_SIZE } from '../lib/palette';
-import { generateHarmony } from '../lib/harmony';
-import { normalizeHexDraft, updateOklchForColor } from './mutationHelpers';
+import { roleForIndex, createPaletteFromPresetNative, createPaletteFromPreset, MAX_PALETTE_SIZE } from '../lib/palette';
+import { normalizeHexDraft } from './mutationHelpers';
+import { usePaletteReorder } from './usePaletteReorder';
+import { useIndividualColorEdits } from './useIndividualColorEdits';
+import { useHarmonyActions } from './useHarmonyActions';
 
 type PresetSizingMode = 'native' | 'current';
 
@@ -31,16 +33,40 @@ export function useColorMutations(
   updateColorsAndPushHistory: (newColors: ColorData[]) => void,
   setColorsKeepingActive: (newColors: ColorData[]) => void,
 ) {
-  const [activeHarmonyId, setActiveHarmonyId] = useState<string>('material');
-  const [mutationStrength, setMutationStrength] = useState<MutationStrength>('balanced');
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragStartColors, setDragStartColors] = useState<ColorData[] | null>(null);
-  const [localOklch, setLocalOklch] = useState<OklchColor | null>(null);
-  const [hexDrafts, setHexDrafts] = useState<Record<string, string>>({});
   const [addColorDraft, setAddColorDraft] = useState('');
   const [addColorInvalid, setAddColorInvalid] = useState(false);
   const [slidersTarget, setSlidersTarget] = useState<'all' | 'selected'>('all');
-  const [harmonyBaseColorId, setHarmonyBaseColorId] = useState<string | null>(null);
+
+  const harmonyHook = useHarmonyActions(
+    colors,
+    activeColor,
+    identity,
+    setSliders,
+    updateColorsAndPushHistory,
+  );
+  const {
+    activeHarmonyId,
+    setActiveHarmonyId,
+    harmonyBaseColorId,
+    setHarmonyBaseColorId,
+    mutationStrength,
+    setMutationStrength,
+  } = harmonyHook;
+
+  const reorderHook = usePaletteReorder(colors, setColors, pushHistory);
+  const { draggingId, setDraggingId, dragStartColors, setDragStartColors } = reorderHook;
+
+  const editsHook = useIndividualColorEdits(
+    colors,
+    setColors,
+    activeColor,
+    viewMode,
+    harmonyBaseColorId,
+    activeHarmonyId,
+    identity.chroma,
+    updateColorsAndPushHistory,
+  );
+  const { localOklch, setLocalOklch, hexDrafts, setHexDrafts } = editsHook;
 
   const handleDeleteColor = useCallback((id: string) => {
     const nextColors = colors.filter((c) => c.id !== id);
@@ -48,7 +74,7 @@ export function useColorMutations(
     setColorsKeepingActive(nextColors);
     if (harmonyBaseColorId === id) setHarmonyBaseColorId(nextColors[0]?.id ?? null);
     pushHistory(nextColors);
-  }, [colors, harmonyBaseColorId, pushHistory, setColorsKeepingActive, setPaletteSize]);
+  }, [colors, harmonyBaseColorId, pushHistory, setColorsKeepingActive, setPaletteSize, setHarmonyBaseColorId]);
 
   const handleAddColor = useCallback((hexOverride?: string) => {
     if (colors.length >= MAX_PALETTE_SIZE) return;
@@ -97,48 +123,10 @@ export function useColorMutations(
     }
   }, [handleAddColor]);
 
-  const handleGenerateHarmony = useCallback(() => {
-    const seedColor = colors.find((c) => c.id === harmonyBaseColorId) || activeColor || colors[0];
-    if (!seedColor) return;
-    const generatedOklchs = generateHarmony(seedColor.oklch, activeHarmonyId, identity.chroma / 50);
-    const nextColors = colors.map((color, index) => {
-      if (color.locked) return color;
-      const oklch = generatedOklchs[index % generatedOklchs.length];
-      const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
-      nextColor.id = color.id; nextColor.role = color.role; nextColor.locked = false;
-      return nextColor;
-    });
-    setSliders(NEUTRAL_SLIDERS);
-    updateColorsAndPushHistory(nextColors);
-  }, [colors, harmonyBaseColorId, activeHarmonyId, identity.chroma, activeColor, updateColorsAndPushHistory, setSliders]);
-
-  const handleHarmonyChange = useCallback((harmonyId: string) => {
-    setActiveHarmonyId(harmonyId);
-    const seedColor = colors.find((c) => c.id === harmonyBaseColorId) || activeColor || colors[0];
-    if (!seedColor) return;
-    const generatedOklchs = generateHarmony(seedColor.oklch, harmonyId, identity.chroma / 50);
-    const nextColors = colors.map((color, index) => {
-      if (color.locked) return color;
-      const oklch = generatedOklchs[index % generatedOklchs.length];
-      const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
-      nextColor.id = color.id; nextColor.role = color.role; nextColor.locked = false;
-      return nextColor;
-    });
-    setSliders(NEUTRAL_SLIDERS);
-    updateColorsAndPushHistory(nextColors);
-  }, [colors, harmonyBaseColorId, identity.chroma, activeColor, updateColorsAndPushHistory, setSliders]);
-
-  const handleRefinePalette = useCallback(() => {
-    const nextColors = colors.map((c) => c.locked ? c : mutateColor(c, 'subtle'));
-    setSliders(NEUTRAL_SLIDERS);
-    updateColorsAndPushHistory(nextColors);
-  }, [colors, updateColorsAndPushHistory, setSliders]);
-
-  const handleMutatePalette = useCallback(() => {
-    const nextColors = colors.map((c) => c.locked ? c : mutateColor(c, mutationStrength));
-    setSliders(NEUTRAL_SLIDERS);
-    updateColorsAndPushHistory(nextColors);
-  }, [colors, mutationStrength, updateColorsAndPushHistory, setSliders]);
+  const handleGenerateHarmony = harmonyHook.handleGenerateHarmony;
+  const handleHarmonyChange = harmonyHook.handleHarmonyChange;
+  const handleRefinePalette = harmonyHook.handleRefinePalette;
+  const handleMutatePalette = harmonyHook.handleMutatePalette;
 
   const handleIdentitySliderChange = useCallback((newIdentity: UserIdentity) => {
     const generated = generateFromIdentity(newIdentity, paletteSize);
@@ -155,15 +143,8 @@ export function useColorMutations(
 
   const handleIdentityInteractionEnd = useCallback(() => pushHistory(colors), [colors, pushHistory]);
 
-  const handleColorWheelChange = useCallback((newOklch: OklchColor) => {
-    if (!activeColor) return;
-    setLocalOklch(newOklch);
-    setColors(updateOklchForColor(colors, activeColor.id, newOklch, viewMode, harmonyBaseColorId, activeHarmonyId, identity.chroma));
-  }, [colors, viewMode, harmonyBaseColorId, activeHarmonyId, identity.chroma, activeColor, setColors]);
-
-  const handleIndividualColorOklchChange = useCallback((id: string, newOklch: OklchColor) => {
-    setColors(updateOklchForColor(colors, id, newOklch, viewMode, harmonyBaseColorId, activeHarmonyId, identity.chroma));
-  }, [colors, viewMode, harmonyBaseColorId, activeHarmonyId, identity.chroma, setColors]);
+  const handleColorWheelChange = editsHook.handleColorWheelChange;
+  const handleIndividualColorOklchChange = editsHook.handleIndividualColorOklchChange;
 
   const handleSliderChange = useCallback((key: keyof SlidersState, value: number) => {
     const nextSliders = { ...sliders, [key]: value };
@@ -186,67 +167,18 @@ export function useColorMutations(
     updateColorsAndPushHistory(nextColors);
     setActiveColorId(nextColors[Math.min(4, nextColors.length - 1)]?.id ?? null);
     setHarmonyBaseColorId(nextColors[0]?.id ?? null);
-  }, [paletteSize, mode, colors, updateColorsAndPushHistory, setMode, setPaletteName, setSliders, setPaletteSize, setActiveColorId]);
+  }, [paletteSize, mode, colors, updateColorsAndPushHistory, setMode, setPaletteName, setSliders, setPaletteSize, setActiveColorId, setHarmonyBaseColorId]);
 
-  const handleToggleLock = useCallback((id: string) => {
-    updateColorsAndPushHistory(colors.map((c) => c.id === id ? { ...c, locked: !c.locked } : c));
-  }, [colors, updateColorsAndPushHistory]);
+  const handleToggleLock = editsHook.handleToggleLock;
+  const handleRenameColor = editsHook.handleRenameColor;
+  const handleHexDraftChange = editsHook.handleHexDraftChange;
+  const commitHexChange = editsHook.commitHexChange;
 
-  const handleRenameColor = useCallback((id: string, newName: string) => {
-    setColors(colors.map((c) => c.id === id ? { ...c, displayName: newName } : c));
-  }, [colors, setColors]);
+  const handleMoveColor = reorderHook.handleMoveColor;
+  const handlePreviewMoveColor = reorderHook.handlePreviewMoveColor;
+  const finishDragReorder = reorderHook.finishDragReorder;
 
-  const handleHexDraftChange = useCallback((id: string, value: string) => {
-    setHexDrafts((current) => ({ ...current, [id]: value.toUpperCase() }));
-  }, []);
-
-  const commitHexChange = useCallback((id: string) => {
-    const current = colors.find((c) => c.id === id);
-    if (!current) return;
-    const nextHex = normalizeHexDraft(hexDrafts[id] ?? current.hex);
-    if (!nextHex || nextHex === current.hex) {
-      setHexDrafts((drafts) => ({ ...drafts, [id]: current.hex.toUpperCase() }));
-      return;
-    }
-    const nextColor = createColorFromHex(nextHex, generateColorName(hexToOklch(nextHex)));
-    nextColor.id = current.id; nextColor.role = current.role; nextColor.locked = current.locked;
-    setLocalOklch(nextColor.oklch);
-    updateColorsAndPushHistory(colors.map((c) => c.id === id ? nextColor : c));
-  }, [colors, hexDrafts, updateColorsAndPushHistory]);
-
-  const handleMoveColor = useCallback((fromIndex: number, toIndex: number) => {
-    updateColorsAndPushHistory(moveColor(colors, fromIndex, toIndex));
-  }, [colors, updateColorsAndPushHistory]);
-
-  const handlePreviewMoveColor = useCallback((targetId: string) => {
-    if (!draggingId || draggingId === targetId) return;
-    setColors((currentColors) => {
-      const fromIndex = currentColors.findIndex((c) => c.id === draggingId);
-      const toIndex = currentColors.findIndex((c) => c.id === targetId);
-      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return currentColors;
-      return moveColor(currentColors, fromIndex, toIndex);
-    });
-  }, [draggingId, setColors]);
-
-  const finishDragReorder = useCallback(() => {
-    if (draggingId && dragStartColors) pushHistory(colors);
-    setDraggingId(null);
-    setDragStartColors(null);
-  }, [draggingId, dragStartColors, colors, pushHistory]);
-
-  const handleHarmonyBaseClick = useCallback((color: ColorData) => {
-    setHarmonyBaseColorId(color.id);
-    const generatedOklchs = generateHarmony(color.oklch, activeHarmonyId, identity.chroma / 50);
-    const nextColors = colors.map((col, idx) => {
-      if (col.id === color.id) return col;
-      if (col.locked) return col;
-      const oklch = generatedOklchs[idx % generatedOklchs.length];
-      const nextColor = createColorFromOklch(oklch, generateColorName(oklch));
-      nextColor.id = col.id; nextColor.role = col.role; nextColor.locked = false;
-      return nextColor;
-    });
-    updateColorsAndPushHistory(nextColors);
-  }, [colors, activeHarmonyId, identity.chroma, updateColorsAndPushHistory]);
+  const handleHarmonyBaseClick = harmonyHook.handleHarmonyBaseClick;
 
   return {
     activeHarmonyId,
